@@ -40,7 +40,7 @@ const CONFIG_LABELS: Record<string, string> = {
 
 @Controller('admin')
 @UseGuards(SessionAuthGuard, RolesGuard)
-@Roles('admin')
+@Roles('admin', 'superadmin')
 export class AdminController {
   constructor(
     private readonly securityConfigService: SecurityConfigService,
@@ -49,6 +49,7 @@ export class AdminController {
   ) {}
 
   @Get('users')
+  @Roles('admin', 'superadmin')
   async getUsers(
     @Query('search') search?: string,
     @Query('role') role?: string,
@@ -59,6 +60,7 @@ export class AdminController {
   }
 
   @Patch('users/:id/role')
+  @Roles('admin', 'superadmin')
   async updateUserRole(
     @Param('id') userId: string,
     @Body() dto: UpdateUserRoleDto,
@@ -67,11 +69,13 @@ export class AdminController {
   }
 
   @Get('roles')
+  @Roles('admin', 'superadmin')
   async getRoles() {
     return this.adminUsersService.getMasterRoles();
   }
 
-  @Post('reseller-invites')
+  @Post(['reseller-invites', 'invites'])
+  @Roles('admin', 'superadmin')
   @HttpCode(HttpStatus.CREATED)
   async createResellerInvite(
     @Body() dto: CreateResellerInviteDto,
@@ -80,23 +84,27 @@ export class AdminController {
     return this.resellerInviteService.createInvite(dto, req.user?.id);
   }
 
-  @Get('reseller-invites')
+  @Get(['reseller-invites', 'invites'])
+  @Roles('admin', 'superadmin')
   async getResellerInvites() {
     return this.resellerInviteService.getInvites();
   }
 
   @Delete('reseller-invites/:id')
+  @Roles('admin', 'superadmin')
   async revokeResellerInvite(@Param('id') id: string) {
     return this.resellerInviteService.revokeInvite(id);
   }
 
   @Post('reseller-invites/:id/revoke')
+  @Roles('admin', 'superadmin')
   @HttpCode(HttpStatus.OK)
   async revokeResellerInvitePost(@Param('id') id: string) {
     return this.resellerInviteService.revokeInvite(id);
   }
 
-  @Get('config')
+  @Get(['config', 'security/config'])
+  @Roles('superadmin')
   async getConfig() {
     const config = await this.securityConfigService.getConfig();
     const items = Object.entries(SECURITY_CONFIG_SPECS).map(([key, spec]) => ({
@@ -114,7 +122,8 @@ export class AdminController {
     };
   }
 
-  @Put('config')
+  @Put(['config', 'security/config'])
+  @Roles('superadmin')
   async updateConfig(@Body() body: any) {
     if (!body || typeof body !== 'object') {
       throw new BadRequestException('Request body harus berupa JSON object.');
@@ -158,5 +167,40 @@ export class AdminController {
       updated,
       config: await this.securityConfigService.getConfig(),
     };
+  }
+
+  @Get('tax')
+  @Roles('superadmin')
+  async getTaxConfig() {
+    return this.adminUsersService.getTaxConfig();
+  }
+
+  @Put('tax')
+  @Roles('superadmin')
+  async updateTaxConfig(@Body() body: any) {
+    if (!body || typeof body !== 'object') {
+      throw new BadRequestException('Request body harus berupa JSON object.');
+    }
+    const rawVal = body.taxPercent ?? body.tax_percent ?? body.value;
+    if (rawVal === undefined || rawVal === null) {
+      throw new BadRequestException('Field taxPercent atau tax_percent wajib disertakan.');
+    }
+    const numVal = Number(rawVal);
+    if (isNaN(numVal) || numVal < 0 || numVal > 100) {
+      throw new BadRequestException('Persentase pajak harus berupa angka valid antara 0 dan 100.');
+    }
+    return this.adminUsersService.updateTaxConfig(numVal);
+  }
+
+  @Post('tax')
+  @Roles('superadmin')
+  async updateTaxConfigPost(@Body() body: any) {
+    return this.updateTaxConfig(body);
+  }
+
+  @Get(['policies', 'policies/matrix'])
+  @Roles('superadmin')
+  async getPolicies() {
+    return this.adminUsersService.getDiscountPolicies();
   }
 }

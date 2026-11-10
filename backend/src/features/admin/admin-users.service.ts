@@ -230,4 +230,54 @@ export class AdminUsersService {
       badge_style: r.badge_style,
     }));
   }
+
+  async getTaxConfig(): Promise<{ key: string; taxPercent: number; tax_percent: number }> {
+    const { rows } = await this.db.query(
+      `SELECT value FROM master.t_mtr_app_config WHERE key = 'finance.tax_percent'`,
+    );
+    let taxPercent = 11;
+    if (rows && rows.length > 0 && rows[0].value !== null && rows[0].value !== undefined) {
+      const parsed = Number(rows[0].value);
+      if (!isNaN(parsed)) {
+        taxPercent = parsed;
+      }
+    }
+    return {
+      key: 'finance.tax_percent',
+      taxPercent,
+      tax_percent: taxPercent,
+    };
+  }
+
+  async updateTaxConfig(taxPercent: number): Promise<{ success: boolean; key: string; taxPercent: number; tax_percent: number; message: string }> {
+    if (typeof taxPercent !== 'number' || isNaN(taxPercent) || taxPercent < 0 || taxPercent > 100) {
+      throw new BadRequestException('Persentase pajak harus berupa angka valid antara 0 dan 100.');
+    }
+
+    await this.db.query(
+      `INSERT INTO master.t_mtr_app_config (key, value, updated_at)
+       VALUES ('finance.tax_percent', $1, now())
+       ON CONFLICT (key) DO UPDATE
+       SET value = EXCLUDED.value, updated_at = now()`,
+      [taxPercent.toString()],
+    );
+
+    return {
+      success: true,
+      key: 'finance.tax_percent',
+      taxPercent,
+      tax_percent: taxPercent,
+      message: 'Konfigurasi tarif PPN berhasil diperbarui.',
+    };
+  }
+
+  async getDiscountPolicies() {
+    const { rows } = await this.db.query(
+      `SELECT * FROM master.t_mtr_discount_policies ORDER BY priority DESC, id ASC`,
+    );
+    return {
+      success: true,
+      policies: rows,
+    };
+  }
 }
