@@ -13,4 +13,5 @@ export * from './components/SidebarSearch';
 export * from './components/CommandPaletteModal';
 export * from './components/SidebarNotification';
 export * from './components/OrdersTable';
+export * from './components/TaxConfigPanel';
 

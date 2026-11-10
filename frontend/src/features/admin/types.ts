@@ -109,3 +109,17 @@ export interface ExhaustOrder {
   createdAt: string;
 }
 
+export type TaxMode = 'include' | 'exclude';
+
+export interface TaxConfigData {
+  taxPercent: number;
+  taxMode: TaxMode;
+  autoFakturB2B: boolean;
+  companyName: string;
+  companyNpwp: string;
+  companyAddress: string;
+  pkpNumber?: string;
+  fakturPrefix?: string;
+  updatedAt?: string;
+}
+
