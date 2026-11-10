@@ -9,3 +9,5 @@ export * from './components/VipInviteModal';
 export * from './components/CustomerDetailDrawer';
 export * from './components/AdminShell';
 export * from './components/DiscountPoliciesPanel';
+export * from './components/SidebarSearch';
+export * from './components/CommandPaletteModal';
