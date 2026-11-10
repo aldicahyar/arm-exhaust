@@ -1,0 +1,166 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["master", "transaction"]
+}
+
+model User {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_seq          BigInt           @default(autoincrement())
+  name            String
+  email           String           @unique
+  password_hash   String?          @map("password_hash")
+  role            String           @default("customer")
+  created_at      DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updated_at      DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  identities      UserIdentity[]
+  sessions        Session[]
+  role_rel        Role?            @relation(fields: [role], references: [id])
+  created_invites ResellerInvite[] @relation("InviteCreator")
+  claimed_invites ResellerInvite[] @relation("InviteClaimer")
+
+  @@map("t_mtr_users")
+  @@schema("master")
+}
+
+model Role {
+  id               String           @id @db.VarChar(30)
+  name             String           @db.VarChar(50)
+  description      String?          @db.Text
+  can_access_admin Boolean          @default(false) @map("can_access_admin")
+  can_access_b2b   Boolean          @default(false) @map("can_access_b2b")
+  badge_style      Json             @default("{\"bg\": \"#1C180A\", \"border\": \"#B45309\", \"text\": \"#F59E0B\"}") @map("badge_style")
+  created_at       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updated_at       DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  users            User[]
+  invites          ResellerInvite[]
+
+  @@map("t_mtr_roles")
+  @@schema("master")
+}
+
+model DiscountPolicy {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code               String    @unique @db.VarChar(50)
+  name               String    @db.VarChar(100)
+  description        String?   @db.Text
+  discount_type      String    @default("PERCENTAGE") @map("discount_type") @db.VarChar(20)
+  discount_value     Decimal   @map("discount_value") @db.Decimal(10, 2)
+  target_roles       String[]  @map("target_roles")
+  target_categories  String[]  @map("target_categories")
+  target_product_ids String[]  @map("target_product_ids")
+  min_order_qty      Int       @default(1) @map("min_order_qty")
+  min_order_amount   Decimal   @default(0) @map("min_order_amount") @db.Decimal(12, 2)
+  coupon_code        String?   @map("coupon_code") @db.VarChar(50)
+  criteria_rules     Json      @default("{}") @map("criteria_rules")
+  priority           Int       @default(0)
+  stacking_mode      String    @default("EXCLUSIVE") @map("stacking_mode") @db.VarChar(20)
+  valid_from         DateTime? @map("valid_from") @db.Timestamptz
+  valid_until        DateTime? @map("valid_until") @db.Timestamptz
+  is_active          Boolean   @default(true) @map("is_active")
+  created_at         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updated_at         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([target_roles])
+  @@index([is_active, priority(sort: Desc)])
+  @@map("t_mtr_discount_policies")
+  @@schema("master")
+}
+
+model ResellerInvite {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token              String    @unique @db.VarChar(64)
+  partner_name       String    @map("partner_name") @db.VarChar(120)
+  partner_phone      String?   @map("partner_phone") @db.VarChar(30)
+  role_to_grant      String    @default("reseller") @map("role_to_grant") @db.VarChar(30)
+  created_by         String?   @map("created_by") @db.Uuid
+  max_uses           Int       @default(1) @map("max_uses")
+  used_count         Int       @default(0) @map("used_count")
+  expires_at         DateTime  @map("expires_at") @db.Timestamptz
+  claimed_at         DateTime? @map("claimed_at") @db.Timestamptz
+  claimed_by_user_id String?   @map("claimed_by_user_id") @db.Uuid
+  is_revoked         Boolean   @default(false) @map("is_revoked")
+  created_at         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  role_grant Role  @relation(fields: [role_to_grant], references: [id])
+  creator    User? @relation("InviteCreator", fields: [created_by], references: [id], onDelete: SetNull)
+  claimed_by User? @relation("InviteClaimer", fields: [claimed_by_user_id], references: [id], onDelete: SetNull)
+
+  @@index([token])
+  @@index([expires_at, is_revoked, used_count])
+  @@map("t_trx_reseller_invites")
+  @@schema("transaction")
+}
+
+model UserIdentity {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_seq           BigInt   @default(autoincrement())
+  user_id          String   @map("user_id") @db.Uuid
+  provider         String
+  provider_user_id String   @map("provider_user_id")
+  created_at       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_user_id])
+  @@index([user_id])
+  @@map("t_mtr_user_identities")
+  @@schema("master")
+}
+
+model AppConfig {
+  key        String   @id
+  value      String
+  updated_at DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("t_mtr_app_config")
+  @@schema("master")
+}
+
+model Session {
+  token      String   @id
+  user_id    String   @map("user_id") @db.Uuid
+  expires_at DateTime @map("expires_at") @db.Timestamptz
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("t_trx_sessions")
+  @@schema("transaction")
+}
+
+model RegistrationOtp {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_seq        BigInt    @default(autoincrement())
+  identifier    String
+  otp_hash      String    @map("otp_hash")
+  payload_enc   String?   @map("payload_enc")
+  attempts      Int       @default(0)
+  request_count Int       @default(1) @map("request_count")
+  expires_at    DateTime  @map("expires_at") @db.Timestamptz
+  locked_until  DateTime? @map("locked_until") @db.Timestamptz
+  verified_at   DateTime? @map("verified_at") @db.Timestamptz
+  created_at    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([identifier])
+  @@map("t_trx_registration_otps")
+  @@schema("transaction")
+}
+
+model RateLimit {
+  ip_address      String    @map("ip_address") @db.Inet
+  action          String
+  window_start    DateTime  @default(now()) @map("window_start") @db.Timestamptz
+  count           Int       @default(1)
+  violation_count Int       @default(0) @map("violation_count")
+  blocked_until   DateTime? @map("blocked_until") @db.Timestamptz
+
+  @@id([ip_address, action])
+  @@index([blocked_until])
+  @@map("t_trx_rate_limits")
+  @@schema("transaction")
+}

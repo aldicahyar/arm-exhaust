@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --text: #1e1501;
+  --background: #fffbf5;
+  --surface: #ffffff;
+  --surface-card: #ffffff;
+  --surface-hover: #fbf5ea;
+  --primary: #f8a712;
+  --secondary: #f7fb7e;
+  --accent: #d6fa47;
+  --muted: #786b53;
+  --border: #eedec5;
+}
+
+html {
+  font-family: 'Readex Pro', 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--background);
+  color: var(--text);
+}
+
+::selection {
+  background-color: rgba(248, 167, 18, 0.25);
+  color: #1e1501;
+}
