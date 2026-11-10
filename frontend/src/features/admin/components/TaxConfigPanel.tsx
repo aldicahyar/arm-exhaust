@@ -133,13 +133,11 @@ export function TaxConfigPanel() {
       // Fallback to default without blocking the UI
       setTaxPercent(11);
       setInitialTaxPercent(11);
-      if (!isForbidden) {
-        notify?.error('Koneksi Gagal', msg);
-      }
+      notify?.error('Koneksi Gagal', msg);
     } finally {
       setLoading(false);
     }
-  }, [isForbidden, notify]);
+  }, [notify]);
 
   useEffect(() => {
     fetchTaxConfig();
@@ -422,7 +420,9 @@ export function TaxConfigPanel() {
                       max={100}
                       step={0.5}
                       value={taxPercent}
-                      onChange={(e) => setTaxPercent(Number(e.target.value))}
+                      onChange={(e) =>
+                        setTaxPercent(Math.max(0, Math.min(100, Number(e.target.value) || 0)))
+                      }
                       className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3.5 py-2.5 text-sm font-bold font-mono text-white placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-xs font-bold text-zinc-400">
@@ -436,17 +436,19 @@ export function TaxConfigPanel() {
                   <input
                     type="range"
                     min={0}
-                    max={25}
+                    max={100}
                     step={1}
                     value={taxPercent}
-                    onChange={(e) => setTaxPercent(Number(e.target.value))}
+                    onChange={(e) =>
+                      setTaxPercent(Math.max(0, Math.min(100, Number(e.target.value) || 0)))
+                    }
                     className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
                   />
                   <div className="flex justify-between text-[10px] text-zinc-500 font-mono mt-1">
                     <span>0% (Bebas)</span>
                     <span>11% (UU HPP)</span>
                     <span>12% (2025+)</span>
-                    <span>25%</span>
+                    <span>100% (Maks)</span>
                   </div>
                 </div>
               </div>

@@ -36,4 +36,9 @@ assert(content.includes('export function TaxConfigPanel') || content.includes('e
 const indexContent = fs.readFileSync('frontend/src/features/admin/index.ts', 'utf-8');
 assert(indexContent.includes('TaxConfigPanel'), 'frontend/src/features/admin/index.ts wajib mengexport TaxConfigPanel');
 
+// 8. Robustness & Bounds checking
+assert(content.includes('Math.min(100') && content.includes('Math.max(0'), 'Wajib membatasi input tarif PPN antara 0-100%');
+assert(content.includes('max={100}'), 'Wajib mengonfigurasi slider dengan max 100%');
+assert(!/fetchTaxConfig = useCallback\([\s\S]*?\[[^\]]*isForbidden[^\]]*\]\);/.test(content), 'fetchTaxConfig dependency array tidak boleh menyertakan isForbidden untuk mencegah loop render');
+
 console.log('PASS: TaxConfigPanel contract passed.');
