@@ -74,3 +74,38 @@ export interface CrmMetrics {
   distributorCount: number;
   pendingInvites: number;
 }
+
+export type ExhaustOrderStatus =
+  | 'Menunggu Konfirmasi'
+  | 'Antrean Produksi & QC'
+  | 'Siap Kirim'
+  | 'Selesai';
+
+export type ExhaustOrderType = 'READY STOCK' | 'PRE-ORDER / CUSTOM';
+
+export type ExhaustPaymentStatus = 'Lunas' | 'DP 50%' | 'Belum Bayar';
+
+export type ExhaustSlaStatus = 'urgent' | 'warning' | 'normal' | 'done';
+
+export interface ExhaustOrder {
+  id: string;
+  customerName: string;
+  customerRole: 'Reseller B2B' | 'Retail Customer' | 'Distributor VIP';
+  customerPhone: string;
+  workshopName?: string;
+  productName: string;
+  exhaustSpecs: string;
+  orderType: ExhaustOrderType;
+  status: ExhaustOrderStatus;
+  targetDispatchDate: string;
+  slaLabel: string;
+  slaStatus: ExhaustSlaStatus;
+  totalAmount: number;
+  downPaymentAmount?: number;
+  paymentStatus: ExhaustPaymentStatus;
+  courier?: string;
+  trackingNumber?: string;
+  notes?: string;
+  createdAt: string;
+}
+

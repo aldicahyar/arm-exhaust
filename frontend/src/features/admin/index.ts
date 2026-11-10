@@ -12,3 +12,5 @@ export * from './components/DiscountPoliciesPanel';
 export * from './components/SidebarSearch';
 export * from './components/CommandPaletteModal';
 export * from './components/SidebarNotification';
+export * from './components/OrdersTable';
+
