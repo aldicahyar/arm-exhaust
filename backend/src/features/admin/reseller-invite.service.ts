@@ -65,7 +65,7 @@ export class ResellerInviteService {
     );
 
     const inv = rows[0];
-    const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
     const inviteUrl = `${appUrl}/reseller/vip-join?token=${token}`;
 
     return {
@@ -123,7 +123,7 @@ export class ResellerInviteService {
         status = 'expired';
       }
 
-      const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
+      const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
       const inviteUrl = `${appUrl}/reseller/vip-join?token=${row.token}`;
 
       return {
