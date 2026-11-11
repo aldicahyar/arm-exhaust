@@ -18,7 +18,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     // Set search_path agar otomatis memprioritaskan skema transaction dan master
     this.pool.on('connect', (client) => {
-      client.query('SET search_path TO transaction, master');
+      void client.query('SET search_path TO transaction, master').catch((err) => {
+        this.logger.error('Failed to set search_path on client connection', err);
+      });
     });
 
     this.pool.on('error', (err) => {

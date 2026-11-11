@@ -31,7 +31,7 @@ export class SecurityConfigService {
    * e.g., 'otp.ttl_minutes' -> 'CONFIG_OVERRIDE_OTP_TTL_MINUTES'
    */
   private getEnvKey(key: string): string {
-    return `CONFIG_OVERRIDE_${key.toUpperCase().replace(/\./g, '_')}`;
+    return `CONFIG_OVERRIDE_${key.toUpperCase().replaceAll('.', '_')}`;
   }
 
   /**
@@ -41,11 +41,75 @@ export class SecurityConfigService {
   clampConfig(key: string, val: number): number {
     const spec = SECURITY_CONFIG_SPECS[key];
     if (!spec) {
-      return typeof val === 'number' && !isNaN(val) ? Math.round(val) : val;
+      return typeof val === 'number' && !Number.isNaN(val) ? Math.round(val) : val;
     }
 
-    const num = typeof val === 'number' && !isNaN(val) ? val : spec.default;
+    const num = typeof val === 'number' && !Number.isNaN(val) ? val : spec.default;
     return Math.min(spec.max, Math.max(spec.min, Math.round(num)));
+  }
+
+  /**
+   * Checks whether the in-memory cache is still valid.
+   */
+  private isCacheValid(now: number, cacheTtlMs: number): boolean {
+    return Boolean(this.cachedConfig && now - this.lastCacheTime < cacheTtlMs);
+  }
+
+  /**
+   * Initializes config map with default values from spec.
+   */
+  private getDefaultConfig(): Record<string, number> {
+    const defaults: Record<string, number> = {};
+    for (const [key, spec] of Object.entries(SECURITY_CONFIG_SPECS)) {
+      defaults[key] = spec.default;
+    }
+    return defaults;
+  }
+
+  /**
+   * Loads config overrides stored in master.t_mtr_app_config.
+   */
+  private async loadDbOverrides(): Promise<Record<string, number>> {
+    if (!this.dbService) {
+      return {};
+    }
+
+    try {
+      const result = await this.dbService.query<{ key: string; value: string }>(
+        'SELECT key, value FROM master.t_mtr_app_config',
+      );
+      const overrides: Record<string, number> = {};
+      for (const row of result.rows) {
+        if (row.key in SECURITY_CONFIG_SPECS) {
+          const parsed = Number(row.value);
+          if (!Number.isNaN(parsed)) {
+            overrides[row.key] = this.clampConfig(row.key, parsed);
+          }
+        }
+      }
+      return overrides;
+    } catch (err: any) {
+      this.logger.warn(`Could not read master.t_mtr_app_config from DB: ${err.message}. Using defaults/env.`);
+      return {};
+    }
+  }
+
+  /**
+   * Loads config overrides set in process environment variables.
+   */
+  private getEnvOverrides(): Record<string, number> {
+    const overrides: Record<string, number> = {};
+    for (const key of Object.keys(SECURITY_CONFIG_SPECS)) {
+      const envVarName = this.getEnvKey(key);
+      const envVal = process.env[envVarName];
+      if (envVal !== undefined && envVal !== '') {
+        const parsed = Number(envVal);
+        if (!Number.isNaN(parsed)) {
+          overrides[key] = this.clampConfig(key, parsed);
+        }
+      }
+    }
+    return overrides;
   }
 
   /**
@@ -59,46 +123,15 @@ export class SecurityConfigService {
     const cacheTtlMs = Number(process.env.CONFIG_CACHE_TTL_MS ?? 30000);
     const now = Date.now();
 
-    if (this.cachedConfig && now - this.lastCacheTime < cacheTtlMs) {
+    if (this.isCacheValid(now, cacheTtlMs) && this.cachedConfig) {
       return { ...this.cachedConfig };
     }
 
-    // 1. Start with hardcoded defaults
-    const resolved: Record<string, number> = {};
-    for (const [key, spec] of Object.entries(SECURITY_CONFIG_SPECS)) {
-      resolved[key] = spec.default;
-    }
-
-    // 2. Fetch from DB if DatabaseService is available
-    if (this.dbService) {
-      try {
-        const result = await this.dbService.query<{ key: string; value: string }>(
-          'SELECT key, value FROM master.t_mtr_app_config'
-        );
-        for (const row of result.rows) {
-          if (row.key in SECURITY_CONFIG_SPECS) {
-            const parsed = Number(row.value);
-            if (!isNaN(parsed)) {
-              resolved[row.key] = this.clampConfig(row.key, parsed);
-            }
-          }
-        }
-      } catch (err: any) {
-        this.logger.warn(`Could not read master.t_mtr_app_config from DB: ${err.message}. Using defaults/env.`);
-      }
-    }
-
-    // 3. Apply Env Overrides (highest priority)
-    for (const key of Object.keys(SECURITY_CONFIG_SPECS)) {
-      const envVarName = this.getEnvKey(key);
-      const envVal = process.env[envVarName];
-      if (envVal !== undefined && envVal !== '') {
-        const parsed = Number(envVal);
-        if (!isNaN(parsed)) {
-          resolved[key] = this.clampConfig(key, parsed);
-        }
-      }
-    }
+    const resolved: Record<string, number> = {
+      ...this.getDefaultConfig(),
+      ...(await this.loadDbOverrides()),
+      ...this.getEnvOverrides(),
+    };
 
     // Ensure all values are clamped
     for (const [key, val] of Object.entries(resolved)) {
@@ -132,7 +165,7 @@ export class SecurityConfigService {
       throw new BadRequestException(`Unknown configuration key: ${key}`);
     }
 
-    if (typeof val !== 'number' || isNaN(val)) {
+    if (typeof val !== 'number' || Number.isNaN(val)) {
       throw new BadRequestException('Configuration value must be a valid number');
     }
 

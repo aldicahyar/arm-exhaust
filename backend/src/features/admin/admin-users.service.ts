@@ -39,8 +39,8 @@ export class AdminUsersService {
   constructor(private readonly db: DatabaseService) {}
 
   async getUsers(query: GetUsersQuery) {
-    const page = Math.max(1, parseInt(String(query.page || 1), 10) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(String(query.limit || 10), 10) || 10));
+    const page = Math.max(1, Number.parseInt(String(query.page || 1), 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(String(query.limit || 10), 10) || 10));
     const offset = (page - 1) * limit;
 
     const conditions: string[] = [];
@@ -184,7 +184,7 @@ export class AdminUsersService {
     // If target user is currently superadmin OR the new role is superadmin:
     // Enforce currentUser.role === 'superadmin'
     if (targetUser.role === 'superadmin' || cleanRole === 'superadmin') {
-      if (!currentUser || currentUser.role !== 'superadmin') {
+      if (currentUser?.role !== 'superadmin') {
         throw new ForbiddenException('Hanya superadmin yang dapat mengubah atau menetapkan role superadmin.');
       }
     }
@@ -258,8 +258,8 @@ export class AdminUsersService {
         const taxPercent = Number(parsed.taxPercent ?? parsed.tax_percent ?? 11);
         return {
           key: 'finance.tax_config',
-          taxPercent: isNaN(taxPercent) ? 11 : taxPercent,
-          tax_percent: isNaN(taxPercent) ? 11 : taxPercent,
+          taxPercent: Number.isNaN(taxPercent) ? 11 : taxPercent,
+          tax_percent: Number.isNaN(taxPercent) ? 11 : taxPercent,
           companyName: parsed.companyName ?? 'PT ARM Karya Knalpot Indonesia',
           companyNpwp: parsed.companyNpwp ?? '01.234.567.8-901.000',
           nppkp: parsed.nppkp ?? parsed.pkpNumber ?? 'S-123PKP/WPJ.08/KP.0303/2024',
@@ -283,7 +283,7 @@ export class AdminUsersService {
     let taxPercent = 11;
     if (rows && rows.length > 0 && rows[0].value !== null && rows[0].value !== undefined) {
       const parsed = Number(rows[0].value);
-      if (!isNaN(parsed)) {
+      if (!Number.isNaN(parsed)) {
         taxPercent = parsed;
       }
     }
@@ -317,7 +317,7 @@ export class AdminUsersService {
       configObj = { ...dto, taxPercent };
     }
 
-    if (isNaN(taxPercent) || taxPercent < 0 || taxPercent > 100) {
+    if (Number.isNaN(taxPercent) || taxPercent < 0 || taxPercent > 100) {
       throw new BadRequestException('Persentase pajak harus berupa angka valid antara 0 dan 100.');
     }
 
@@ -338,9 +338,12 @@ export class AdminUsersService {
     const companyNpwp = configObj.companyNpwp ?? existingConfig.companyNpwp ?? '01.234.567.8-901.000';
     const nppkp = configObj.nppkp ?? configObj.pkpNumber ?? existingConfig.nppkp ?? existingConfig.pkpNumber ?? 'S-123PKP/WPJ.08/KP.0303/2024';
     const taxMode = configObj.taxMode ?? existingConfig.taxMode ?? 'include';
-    const autoFakturB2B = typeof configObj.autoFakturB2B === 'boolean'
-      ? configObj.autoFakturB2B
-      : (typeof existingConfig.autoFakturB2B === 'boolean' ? existingConfig.autoFakturB2B : true);
+    let autoFakturB2B = true;
+    if (typeof configObj.autoFakturB2B === 'boolean') {
+      autoFakturB2B = configObj.autoFakturB2B;
+    } else if (typeof existingConfig.autoFakturB2B === 'boolean') {
+      autoFakturB2B = existingConfig.autoFakturB2B;
+    }
     const address = configObj.address ?? configObj.companyAddress ?? existingConfig.address ?? existingConfig.companyAddress ?? 'Kawasan Industri Manufaktur Knalpot No. 88, Purbalingga, Jawa Tengah 53311';
     const nsfpPrefix = configObj.nsfpPrefix ?? configObj.fakturPrefix ?? existingConfig.nsfpPrefix ?? existingConfig.fakturPrefix ?? '010.000-26.';
 

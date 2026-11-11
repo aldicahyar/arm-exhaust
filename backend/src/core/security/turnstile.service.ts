@@ -43,7 +43,7 @@ export class TurnstileService {
       }
 
       const data = (await response.json()) as { success?: boolean };
-      if (data && data.success === true) {
+      if (data?.success === true) {
         return { success: true };
       }
 
