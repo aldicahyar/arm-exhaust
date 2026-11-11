@@ -29,6 +29,7 @@ export interface NotificationItem {
 
 export interface SidebarNotificationProps {
   isCollapsed: boolean;
+  userRole?: string;
   notifications?: NotificationItem[];
   onSelectTab?: (tab: string) => void;
   className?: string;
@@ -72,6 +73,7 @@ type FilterCategory = 'all' | 'order' | 'partner' | 'security';
  */
 export function SidebarNotification({
   isCollapsed,
+  userRole,
   notifications: initialNotifications,
   onSelectTab,
   className,
@@ -103,14 +105,30 @@ export function SidebarNotification({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
+  // Filter notifications by role: non-superadmin cannot see notifications targeting security, tax, or policies
+  const roleFilteredItems = useMemo(() => {
+    return items.filter((item) => {
+      if (userRole !== 'superadmin') {
+        if (
+          item.targetTab === 'security' ||
+          item.targetTab === 'tax' ||
+          item.targetTab === 'policies'
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [items, userRole]);
+
   const unreadCount = useMemo(() => {
-    return items.filter((item) => item.unread).length;
-  }, [items]);
+    return roleFilteredItems.filter((item) => item.unread).length;
+  }, [roleFilteredItems]);
 
   const filteredItems = useMemo(() => {
-    if (activeFilter === 'all') return items;
-    return items.filter((item) => item.category === activeFilter);
-  }, [items, activeFilter]);
+    if (activeFilter === 'all') return roleFilteredItems;
+    return roleFilteredItems.filter((item) => item.category === activeFilter);
+  }, [roleFilteredItems, activeFilter]);
 
   const handleMarkAllRead = () => {
     setItems((prev) => prev.map((item) => ({ ...item, unread: false })));

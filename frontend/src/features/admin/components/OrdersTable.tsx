@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useId } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Package,
@@ -631,7 +631,18 @@ export function OrdersTable({
 
                           {/* Col 3: Exhaust Product & Specs */}
                           <td className="py-3.5 px-4 align-top max-w-xs">
-                            <div className="font-medium text-zinc-200 hover:text-amber-400 transition cursor-pointer" onClick={() => setSelectedOrder(order)}>
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => setSelectedOrder(order)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  setSelectedOrder(order);
+                                }
+                              }}
+                              className="font-medium text-zinc-200 hover:text-amber-400 transition cursor-pointer"
+                            >
                               {order.productName}
                             </div>
                             <div className="text-[11px] text-zinc-400 line-clamp-2 mt-0.5">

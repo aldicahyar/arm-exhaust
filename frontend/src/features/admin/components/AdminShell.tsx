@@ -158,6 +158,7 @@ export function AdminShell({ user }: AdminShellProps) {
           />
           <SidebarNotification
             isCollapsed={!open}
+            userRole={user.role}
             onSelectTab={(tabId) => setActiveTab(tabId as AdminShellTab)}
           />
 

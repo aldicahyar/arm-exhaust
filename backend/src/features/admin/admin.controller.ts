@@ -64,8 +64,9 @@ export class AdminController {
   async updateUserRole(
     @Param('id') userId: string,
     @Body() dto: UpdateUserRoleDto,
+    @Req() req: any,
   ) {
-    return this.adminUsersService.updateUserRole(userId, dto.role);
+    return this.adminUsersService.updateUserRole(userId, dto, req.user);
   }
 
   @Get('roles')
@@ -189,7 +190,7 @@ export class AdminController {
     if (isNaN(numVal) || numVal < 0 || numVal > 100) {
       throw new BadRequestException('Persentase pajak harus berupa angka valid antara 0 dan 100.');
     }
-    return this.adminUsersService.updateTaxConfig(numVal);
+    return this.adminUsersService.updateTaxConfig(body);
   }
 
   @Post('tax')

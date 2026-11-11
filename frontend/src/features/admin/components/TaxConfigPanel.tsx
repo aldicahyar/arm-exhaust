@@ -32,14 +32,7 @@ const DEFAULT_FAKTUR_PREFIX = '010.000-26.';
 const LOCAL_STORAGE_KEY = 'arm_exhaust_tax_config';
 
 export function TaxConfigPanel() {
-  // Safe useNotice resolution (works inside and outside NoticeProvider)
-  let notify: any = null;
-  try {
-    const noticeCtx = useNotice();
-    notify = noticeCtx?.notify;
-  } catch {
-    // Graceful fallback for isolated test environments
-  }
+  const { notify } = useNotice();
 
   // 1. Tax Core States
   const [taxPercent, setTaxPercent] = useState<number>(11);
@@ -128,6 +121,17 @@ export function TaxConfigPanel() {
 
       setTaxPercent(fetchedPercent);
       setInitialTaxPercent(fetchedPercent);
+
+      if (data.taxMode) setTaxMode(data.taxMode);
+      if (typeof data.autoFakturB2B === 'boolean') setAutoFakturB2B(data.autoFakturB2B);
+      if (data.companyName) setCompanyName(data.companyName);
+      if (data.companyNpwp) setCompanyNpwp(data.companyNpwp);
+      const addr = data.companyAddress || data.address;
+      if (addr) setCompanyAddress(addr);
+      const pkp = data.pkpNumber || data.nppkp;
+      if (pkp) setPkpNumber(pkp);
+      const prefix = data.fakturPrefix || data.nsfpPrefix;
+      if (prefix) setFakturPrefix(prefix);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan jaringan.';
       // Fallback to default without blocking the UI
@@ -174,8 +178,11 @@ export function TaxConfigPanel() {
         companyName,
         companyNpwp,
         companyAddress,
+        address: companyAddress,
         pkpNumber,
+        nppkp: pkpNumber,
         fakturPrefix,
+        nsfpPrefix: fakturPrefix,
       };
 
       const res = await fetch('/api/admin/tax', {
@@ -204,6 +211,16 @@ export function TaxConfigPanel() {
 
       setTaxPercent(updatedPercent);
       setInitialTaxPercent(updatedPercent);
+      if (result.taxMode) setTaxMode(result.taxMode);
+      if (typeof result.autoFakturB2B === 'boolean') setAutoFakturB2B(result.autoFakturB2B);
+      if (result.companyName) setCompanyName(result.companyName);
+      if (result.companyNpwp) setCompanyNpwp(result.companyNpwp);
+      const savedAddr = result.companyAddress || result.address;
+      if (savedAddr) setCompanyAddress(savedAddr);
+      const savedPkp = result.pkpNumber || result.nppkp;
+      if (savedPkp) setPkpNumber(savedPkp);
+      const savedPrefix = result.fakturPrefix || result.nsfpPrefix;
+      if (savedPrefix) setFakturPrefix(savedPrefix);
 
       // Persist enterprise tax settings to local storage
       if (typeof window !== 'undefined') {

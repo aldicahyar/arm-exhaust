@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { DatabaseService } from '../../core/database/database.service';
 
@@ -133,7 +134,12 @@ export class AdminUsersService {
     };
   }
 
-  async updateUserRole(userId: string, newRole: string) {
+  async updateUserRole(
+    userId: string,
+    dtoOrRole: string | { role: string },
+    currentUser?: any,
+  ) {
+    const newRole = typeof dtoOrRole === 'object' && dtoOrRole ? dtoOrRole.role : dtoOrRole;
     if (!newRole || typeof newRole !== 'string') {
       throw new BadRequestException('Role harus diisi.');
     }
@@ -170,6 +176,17 @@ export class AdminUsersService {
 
     if (!userCheck.rows || userCheck.rows.length === 0) {
       throw new NotFoundException('Pengguna tidak ditemukan.');
+    }
+
+    const targetUser = userCheck.rows[0];
+
+    // Privilege Escalation Check:
+    // If target user is currently superadmin OR the new role is superadmin:
+    // Enforce currentUser.role === 'superadmin'
+    if (targetUser.role === 'superadmin' || cleanRole === 'superadmin') {
+      if (!currentUser || currentUser.role !== 'superadmin') {
+        throw new ForbiddenException('Hanya superadmin yang dapat mengubah atau menetapkan role superadmin.');
+      }
     }
 
     // 3. Update role user di master.t_mtr_users
@@ -231,7 +248,35 @@ export class AdminUsersService {
     }));
   }
 
-  async getTaxConfig(): Promise<{ key: string; taxPercent: number; tax_percent: number }> {
+  async getTaxConfig(): Promise<any> {
+    try {
+      const { rows } = await this.db.query(
+        `SELECT value FROM master.t_mtr_app_config WHERE key = 'finance.tax_config'`,
+      );
+      if (rows && rows.length > 0 && rows[0].value) {
+        const parsed = JSON.parse(rows[0].value);
+        const taxPercent = Number(parsed.taxPercent ?? parsed.tax_percent ?? 11);
+        return {
+          key: 'finance.tax_config',
+          taxPercent: isNaN(taxPercent) ? 11 : taxPercent,
+          tax_percent: isNaN(taxPercent) ? 11 : taxPercent,
+          companyName: parsed.companyName ?? 'PT ARM Karya Knalpot Indonesia',
+          companyNpwp: parsed.companyNpwp ?? '01.234.567.8-901.000',
+          nppkp: parsed.nppkp ?? parsed.pkpNumber ?? 'S-123PKP/WPJ.08/KP.0303/2024',
+          pkpNumber: parsed.pkpNumber ?? parsed.nppkp ?? 'S-123PKP/WPJ.08/KP.0303/2024',
+          taxMode: parsed.taxMode ?? 'include',
+          autoFakturB2B: typeof parsed.autoFakturB2B === 'boolean' ? parsed.autoFakturB2B : true,
+          address: parsed.address ?? parsed.companyAddress ?? 'Kawasan Industri Manufaktur Knalpot No. 88, Purbalingga, Jawa Tengah 53311',
+          companyAddress: parsed.companyAddress ?? parsed.address ?? 'Kawasan Industri Manufaktur Knalpot No. 88, Purbalingga, Jawa Tengah 53311',
+          nsfpPrefix: parsed.nsfpPrefix ?? parsed.fakturPrefix ?? '010.000-26.',
+          fakturPrefix: parsed.fakturPrefix ?? parsed.nsfpPrefix ?? '010.000-26.',
+          updatedAt: parsed.updatedAt,
+        };
+      }
+    } catch {
+      // Ignore JSON parse error and fallback
+    }
+
     const { rows } = await this.db.query(
       `SELECT value FROM master.t_mtr_app_config WHERE key = 'finance.tax_percent'`,
     );
@@ -243,17 +288,88 @@ export class AdminUsersService {
       }
     }
     return {
-      key: 'finance.tax_percent',
+      key: 'finance.tax_config',
       taxPercent,
       tax_percent: taxPercent,
+      companyName: 'PT ARM Karya Knalpot Indonesia',
+      companyNpwp: '01.234.567.8-901.000',
+      nppkp: 'S-123PKP/WPJ.08/KP.0303/2024',
+      pkpNumber: 'S-123PKP/WPJ.08/KP.0303/2024',
+      taxMode: 'include',
+      autoFakturB2B: true,
+      address: 'Kawasan Industri Manufaktur Knalpot No. 88, Purbalingga, Jawa Tengah 53311',
+      companyAddress: 'Kawasan Industri Manufaktur Knalpot No. 88, Purbalingga, Jawa Tengah 53311',
+      nsfpPrefix: '010.000-26.',
+      fakturPrefix: '010.000-26.',
     };
   }
 
-  async updateTaxConfig(taxPercent: number): Promise<{ success: boolean; key: string; taxPercent: number; tax_percent: number; message: string }> {
-    if (typeof taxPercent !== 'number' || isNaN(taxPercent) || taxPercent < 0 || taxPercent > 100) {
+  async updateTaxConfig(dto: any): Promise<any> {
+    let taxPercent = 11;
+    let configObj: any = {};
+
+    if (typeof dto === 'number') {
+      taxPercent = dto;
+      configObj = { taxPercent };
+    } else if (typeof dto === 'object' && dto !== null) {
+      const rawVal = dto.taxPercent ?? dto.tax_percent ?? dto.value;
+      taxPercent = Number(rawVal);
+      configObj = { ...dto, taxPercent };
+    }
+
+    if (isNaN(taxPercent) || taxPercent < 0 || taxPercent > 100) {
       throw new BadRequestException('Persentase pajak harus berupa angka valid antara 0 dan 100.');
     }
 
+    // Read existing finance.tax_config if available to preserve existing fields
+    let existingConfig: any = {};
+    try {
+      const existing = await this.db.query(
+        `SELECT value FROM master.t_mtr_app_config WHERE key = 'finance.tax_config'`,
+      );
+      if (existing.rows && existing.rows.length > 0 && existing.rows[0].value) {
+        existingConfig = JSON.parse(existing.rows[0].value);
+      }
+    } catch {
+      // fallback
+    }
+
+    const companyName = configObj.companyName ?? existingConfig.companyName ?? 'PT ARM Karya Knalpot Indonesia';
+    const companyNpwp = configObj.companyNpwp ?? existingConfig.companyNpwp ?? '01.234.567.8-901.000';
+    const nppkp = configObj.nppkp ?? configObj.pkpNumber ?? existingConfig.nppkp ?? existingConfig.pkpNumber ?? 'S-123PKP/WPJ.08/KP.0303/2024';
+    const taxMode = configObj.taxMode ?? existingConfig.taxMode ?? 'include';
+    const autoFakturB2B = typeof configObj.autoFakturB2B === 'boolean'
+      ? configObj.autoFakturB2B
+      : (typeof existingConfig.autoFakturB2B === 'boolean' ? existingConfig.autoFakturB2B : true);
+    const address = configObj.address ?? configObj.companyAddress ?? existingConfig.address ?? existingConfig.companyAddress ?? 'Kawasan Industri Manufaktur Knalpot No. 88, Purbalingga, Jawa Tengah 53311';
+    const nsfpPrefix = configObj.nsfpPrefix ?? configObj.fakturPrefix ?? existingConfig.nsfpPrefix ?? existingConfig.fakturPrefix ?? '010.000-26.';
+
+    const fullTaxConfig = {
+      taxPercent,
+      tax_percent: taxPercent,
+      companyName,
+      companyNpwp,
+      nppkp,
+      pkpNumber: nppkp,
+      taxMode,
+      autoFakturB2B,
+      address,
+      companyAddress: address,
+      nsfpPrefix,
+      fakturPrefix: nsfpPrefix,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Save full JSON to finance.tax_config
+    await this.db.query(
+      `INSERT INTO master.t_mtr_app_config (key, value, updated_at)
+       VALUES ('finance.tax_config', $1, now())
+       ON CONFLICT (key) DO UPDATE
+       SET value = EXCLUDED.value, updated_at = now()`,
+      [JSON.stringify(fullTaxConfig)],
+    );
+
+    // Also update finance.tax_percent for backward compatibility
     await this.db.query(
       `INSERT INTO master.t_mtr_app_config (key, value, updated_at)
        VALUES ('finance.tax_percent', $1, now())
@@ -264,10 +380,9 @@ export class AdminUsersService {
 
     return {
       success: true,
-      key: 'finance.tax_percent',
-      taxPercent,
-      tax_percent: taxPercent,
-      message: 'Konfigurasi tarif PPN berhasil diperbarui.',
+      key: 'finance.tax_config',
+      ...fullTaxConfig,
+      message: 'Konfigurasi tarif PPN dan identitas perpajakan berhasil diperbarui.',
     };
   }
 

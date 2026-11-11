@@ -194,6 +194,23 @@ try {
   assert.equal(adminPoliciesGet.status, 403, `Expected 403 for admin on GET /api/admin/policies, got ${adminPoliciesGet.status}`);
   console.log('✅ Admin blocked from GET /api/admin/policies (403 Forbidden)');
 
+  // Verify Admin is FORBIDDEN (403) from updating any user's role to superadmin (Privilege Escalation Prevention)
+  const usersList = await adminUsersRes.json();
+  const testUserId = usersList.users?.[0]?.id;
+  assert.ok(testUserId, 'Harus ada pengguna untuk menguji update role');
+
+  const adminEscalateRes = await fetch(`${BASE}/api/admin/users/${testUserId}/role`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', cookie: adminCookie },
+    body: JSON.stringify({ role: 'superadmin' }),
+  });
+  assert.equal(
+    adminEscalateRes.status,
+    403,
+    `Expected 403 for admin attempting to update user role to superadmin, got ${adminEscalateRes.status}`
+  );
+  console.log('✅ Admin blocked from updating any user role to superadmin (403 Forbidden - Privilege Escalation Prevention)');
+
   // 2. Authenticate as Superadmin
   console.log('\n--- [3/4] Authenticating as Superadmin (superadmin@armexhaust.id) ---');
   const superCookie = await login(SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD);
