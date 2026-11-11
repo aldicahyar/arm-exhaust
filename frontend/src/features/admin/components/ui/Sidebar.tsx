@@ -658,28 +658,29 @@ export const AnimatedSidebar = forwardRef<HTMLElement, AnimatedSidebarProps>(
           className
         )}
       >
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: offcanvas ? 0 : 1,
-            x: offcanvas ? (side === 'left' ? '-100%' : '100%') : '0%',
-          }}
-          transition={context.reduce ? REDUCED_TRANSITION : PANEL_TRANSITION}
-          className={cn(
-            'sticky top-0 flex h-screen w-full flex-col overflow-hidden bg-[#09090b] text-white font-geist',
-            collapsible === 'offcanvas' && 'w-[var(--sidebar-width)]',
-            variant === 'sidebar' &&
-              (side === 'left' ? 'border-r border-[#27272a]' : 'border-l border-[#27272a]'),
-            variant === 'floating' &&
-              'm-2.5 h-[calc(100vh-1.25rem)] rounded-2xl border border-[#27272a] bg-[#09090b] shadow-sm',
-            variant === 'inset' && 'm-2.5 h-[calc(100vh-1.25rem)] rounded-2xl',
-            panelClassName
-          )}
-        >
-          <AnimatedSidebarPanelContext.Provider value={{ collapsed, collapsible, side }}>
+        <AnimatedSidebarPanelContext.Provider value={{ collapsed, collapsible, side }}>
+          <motion.div
+            initial={false}
+            animate={{
+              opacity: offcanvas ? 0 : 1,
+              x: offcanvas ? (side === 'left' ? '-100%' : '100%') : '0%',
+            }}
+            transition={context.reduce ? REDUCED_TRANSITION : PANEL_TRANSITION}
+            className={cn(
+              'sticky top-0 flex h-screen w-full flex-col overflow-hidden bg-[#09090b] text-white font-geist',
+              collapsible === 'offcanvas' && 'w-[var(--sidebar-width)]',
+              variant === 'sidebar' &&
+                (side === 'left' ? 'border-r border-[#27272a]' : 'border-l border-[#27272a]'),
+              variant === 'floating' &&
+                'm-2.5 h-[calc(100vh-1.25rem)] rounded-2xl border border-[#27272a] bg-[#09090b] shadow-sm',
+              variant === 'inset' && 'm-2.5 h-[calc(100vh-1.25rem)] rounded-2xl',
+              panelClassName
+            )}
+          >
             {children}
-          </AnimatedSidebarPanelContext.Provider>
-        </motion.div>
+          </motion.div>
+          {collapsible !== 'none' && <AnimatedSidebarRail />}
+        </AnimatedSidebarPanelContext.Provider>
       </motion.aside>
     );
   }
@@ -1026,11 +1027,20 @@ export function AnimatedSidebarMenuButton({
           <ChevronRight className="size-3.5" />
         </motion.span>
       ) : null}
+
+      {/* Instant Stealth Luxe Floating Tooltip in Collapsed State */}
+      {panel.collapsed && textLabel && (
+        <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2.5 z-50 hidden rounded-md bg-zinc-900 border border-zinc-800 px-2 py-1 text-[11px] font-medium text-zinc-200 shadow-xl group-hover:block whitespace-nowrap">
+          {textLabel}
+          {badge ? ` (${badge})` : ''}
+        </span>
+      )}
     </>
   );
 
   const interactiveClassName = cn(
-    'group relative flex min-h-9 w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-xl px-3 text-left text-xs font-medium outline-none transition-colors',
+    'group relative flex min-h-9 w-full min-w-0 items-center gap-2.5 rounded-xl px-3 text-left text-xs font-medium outline-none transition-colors',
+    panel.collapsed ? 'overflow-visible' : 'overflow-hidden',
     'text-zinc-400 hover:text-white',
     isActive && 'text-white font-medium',
     disabled && 'cursor-not-allowed opacity-40',

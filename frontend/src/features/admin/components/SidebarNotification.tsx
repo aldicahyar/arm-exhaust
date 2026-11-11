@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bell,
@@ -79,12 +80,17 @@ export function SidebarNotification({
   className,
 }: SidebarNotificationProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>(
     initialNotifications && initialNotifications.length > 0
       ? initialNotifications
       : DEFAULT_ADMIN_NOTIFICATIONS
   );
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('all');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Keep internal list in sync if props change
   useEffect(() => {
@@ -251,23 +257,24 @@ export function SidebarNotification({
         </div>
       )}
 
-      {/* --- SLIDE-OVER FLYOUT DRAWER & BACKDROP --- */}
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 flex pointer-events-auto">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-              aria-hidden="true"
-            />
+      {/* --- SLIDE-OVER FLYOUT DRAWER & BACKDROP VIA PORTAL --- */}
+      {mounted && isOpen
+        ? createPortal(
+            <AnimatePresence>
+              <div className="fixed inset-0 z-50 flex pointer-events-auto">
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setIsOpen(false)}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+                  aria-hidden="true"
+                />
 
-            {/* Slide-over Drawer Panel */}
-            <motion.div
+                {/* Slide-over Drawer Panel */}
+                <motion.div
               initial={{ x: '-100%', opacity: 0.5 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '-100%', opacity: 0 }}
@@ -490,8 +497,10 @@ export function SidebarNotification({
               </div>
             </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )
+    : null}
     </>
   );
 }

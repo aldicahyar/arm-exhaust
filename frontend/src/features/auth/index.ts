@@ -7,3 +7,4 @@ export * from './PasswordStrength';
 export * from './Turnstile';
 export * from './OtpStep';
 export * from './LabelInput';
+export * from './AuthCheckbox';

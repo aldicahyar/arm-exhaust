@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/shared/utils/cn';
 import {
   Users,
   Ticket,
@@ -30,7 +31,6 @@ import {
   AnimatedSidebarMenuItem,
   AnimatedSidebarMenuButton,
   AnimatedSidebarTrigger,
-  AnimatedSidebarRail,
 } from './ui/Sidebar';
 import { UserManagementTable } from './UserManagementTable';
 import { VipInviteGenerator } from './VipInviteGenerator';
@@ -55,11 +55,13 @@ interface AdminShellProps {
 }
 
 export function AdminShell({ user }: AdminShellProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminShellTab>('orders');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const router = useRouter();
 
   const isSuperadmin = user.role === 'superadmin';
@@ -70,6 +72,18 @@ export function AdminShell({ user }: AdminShellProps) {
       setActiveTab('orders');
     }
   }, [isSuperadmin, activeTab]);
+
+  useEffect(() => {
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+    setIsScrolled(false);
+  }, [activeTab]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrolled = e.currentTarget.scrollTop > 10;
+    if (scrolled !== isScrolled) {
+      setIsScrolled(scrolled);
+    }
+  };
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -262,12 +276,13 @@ export function AdminShell({ user }: AdminShellProps) {
 
           {/* Bottom Profile Footer */}
           <AnimatedSidebarFooter>
-            <div className="flex items-center justify-between gap-2 rounded-xl bg-[#141417] border border-[#27272a] p-2 shadow-xs">
+            {/* Expanded Profile Card */}
+            <div className="hidden group-data-[state=expanded]/sidebar:flex items-center justify-between gap-2 rounded-xl bg-[#141417] border border-[#27272a] p-2 shadow-xs">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#27272a] border border-zinc-700 text-xs font-semibold text-white">
                   {getInitials(user.name, user.email)}
                 </div>
-                <div className="flex flex-col min-w-0 flex-1 group-data-[state=collapsed]/sidebar:hidden">
+                <div className="flex flex-col min-w-0 flex-1">
                   <div className="truncate text-xs font-medium text-white">
                     {user.name || 'Admin'}
                   </div>
@@ -281,22 +296,52 @@ export function AdminShell({ user }: AdminShellProps) {
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="p-1 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition shrink-0 group-data-[state=collapsed]/sidebar:hidden"
+                className="p-1 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition shrink-0"
                 title="Keluar dari sesi admin"
               >
                 <LogOut className="h-3.5 w-3.5" />
               </button>
             </div>
-          </AnimatedSidebarFooter>
 
-          {/* Interactive Rail Toggle on edge */}
-          <AnimatedSidebarRail />
+            {/* Collapsed Compact Profile & Logout Button (1-Click Accessibility) */}
+            <div className="hidden group-data-[state=collapsed]/sidebar:flex flex-col items-center gap-2 py-1">
+              <div
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#27272a] border border-zinc-700 text-xs font-semibold text-white shadow-xs"
+                title={`${user.name || 'Admin'} (${user.email})`}
+              >
+                {getInitials(user.name, user.email)}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="group/logout relative flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition"
+                aria-label="Keluar dari sesi admin"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2.5 z-50 hidden rounded-md bg-zinc-900 border border-zinc-800 px-2 py-1 text-[11px] font-medium text-zinc-200 shadow-xl group-hover/logout:block whitespace-nowrap">
+                  Keluar
+                </span>
+              </button>
+            </div>
+          </AnimatedSidebarFooter>
         </AnimatedSidebar>
 
         {/* 2. Main Workspace Canvas */}
-        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#fffbf5]">
+        <div 
+          ref={scrollContainerRef}
+          data-lenis-prevent="true"
+          onScroll={handleScroll}
+          className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#fffbf5] scrollbar-none overscroll-y-contain"
+        >
           {/* Topbar Header */}
-          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-[#eedec5] bg-[#fffbf5]/95 px-4 sm:px-6 backdrop-blur-md">
+          <header className={cn(
+            "sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 px-4 sm:px-6 transition-all duration-200 border-b",
+            isScrolled
+              ? "bg-white/90 backdrop-blur-md border-[#eedec5] shadow-xs"
+              : "bg-[#fffbf5]/80 backdrop-blur-xs border-transparent"
+          )}>
             {/* Left: Sidebar Toggle & Clean Breadcrumb */}
             <div className="flex items-center gap-3">
               <AnimatedSidebarTrigger className="p-1.5 rounded-lg border border-[#eedec5] bg-white text-[#786b53] hover:text-[#1e1501] hover:bg-[#fbf5ea] transition shadow-xs">
@@ -343,14 +388,19 @@ export function AdminShell({ user }: AdminShellProps) {
             </div>
 
             {/* Active Tab Panel */}
-            <div className="transition-all duration-150">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
               {activeTab === 'orders' && <OrdersTable />}
               {activeTab === 'customers' && <UserManagementTable />}
               {activeTab === 'invites' && <VipInviteGenerator />}
               {user.role === 'superadmin' && activeTab === 'tax' && <TaxConfigPanel />}
               {user.role === 'superadmin' && activeTab === 'policies' && <DiscountPoliciesPanel />}
               {user.role === 'superadmin' && activeTab === 'security' && <SecurityConfigPanel />}
-            </div>
+            </motion.div>
           </main>
         </div>
 
