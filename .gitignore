@@ -33,11 +33,14 @@ next-env.d.ts
 
 # editor / scratch
 .trae-html-share-packages/
+.superpowers/
+AGENTS.md
+frontend/AGENTS.md
+*.check.mjs
+*.test.mjs
 
-# 1. Dokumentasi
-docs/*
-!docs/superpowers/
-!docs/scripts/
+# 1. Dokumentasi & Skrip Uji
+docs/
 
 # 2. Script Python & Scratch Bantu
 *.py
