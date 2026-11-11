@@ -45,5 +45,4 @@ docs/
 # 2. Script Python & Scratch Bantu
 *.py
 __pycache__/
-frontend/public/assets/
 prototype/

@@ -32,7 +32,7 @@ import {
   type HTMLMotionProps,
   type Variants,
 } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 
 // --- Motion & Ease Physics Tokens ---
@@ -586,7 +586,18 @@ function MobileSidebar({
         <AnimatedSidebarPanelContext.Provider
           value={{ collapsed: false, collapsible: 'none', side }}
         >
-          {children}
+          <div className="relative flex flex-col h-full w-full">
+            <button
+              type="button"
+              onClick={() => context.setOpenMobile(false)}
+              className="absolute top-3 right-3 z-30 p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
+              aria-label="Tutup sidebar"
+              title="Tutup sidebar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            {children}
+          </div>
         </AnimatedSidebarPanelContext.Provider>
       </motion.div>
     </div>

@@ -343,7 +343,7 @@ export function AdminShell({ user }: AdminShellProps) {
               : "bg-[#fffbf5]/80 backdrop-blur-xs border-transparent"
           )}>
             {/* Left: Sidebar Toggle & Clean Breadcrumb */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <AnimatedSidebarTrigger className="p-1.5 rounded-lg border border-[#eedec5] bg-white text-[#786b53] hover:text-[#1e1501] hover:bg-[#fbf5ea] transition shadow-xs">
                 {open ? (
                   <PanelLeftClose className="h-4 w-4" />
@@ -352,12 +352,12 @@ export function AdminShell({ user }: AdminShellProps) {
                 )}
               </AnimatedSidebarTrigger>
 
-              <nav className="flex items-center gap-2 text-xs text-[#786b53]">
-                <span className="text-[#786b53]">ARM</span>
-                <span className="text-[#786b53]/40">/</span>
-                <span className="text-[#786b53]">{currentMeta.category}</span>
-                <span className="text-[#786b53]/40">/</span>
-                <span className="text-[#1e1501] font-semibold">{currentMeta.title}</span>
+              <nav className="flex items-center gap-2 text-xs text-[#786b53] min-w-0">
+                <span className="text-[#786b53] shrink-0">ARM</span>
+                <span className="text-[#786b53]/40 shrink-0">/</span>
+                <span className="text-[#786b53] shrink-0 hidden xs:inline">{currentMeta.category}</span>
+                <span className="text-[#786b53]/40 shrink-0 hidden xs:inline">/</span>
+                <span className="text-[#1e1501] font-semibold truncate max-w-[130px] sm:max-w-none">{currentMeta.title}</span>
               </nav>
             </div>
 
