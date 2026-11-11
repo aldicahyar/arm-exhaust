@@ -123,3 +123,12 @@ export interface TaxConfigData {
   updatedAt?: string;
 }
 
+export type AdminShellTab =
+  | 'orders'
+  | 'customers'
+  | 'invites'
+  | 'tax'
+  | 'policies'
+  | 'security';
+
+

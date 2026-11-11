@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -9,12 +9,13 @@ import {
   Ticket,
   Percent,
   ShieldCheck,
+  Package,
+  Receipt,
   ExternalLink,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
-  Menu,
 } from 'lucide-react';
 import {
   AnimatedSidebarProvider,
@@ -36,8 +37,14 @@ import { VipInviteGenerator } from './VipInviteGenerator';
 import { VipInviteModal } from './VipInviteModal';
 import { DiscountPoliciesPanel } from './DiscountPoliciesPanel';
 import { SecurityConfigPanel } from '../SecurityConfigPanel';
+import { SidebarSearch } from './SidebarSearch';
+import { SidebarNotification } from './SidebarNotification';
+import { CommandPaletteModal } from './CommandPaletteModal';
+import { OrdersTable } from './OrdersTable';
+import { TaxConfigPanel } from './TaxConfigPanel';
+import type { AdminShellTab } from '../types';
 
-export type AdminShellTab = 'customers' | 'invites' | 'policies' | 'security';
+export type { AdminShellTab };
 
 interface AdminShellProps {
   user: {
@@ -49,10 +56,20 @@ interface AdminShellProps {
 
 export function AdminShell({ user }: AdminShellProps) {
   const [open, setOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<AdminShellTab>('customers');
+  const [activeTab, setActiveTab] = useState<AdminShellTab>('orders');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const router = useRouter();
+
+  const isSuperadmin = user.role === 'superadmin';
+
+  // Option A Clean Gating Safety: Non-superadmin cannot access configuration tabs
+  useEffect(() => {
+    if (!isSuperadmin && (activeTab === 'tax' || activeTab === 'policies' || activeTab === 'security')) {
+      setActiveTab('orders');
+    }
+  }, [isSuperadmin, activeTab]);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -76,67 +93,39 @@ export function AdminShell({ user }: AdminShellProps) {
   };
 
   const tabMeta: Record<AdminShellTab, { title: string; subtitle: string; category: string }> = {
+    orders: {
+      title: 'Pesanan Masuk & Manufaktur',
+      subtitle: 'Monitoring alur pesanan knalpot custom & ready stock, target dispatch SLA, dan status pelunasan B2B.',
+      category: 'Operasional',
+    },
     customers: {
       title: 'Direktori Mitra & Pelanggan',
       subtitle: 'Manajemen akun kemitraan B2B, verifikasi bengkel, dan penetapan margin grosir.',
-      category: 'Kemitraan CRM',
+      category: 'Operasional',
     },
     invites: {
       title: 'Undangan VIP B2B',
       subtitle: 'Penerbitan token registrasi instan untuk bengkel rekanan (20%) dan distributor regional (35%).',
-      category: 'Akuisisi Mitra',
+      category: 'Operasional',
+    },
+    tax: {
+      title: 'Pengaturan Pajak & Faktur',
+      subtitle: 'Konfigurasi tarif PPN (0%, 11%, 12%), mode harga include/exclude, dan profil PKP perusahaan.',
+      category: 'Konfigurasi Sistem',
     },
     policies: {
       title: 'Matriks Kebijakan Diskon',
       subtitle: 'Struktur margin katalog bertingkat, proteksi harga eceran terendah, dan simulasi laba grosir.',
-      category: 'Pricing Engine',
+      category: 'Konfigurasi Sistem',
     },
     security: {
       title: 'Sistem & Keamanan OTP',
       subtitle: 'Kendali parameter proteksi brute force, durasi kunci akun, dan batas frekuensi request real-time.',
-      category: 'Infrastruktur RBAC',
+      category: 'Konfigurasi Sistem',
     },
   };
 
-  const currentMeta = tabMeta[activeTab];
-
-  const menuSections = [
-    {
-      title: 'Kemitraan CRM',
-      items: [
-        {
-          id: 'customers' as AdminShellTab,
-          label: 'Direktori Mitra',
-          icon: <Users className="h-4 w-4" />,
-        },
-        {
-          id: 'invites' as AdminShellTab,
-          label: 'Undangan VIP',
-          icon: <Ticket className="h-4 w-4" />,
-        },
-      ],
-    },
-    {
-      title: 'Struktur Harga',
-      items: [
-        {
-          id: 'policies' as AdminShellTab,
-          label: 'Kebijakan Diskon',
-          icon: <Percent className="h-4 w-4" />,
-        },
-      ],
-    },
-    {
-      title: 'Sistem',
-      items: [
-        {
-          id: 'security' as AdminShellTab,
-          label: 'Keamanan & RBAC',
-          icon: <ShieldCheck className="h-4 w-4" />,
-        },
-      ],
-    },
-  ];
+  const currentMeta = tabMeta[activeTab] || tabMeta.orders;
 
   return (
     <AnimatedSidebarProvider open={open} onOpenChange={setOpen}>
@@ -162,29 +151,94 @@ export function AdminShell({ user }: AdminShellProps) {
             </div>
           </AnimatedSidebarHeader>
 
+          {/* Interactive Search & Notifications directly under Header */}
+          <SidebarSearch
+            isCollapsed={!open}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          />
+          <SidebarNotification
+            isCollapsed={!open}
+            onSelectTab={(tabId) => setActiveTab(tabId as AdminShellTab)}
+          />
+
           {/* Content with Group Sections & Smooth Hover/Active Pill */}
           <AnimatedSidebarContent>
-            {menuSections.map((sec, idx) => (
-              <AnimatedSidebarGroup key={idx}>
-                <AnimatedSidebarGroupLabel>{sec.title}</AnimatedSidebarGroupLabel>
+            {/* Grup Operasional (Selalu aktif untuk Admin & Superadmin) */}
+            <AnimatedSidebarGroup>
+              <AnimatedSidebarGroupLabel>Operasional</AnimatedSidebarGroupLabel>
+              <AnimatedSidebarGroupContent>
+                <AnimatedSidebarMenu>
+                  <AnimatedSidebarMenuItem>
+                    <AnimatedSidebarMenuButton
+                      icon={<Package className="h-4 w-4" />}
+                      badge="5"
+                      isActive={activeTab === 'orders'}
+                      onSelect={() => setActiveTab('orders')}
+                    >
+                      Pesanan Masuk
+                    </AnimatedSidebarMenuButton>
+                  </AnimatedSidebarMenuItem>
+                  <AnimatedSidebarMenuItem>
+                    <AnimatedSidebarMenuButton
+                      icon={<Users className="h-4 w-4" />}
+                      badge="14"
+                      isActive={activeTab === 'customers'}
+                      onSelect={() => setActiveTab('customers')}
+                    >
+                      Direktori Mitra
+                    </AnimatedSidebarMenuButton>
+                  </AnimatedSidebarMenuItem>
+                  <AnimatedSidebarMenuItem>
+                    <AnimatedSidebarMenuButton
+                      icon={<Ticket className="h-4 w-4" />}
+                      badge="3"
+                      isActive={activeTab === 'invites'}
+                      onSelect={() => setActiveTab('invites')}
+                    >
+                      Undangan VIP
+                    </AnimatedSidebarMenuButton>
+                  </AnimatedSidebarMenuItem>
+                </AnimatedSidebarMenu>
+              </AnimatedSidebarGroupContent>
+            </AnimatedSidebarGroup>
+
+            {/* Grup Konfigurasi Sistem (Superadmin Only - Opsi A: Bersih tanpa disabled clutter) */}
+            {user.role === 'superadmin' && (
+              <AnimatedSidebarGroup>
+                <AnimatedSidebarGroupLabel>Konfigurasi Sistem</AnimatedSidebarGroupLabel>
                 <AnimatedSidebarGroupContent>
                   <AnimatedSidebarMenu>
-                    {sec.items.map((item) => (
-                      <AnimatedSidebarMenuItem key={item.id}>
-                        <AnimatedSidebarMenuButton
-                          icon={item.icon}
-                          badge={item.id === 'customers' ? '14' : item.id === 'invites' ? '3' : undefined}
-                          isActive={activeTab === item.id}
-                          onSelect={() => setActiveTab(item.id)}
-                        >
-                          {item.label}
-                        </AnimatedSidebarMenuButton>
-                      </AnimatedSidebarMenuItem>
-                    ))}
+                    <AnimatedSidebarMenuItem>
+                      <AnimatedSidebarMenuButton
+                        icon={<Receipt className="h-4 w-4" />}
+                        isActive={activeTab === 'tax'}
+                        onSelect={() => setActiveTab('tax')}
+                      >
+                        Pengaturan Pajak
+                      </AnimatedSidebarMenuButton>
+                    </AnimatedSidebarMenuItem>
+                    <AnimatedSidebarMenuItem>
+                      <AnimatedSidebarMenuButton
+                        icon={<Percent className="h-4 w-4" />}
+                        isActive={activeTab === 'policies'}
+                        onSelect={() => setActiveTab('policies')}
+                      >
+                        Matriks Diskon
+                      </AnimatedSidebarMenuButton>
+                    </AnimatedSidebarMenuItem>
+                    <AnimatedSidebarMenuItem>
+                      <AnimatedSidebarMenuButton
+                        icon={<ShieldCheck className="h-4 w-4" />}
+                        isActive={activeTab === 'security'}
+                        onSelect={() => setActiveTab('security')}
+                      >
+                        Keamanan & RBAC
+                      </AnimatedSidebarMenuButton>
+                    </AnimatedSidebarMenuItem>
                   </AnimatedSidebarMenu>
                 </AnimatedSidebarGroupContent>
               </AnimatedSidebarGroup>
-            ))}
+            )}
 
             {/* Navigasi Publik */}
             <AnimatedSidebarGroup>
@@ -261,51 +315,62 @@ export function AdminShell({ user }: AdminShellProps) {
               </nav>
             </div>
 
-          {/* Right: Primary Action Button (High Contrast WCAG AAA on Golden Amber) */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsInviteModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f8a712] hover:bg-[#e09207] px-3.5 py-2 text-xs font-bold text-[#1e1501] transition shadow-xs active:scale-[0.98]"
-            >
-              <Plus className="h-4 w-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">Buat Undangan VIP</span>
-              <span className="sm:hidden">Undang</span>
-            </button>
-          </div>
-        </header>
+            {/* Right: Primary Action Button (High Contrast WCAG AAA on Golden Amber) */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInviteModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f8a712] hover:bg-[#e09207] px-3.5 py-2 text-xs font-bold text-[#1e1501] transition shadow-xs active:scale-[0.98]"
+              >
+                <Plus className="h-4 w-4 stroke-[2.5]" />
+                <span className="hidden sm:inline">Buat Undangan VIP</span>
+                <span className="sm:hidden">Undang</span>
+              </button>
+            </div>
+          </header>
 
-        {/* Content Body Canvas */}
-        <main className="flex-1 p-5 sm:p-7 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-          {/* Clean Contextual Section Header */}
-          <div className="pb-4 border-b border-[#eedec5]">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1e1501]">
-              {currentMeta.title}
-            </h1>
-            <p className="mt-1 text-xs text-[#786b53]">
-              {currentMeta.subtitle}
-            </p>
-          </div>
+          {/* Content Body Canvas */}
+          <main className="flex-1 p-5 sm:p-7 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+            {/* Clean Contextual Section Header */}
+            <div className="pb-4 border-b border-[#eedec5]">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1e1501]">
+                {currentMeta.title}
+              </h1>
+              <p className="mt-1 text-xs text-[#786b53]">
+                {currentMeta.subtitle}
+              </p>
+            </div>
 
-          {/* Active Tab Panel */}
-          <div className="transition-all duration-150">
-            {activeTab === 'customers' && <UserManagementTable />}
-            {activeTab === 'invites' && <VipInviteGenerator />}
-            {activeTab === 'policies' && <DiscountPoliciesPanel />}
-            {activeTab === 'security' && <SecurityConfigPanel />}
-          </div>
-        </main>
+            {/* Active Tab Panel */}
+            <div className="transition-all duration-150">
+              {activeTab === 'orders' && <OrdersTable />}
+              {activeTab === 'customers' && <UserManagementTable />}
+              {activeTab === 'invites' && <VipInviteGenerator />}
+              {user.role === 'superadmin' && activeTab === 'tax' && <TaxConfigPanel />}
+              {user.role === 'superadmin' && activeTab === 'policies' && <DiscountPoliciesPanel />}
+              {user.role === 'superadmin' && activeTab === 'security' && <SecurityConfigPanel />}
+            </div>
+          </main>
+        </div>
+
+        {/* Global VIP Invite Modal */}
+        <VipInviteModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          onInviteCreated={() => {
+            // Handled inside
+          }}
+        />
+
+        {/* Global ⌘K Command Palette Modal */}
+        <CommandPaletteModal
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+          onOpen={() => setIsCommandPaletteOpen(true)}
+          onSelectTab={(tabId) => setActiveTab(tabId as AdminShellTab)}
+          userRole={user.role}
+        />
       </div>
-
-      {/* Global VIP Invite Modal */}
-      <VipInviteModal
-        isOpen={isInviteModalOpen}
-        onClose={() => setIsInviteModalOpen(false)}
-        onInviteCreated={() => {
-          // Handled inside
-        }}
-      />
-    </div>
     </AnimatedSidebarProvider>
   );
 }

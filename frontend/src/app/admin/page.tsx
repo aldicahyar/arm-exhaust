@@ -24,7 +24,7 @@ async function getSessionUser() {
 export default async function AdminPage() {
   const user = await getSessionUser();
   if (!user) redirect('/login');
-  if (user.role !== 'admin') redirect('/');
+  if (user.role !== 'admin' && user.role !== 'superadmin') redirect('/');
 
   return <AdminShell user={user} />;
 }
