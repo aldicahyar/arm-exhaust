@@ -14,7 +14,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import type { Request } from 'express';
 import { SessionAuthGuard } from '../../shared/guards/session-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 import { Roles } from '../../shared/decorators/roles.decorator';
@@ -133,7 +132,7 @@ export class AdminController {
     // Kasus 1: Format tunggal { key: "...", value: 123 }
     if (typeof body.key === 'string' && body.value !== undefined) {
       const numVal = Number(body.value);
-      if (isNaN(numVal)) {
+      if (Number.isNaN(numVal)) {
         throw new BadRequestException(`Nilai untuk ${body.key} harus berupa angka valid.`);
       }
       const effective = await this.securityConfigService.updateConfig(body.key, numVal);
@@ -151,17 +150,26 @@ export class AdminController {
       throw new BadRequestException('Tidak ada konfigurasi yang disertakan untuk diperbarui.');
     }
 
-    const updated: Record<string, number> = {};
+    // Validasi semua entri terlebih dahulu sebelum eksekusi asynchronous
+    const validEntries: Array<[string, number]> = [];
     for (const [key, val] of entries) {
       if (key in SECURITY_CONFIG_SPECS) {
         const numVal = Number(val);
-        if (isNaN(numVal)) {
+        if (Number.isNaN(numVal)) {
           throw new BadRequestException(`Nilai untuk ${key} harus berupa angka valid.`);
         }
-        const effective = await this.securityConfigService.updateConfig(key, numVal);
-        updated[key] = effective;
+        validEntries.push([key, numVal]);
       }
     }
+
+    const updateResults = await Promise.all(
+      validEntries.map(async ([key, numVal]) => {
+        const effective = await this.securityConfigService.updateConfig(key, numVal);
+        return [key, effective] as const;
+      }),
+    );
+
+    const updated = Object.fromEntries(updateResults);
 
     return {
       success: true,
@@ -187,7 +195,7 @@ export class AdminController {
       throw new BadRequestException('Field taxPercent atau tax_percent wajib disertakan.');
     }
     const numVal = Number(rawVal);
-    if (isNaN(numVal) || numVal < 0 || numVal > 100) {
+    if (Number.isNaN(numVal) || numVal < 0 || numVal > 100) {
       throw new BadRequestException('Persentase pajak harus berupa angka valid antara 0 dan 100.');
     }
     return this.adminUsersService.updateTaxConfig(body);
