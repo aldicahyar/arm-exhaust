@@ -236,26 +236,9 @@ export class ResellerInviteService {
   }
 
   /**
-   * Public: Klaim token undangan dengan Mandatory Fresh Re-Authentication
+   * Mengunci dan memvalidasi token undangan dari transaksi aktif.
    */
-  async claimInvite(dto: ClaimInviteDto, res: Response) {
-    const token = String(dto.token || '').trim();
-    if (!token) {
-      throw new BadRequestException('Token undangan wajib disertakan.');
-    }
-
-    // 1. Cek kredensial re-autentikasi (Google ID token OR Email+Password)
-    const googleToken = String(dto.credential || dto.idToken || '').trim();
-    const email = String(dto.email || '').trim().toLowerCase();
-    const password = String(dto.password || '');
-
-    if (!googleToken && (!email || !password)) {
-      throw new BadRequestException(
-        'Autentikasi ulang wajib: Anda harus login ulang dengan Google atau Email & Password untuk mengklaim undangan VIP ini.',
-      );
-    }
-
-    // 2. Query dan Lock record invite untuk mencegah race condition
+  private async validateAndLockInvite(token: string) {
     const { rows: inviteRows } = await this.db.query(
       `SELECT id, token, partner_name, role_to_grant, max_uses, used_count, expires_at, claimed_at, is_revoked
        FROM transaction.t_trx_reseller_invites
@@ -282,126 +265,178 @@ export class ResellerInviteService {
       throw new HttpException('Token undangan telah kedaluwarsa.', HttpStatus.GONE);
     }
 
-    let authenticatedUserId: string;
-    let authenticatedUserEmail: string;
-    let authenticatedUserName: string;
+    return invite;
+  }
 
-    // 3. Verifikasi Identitas Pengguna (Fresh Re-Authentication)
-    if (googleToken) {
-      const payload = await this.googleAuthService.verifyGoogleIdToken(
-        googleToken,
-        process.env.GOOGLE_CLIENT_ID,
-      );
+  /**
+   * Re-autentikasi pengguna menggunakan Google ID Token dan kembalikan profil user.
+   */
+  private async resolveGoogleUser(
+    googleToken: string,
+    partnerName: string,
+    roleToGrant: string,
+  ): Promise<{ id: string; email: string; name: string }> {
+    const payload = await this.googleAuthService.verifyGoogleIdToken(
+      googleToken,
+      process.env.GOOGLE_CLIENT_ID,
+    );
 
-      const { sub, email: gEmail, name: gName } = payload;
-      const normalizedEmail = gEmail.toLowerCase();
+    const { sub, email: gEmail, name: gName } = payload;
+    const normalizedEmail = gEmail.toLowerCase();
 
-      // Cek apakah identity ada di master.t_mtr_user_identities
-      const { rows: identRows } = await this.db.query(
-        `SELECT u.id, u.name, u.email, u.role
-         FROM master.t_mtr_user_identities i
-         JOIN master.t_mtr_users u ON u.id = i.user_id
-         WHERE i.provider = 'google' AND i.provider_user_id = $1`,
-        [sub],
-      );
+    const { rows: identRows } = await this.db.query(
+      `SELECT u.id, u.name, u.email, u.role
+       FROM master.t_mtr_user_identities i
+       JOIN master.t_mtr_users u ON u.id = i.user_id
+       WHERE i.provider = 'google' AND i.provider_user_id = $1`,
+      [sub],
+    );
 
-      let targetUser = identRows[0];
+    let targetUser = identRows[0];
 
-      if (!targetUser) {
-        // Cek user by email
-        const { rows: userRows } = await this.db.query(
-          'SELECT id, name, email, role FROM master.t_mtr_users WHERE email = $1',
-          [normalizedEmail],
-        );
-
-        if (userRows.length > 0) {
-          targetUser = userRows[0];
-        } else {
-          // Buat user baru dengan role target
-          const { rows: newUserRows } = await this.db.query(
-            `INSERT INTO master.t_mtr_users (name, email, password_hash, role)
-             VALUES ($1, $2, NULL, $3)
-             RETURNING id, name, email, role`,
-            [gName || invite.partner_name, normalizedEmail, invite.role_to_grant],
-          );
-          targetUser = newUserRows[0];
-        }
-
-        // Tautkan identitas
-        await this.db.query(
-          `INSERT INTO master.t_mtr_user_identities (user_id, provider, provider_user_id)
-           VALUES ($1, 'google', $2)
-           ON CONFLICT (provider, provider_user_id) DO NOTHING`,
-          [targetUser.id, sub],
-        );
-      }
-
-      authenticatedUserId = targetUser.id;
-      authenticatedUserEmail = targetUser.email;
-      authenticatedUserName = targetUser.name;
-    } else {
-      // Verifikasi Email & Password
+    if (!targetUser) {
       const { rows: userRows } = await this.db.query(
-        'SELECT id, name, email, role, password_hash FROM master.t_mtr_users WHERE email = $1',
-        [email],
+        'SELECT id, name, email, role FROM master.t_mtr_users WHERE email = $1',
+        [normalizedEmail],
       );
 
-      const existingUser = userRows[0];
-      if (!existingUser || !existingUser.password_hash) {
-        throw new UnauthorizedException('Email atau password tidak sesuai.');
+      if (userRows.length > 0) {
+        targetUser = userRows[0];
+      } else {
+        const { rows: newUserRows } = await this.db.query(
+          `INSERT INTO master.t_mtr_users (name, email, password_hash, role)
+           VALUES ($1, $2, NULL, $3)
+           RETURNING id, name, email, role`,
+          [gName || partnerName, normalizedEmail, roleToGrant],
+        );
+        targetUser = newUserRows[0];
       }
 
-      const isMatch = await this.otpService.verifyOtpHash(password, existingUser.password_hash);
-      if (!isMatch) {
-        throw new UnauthorizedException('Email atau password tidak sesuai.');
-      }
-
-      authenticatedUserId = existingUser.id;
-      authenticatedUserEmail = existingUser.email;
-      authenticatedUserName = existingUser.name;
+      await this.db.query(
+        `INSERT INTO master.t_mtr_user_identities (user_id, provider, provider_user_id)
+         VALUES ($1, 'google', $2)
+         ON CONFLICT (provider, provider_user_id) DO NOTHING`,
+        [targetUser.id, sub],
+      );
     }
 
-    // 4. Upgrade Role Pengguna ke role_to_grant di master.t_mtr_users
+    return {
+      id: targetUser.id,
+      email: targetUser.email,
+      name: targetUser.name,
+    };
+  }
+
+  /**
+   * Re-autentikasi pengguna menggunakan Email dan Password.
+   */
+  private async resolvePasswordUser(
+    email: string,
+    password: string,
+  ): Promise<{ id: string; email: string; name: string }> {
+    const { rows: userRows } = await this.db.query(
+      'SELECT id, name, email, role, password_hash FROM master.t_mtr_users WHERE email = $1',
+      [email],
+    );
+
+    const existingUser = userRows[0];
+    if (!existingUser?.password_hash) {
+      throw new UnauthorizedException('Email atau password tidak sesuai.');
+    }
+
+    const isMatch = await this.otpService.verifyOtpHash(password, existingUser.password_hash);
+    if (!isMatch) {
+      throw new UnauthorizedException('Email atau password tidak sesuai.');
+    }
+
+    return {
+      id: existingUser.id,
+      email: existingUser.email,
+      name: existingUser.name,
+    };
+  }
+
+  /**
+   * Finalisasi proses klaim: upgrade role, hanguskan token, dan buat sesi baru.
+   */
+  private async completeInviteClaim(
+    invite: any,
+    user: { id: string; email: string; name: string },
+    res: Response,
+  ) {
+    // 1. Upgrade Role Pengguna
     await this.db.query(
       `UPDATE master.t_mtr_users
        SET role = $1, updated_at = now()
        WHERE id = $2`,
-      [invite.role_to_grant, authenticatedUserId],
+      [invite.role_to_grant, user.id],
     );
 
-    // 5. Hanguskan token (Burn Token): used_count = 1, claimed_at = now(), claimed_by_user_id
+    // 2. Hanguskan token (Burn Token)
     await this.db.query(
       `UPDATE transaction.t_trx_reseller_invites
        SET claimed_at = now(),
            claimed_by_user_id = $1,
            used_count = used_count + 1
        WHERE id = $2`,
-      [authenticatedUserId, invite.id],
+      [user.id, invite.id],
     );
 
-    // 6. Terbitkan Sesi Baru & Pasang Cookie arm_session
+    // 3. Terbitkan Sesi Baru & Pasang Cookie arm_session
     const sessionToken = generateSessionToken();
     const expires = calculateSessionExpires();
     await this.db.query(
       'INSERT INTO transaction.t_trx_sessions (token, user_id, expires_at) VALUES ($1, $2, $3)',
-      [sessionToken, authenticatedUserId, expires],
+      [sessionToken, user.id, expires],
     );
 
     setSessionCookie(res, sessionToken, expires);
 
     this.logger.log(
-      `VIP Invite claimed successfully: partner="${invite.partner_name}", user="${authenticatedUserEmail}", granted_role="${invite.role_to_grant}"`,
+      `VIP Invite claimed successfully: partner="${invite.partner_name}", user="${user.email}", granted_role="${invite.role_to_grant}"`,
     );
 
     return {
       success: true,
       message: `Selamat! Kemitraan ${invite.partner_name} berhasil diaktivasi sebagai ${invite.role_to_grant}.`,
       user: {
-        id: authenticatedUserId,
-        name: authenticatedUserName,
-        email: authenticatedUserEmail,
+        id: user.id,
+        name: user.name,
+        email: user.email,
         role: invite.role_to_grant,
       },
     };
+  }
+
+  /**
+   * Public: Klaim token undangan dengan Mandatory Fresh Re-Authentication
+   */
+  async claimInvite(dto: ClaimInviteDto, res: Response) {
+    const token = String(dto.token || '').trim();
+    if (!token) {
+      throw new BadRequestException('Token undangan wajib disertakan.');
+    }
+
+    // 1. Cek kredensial re-autentikasi (Google ID token OR Email+Password)
+    const googleToken = String(dto.credential || dto.idToken || '').trim();
+    const email = String(dto.email || '').trim().toLowerCase();
+    const password = String(dto.password || '');
+
+    if (!googleToken && (!email || !password)) {
+      throw new BadRequestException(
+        'Autentikasi ulang wajib: Anda harus login ulang dengan Google atau Email & Password untuk mengklaim undangan VIP ini.',
+      );
+    }
+
+    // 2. Query dan Lock record invite untuk mencegah race condition
+    const invite = await this.validateAndLockInvite(token);
+
+    // 3. Verifikasi Identitas Pengguna (Fresh Re-Authentication)
+    const authenticatedUser = googleToken
+      ? await this.resolveGoogleUser(googleToken, invite.partner_name, invite.role_to_grant)
+      : await this.resolvePasswordUser(email, password);
+
+    // 4. Upgrade role, hanguskan token, dan pasang sesi baru
+    return this.completeInviteClaim(invite, authenticatedUser, res);
   }
 }

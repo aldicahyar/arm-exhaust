@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "npm run test:auth",
+    "test:auth": "node src/features/auth/__tests__/use-auth-form-priority.check.mjs && node src/features/auth/__tests__/otp-step-bencho.check.mjs && node src/features/auth/__tests__/auth-checkbox.check.mjs && node src/features/auth/__tests__/auth-transition.check.mjs && node src/features/auth/__tests__/label-input.check.mjs && node src/features/auth/__tests__/use-auth-form-remember.check.mjs && node src/features/auth/__tests__/auth-google-button.check.mjs && node src/features/auth/__tests__/auth-card-bencho.check.mjs && node src/features/auth/__tests__/label-input-fixes.check.mjs && node src/features/auth/__tests__/auth-card.check.mjs"
   },
   "dependencies": {
     "@types/node": "^26.6.6",

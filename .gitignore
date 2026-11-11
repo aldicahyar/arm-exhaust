@@ -36,8 +36,6 @@ next-env.d.ts
 .superpowers/
 AGENTS.md
 frontend/AGENTS.md
-*.check.mjs
-*.test.mjs
 
 # 1. Dokumentasi & Skrip Uji
 docs/
