@@ -118,14 +118,14 @@ export function AuthSlider({
             />
 
             {/* Teks promo */}
-            <div className="absolute bottom-11 left-6 right-6 z-20">
-              <span className="inline-block rounded-md bg-white px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase text-black shadow-sm">
+            <div className="absolute bottom-8 left-5 right-5 z-20">
+              <span className="inline-block rounded-md bg-white px-2 py-0.5 text-[8.5px] font-bold tracking-widest uppercase text-black shadow-sm">
                 {slide.tag}
               </span>
-              <h2 className="mt-1.5 text-lg font-bold leading-tight tracking-tight text-white sm:text-[19px]">
+              <h2 className="mt-1 text-base font-bold leading-tight tracking-tight text-white sm:text-[17px]">
                 {slide.title}
               </h2>
-              <p className="mt-1 text-xs text-[#C7CAD1] leading-relaxed">
+              <p className="mt-0.5 text-[11px] text-[#C7CAD1] leading-relaxed">
                 {slide.description}
               </p>
             </div>
@@ -156,7 +156,7 @@ export function AuthSlider({
       <div
         role="tablist"
         aria-label="Select promo slide"
-        className="absolute bottom-4 left-6 z-30 flex items-center gap-1.5"
+        className="absolute bottom-3 left-5 z-30 flex items-center gap-1.5"
       >
         {slides.map((slide, idx) => {
           const isActive = idx === currentIndex;

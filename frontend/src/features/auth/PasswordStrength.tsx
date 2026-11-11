@@ -43,12 +43,12 @@ export function PasswordStrength({ password, isFocused = false }: PasswordStreng
   const strengthLevel = getPasswordStrength(password);
   const level = LEVELS[strengthLevel];
 
-  // Smart Collapse logic (Option A):
-  // 1. Show full checklist if focused OR if user has typed characters but criteria are incomplete.
-  // 2. If 100% satisfied and blurred (e.g. moved to Confirm Password), smart collapse to 1 clean line.
+  // Smart Collapse logic:
+  // 1. If 100% satisfied (allMet), immediately collapse to a clean single status line (saves vertical space).
+  // 2. Only show criteria checklist when criteria are incomplete and user is typing/focused.
   // 3. If empty and not focused, hide completely.
-  const showFullChecklist = isFocused || (password.length > 0 && !allMet);
-  const showSuccessSummary = !isFocused && allMet;
+  const showSuccessSummary = allMet;
+  const showFullChecklist = (isFocused || password.length > 0) && !allMet;
 
   if (password.length === 0 && !isFocused) {
     return null;
@@ -61,41 +61,44 @@ export function PasswordStrength({ password, isFocused = false }: PasswordStreng
       aria-label={`Password strength: ${level.label || 'empty'}, ${metCount} of 4 criteria met`}
     >
       {showSuccessSummary ? (
-        <div className="flex items-center gap-1.5 py-0.5 text-[11px] font-medium text-[#22C55E]">
-          <svg
-            className="h-3.5 w-3.5 flex-shrink-0 text-[#22C55E]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Password meets all security criteria</span>
+        <div className="flex items-center justify-between py-0.5 text-[10px]">
+          <div className="flex items-center gap-1.5 font-medium text-[#22C55E]">
+            <svg
+              className="h-3 w-3 flex-shrink-0 text-[#22C55E]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Password meets all criteria</span>
+          </div>
+          <span className="text-[9.5px] font-semibold text-[#22C55E]">Strong (4/4)</span>
         </div>
       ) : showFullChecklist ? (
-        <div className="flex flex-col gap-1.5 py-0.5">
+        <div className="flex flex-col gap-1 py-0.5">
           {/* Micro Progress Bar & Status */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex flex-1 gap-1" aria-hidden="true">
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
-                  className={`h-[3px] flex-1 rounded-full transition-colors duration-200 ${
+                  className={`h-[2.5px] flex-1 rounded-full transition-colors duration-200 ${
                     i < level.filled ? level.color : 'bg-[#2B2B30]'
                   }`}
                 />
               ))}
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-semibold">
+            <div className="flex items-center gap-1 text-[9.5px] font-semibold">
               <span className={level.textColor}>{level.label || 'Incomplete'}</span>
               <span className="text-[#6B7280]">({metCount}/4)</span>
             </div>
           </div>
 
           {/* 2x2 Interactive Criteria Grid */}
-          <div className="grid grid-cols-2 gap-x-2.5 gap-y-1 text-[10px] sm:text-[10.5px]">
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9.5px]">
             {/* Criterion 1: Min 8 Characters */}
             <div
               className={`flex items-center gap-1.5 transition-colors duration-150 ${

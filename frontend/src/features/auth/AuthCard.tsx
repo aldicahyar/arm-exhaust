@@ -59,16 +59,16 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
 
   return (
     <div
-      className="grid w-full max-w-[900px] grid-cols-1 overflow-hidden rounded-2xl border border-[#2B2B30] bg-[#0F0F11] shadow-2xl md:grid-cols-[1.05fr_1fr] my-auto"
+      className="grid w-full max-w-[880px] grid-cols-1 overflow-hidden rounded-2xl border border-[#2B2B30] bg-[#0F0F11] shadow-2xl md:grid-cols-[1.05fr_1fr] my-auto"
       style={{
-        minHeight: 'clamp(440px, 78vh, 560px)',
+        minHeight: 'clamp(420px, 72vh, 520px)',
       }}
     >
       {/* Kolom Kiri: Slider Promosi & Aset Visual 2:3 */}
       <AuthSlider />
 
       {/* Kolom Kanan: Form Autentikasi Single-Card / Verifikasi OTP */}
-      <div className="flex flex-col justify-center px-[clamp(16px,2.5vw,32px)] py-[clamp(12px,1.8vh,20px)]">
+      <div className="flex flex-col justify-center px-4 sm:px-6 py-2.5 sm:py-3.5">
         {step === 'otp' ? (
           <OtpStep
             email={email}
@@ -82,31 +82,31 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
         ) : (
           <>
             {/* Brand Logo: Hanya logo yang mempertahankan warna aslinya */}
-            <div className="flex justify-center mb-[clamp(4px,1vh,8px)]">
+            <div className="flex justify-center mb-1">
               <Image
                 src="/assets/Logo ARM no BG.png"
                 alt="ARM Exhaust"
-                width={92}
-                height={46}
+                width={80}
+                height={40}
                 priority
-                className="h-auto w-auto max-w-[92px] object-contain"
+                className="h-auto w-auto max-w-[80px] object-contain"
               />
             </div>
 
             {/* Subtitle dinamis */}
-            <p className="mb-[clamp(6px,1.1vh,10px)] text-center text-xs text-[#9AA0A8]">
+            <p className="mb-1.5 text-center text-[11px] text-[#9AA0A8]">
               {isRegister
                 ? 'Create an account to enjoy ARM Exhaust features.'
                 : 'Welcome back to ARM Exhaust.'}
             </p>
 
             {/* Tombol SSO Google */}
-            <div className="mb-[clamp(4px,0.9vh,8px)]">
+            <div className="mb-1.5">
               <AuthGoogleButton disabled={loading} onCredential={handleGoogleSuccess} />
             </div>
 
             {/* Divider pemisah */}
-            <div className="mb-[clamp(4px,0.9vh,8px)] flex items-center gap-2.5 text-[10px] uppercase tracking-widest text-[#5C6068]">
+            <div className="mb-1.5 flex items-center gap-2 text-[9px] uppercase tracking-widest text-[#5C6068]">
               <span className="h-px flex-1 bg-[#2B2B30]" />
               <span>or</span>
               <span className="h-px flex-1 bg-[#2B2B30]" />
@@ -116,7 +116,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
             {error && <span role="alert" className="sr-only">{error}</span>}
 
             {/* Form Body dengan Bencho LabelInput */}
-            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-2">
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-1.5">
               {isRegister && (
                 <LabelInput
                   label="Full Name"
@@ -128,7 +128,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                   maxLength={100}
                   autoComplete="name"
                   disabled={loading}
-                  corner={16}
+                  corner={14}
                 />
               )}
 
@@ -141,7 +141,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                 required
                 autoComplete="email"
                 disabled={loading}
-                corner={16}
+                corner={14}
               />
 
               <LabelInput
@@ -156,7 +156,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                 minLength={8}
                 autoComplete={isRegister ? 'new-password' : 'current-password'}
                 disabled={loading}
-                corner={16}
+                corner={14}
               />
 
               {isRegister && (
@@ -167,7 +167,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
               )}
 
               {isRegister && (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-0.5">
                   <LabelInput
                     label="Confirm Password"
                     type="password"
@@ -178,7 +178,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                     autoComplete="new-password"
                     disabled={loading}
                     error={passwordsMismatch}
-                    corner={16}
+                    corner={14}
                   />
                   {passwordsMismatch && (
                     <span className="text-[10px] font-medium text-[#FF6B77] pl-2">
@@ -210,14 +210,14 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-0.5 w-full rounded-2xl bg-white px-4 py-2.5 text-[13px] font-semibold text-black transition-all duration-150 ease-out hover:bg-[#E5E5E5] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0F0F11] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-0.5 w-full rounded-2xl bg-white px-4 py-2 text-[13px] font-semibold text-black transition-all duration-150 ease-out hover:bg-[#E5E5E5] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0F0F11] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? 'Processing…' : isRegister ? 'Create Account' : 'Sign In'}
               </button>
             </form>
 
             {/* Switch Link: Sign In <-> Register */}
-            <p className="mt-[clamp(6px,1.2vh,10px)] text-center text-xs text-[#9AA0A8]">
+            <p className="mt-1.5 text-center text-[11px] text-[#9AA0A8]">
               <span>{isRegister ? 'Already have an account? ' : "Don't have an account? "}</span>
               <button
                 type="button"

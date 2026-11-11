@@ -129,7 +129,7 @@ export function AuthGoogleButton({ disabled = false, onClick, onCredential }: Au
           onClick={handleClick}
           title={!clientId ? 'Google SSO (Mode simulasi pengujian lokal)' : 'Continue with Google'}
           aria-label="Continue with Google account"
-          className="relative flex w-full items-center justify-center gap-2.5 rounded-2xl border border-[#2B2B30] bg-[#141416] px-4 py-3 text-[13px] font-medium text-white transition hover:border-[#44444C] hover:bg-[#1A1A1E] focus:outline-none focus:ring-2 focus:ring-white active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          className="relative flex w-full items-center justify-center gap-2.5 rounded-2xl border border-[#2B2B30] bg-[#141416] px-4 py-2 text-[12px] font-medium text-white transition hover:border-[#44444C] hover:bg-[#1A1A1E] focus:outline-none focus:ring-2 focus:ring-white active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="shrink-0">
             <path

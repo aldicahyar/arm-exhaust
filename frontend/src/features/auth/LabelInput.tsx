@@ -25,7 +25,7 @@ export interface LabelInputProps {
 }
 
 const CLAMP = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val));
-const HEIGHT = 46;
+const HEIGHT = 42;
 const SCALE_LABEL = 0.78;
 const STROKE_OFFSET = 0.75;
 
@@ -47,7 +47,7 @@ export function LabelInput({
   autoComplete,
   minLength,
   maxLength,
-  corner = 16,
+  corner = 14,
   error = false,
   onFocus,
   onBlur,
@@ -98,7 +98,7 @@ export function LabelInput({
 
   // SVG Path Calculations
   const radius = CLAMP(corner, 0, HEIGHT / 2);
-  const labelStartX = Math.max(radius + 4, 22);
+  const labelStartX = Math.max(radius + 4, 18);
   const gapStartX = Math.max(radius, labelStartX - 4);
   const gapEndX = labelStartX + labelWidth * SCALE_LABEL + 4;
   const arcRadius = radius - STROKE_OFFSET;
