@@ -13,6 +13,7 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResendOtpDto } from './dto/resend-otp.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { TurnstileGuard } from '../../shared/guards/turnstile.guard';
@@ -52,6 +53,15 @@ export class AuthController {
   ) {
     const ip = getClientIp(req);
     return this.authService.verifyOtp(dto, ip, res);
+  }
+
+  @Post('resend-otp')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RateLimitGuard)
+  @RateLimit('resend-otp')
+  async resendOtp(@Body() dto: ResendOtpDto, @Req() req: Request) {
+    const ip = getClientIp(req);
+    return this.authService.resendOtp(dto, ip);
   }
 
   @Post('login')

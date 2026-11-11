@@ -15,6 +15,7 @@ import { MailerService } from '../../core/security/mailer.service';
 import { GoogleAuthService } from './google-auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResendOtpDto } from './dto/resend-otp.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { validatePasswordPolicy } from '../../shared/utils/password-policy.util';
@@ -95,6 +96,70 @@ export class AuthService {
 
     // 7. Kembalikan requiresOtp: true tanpa session atau cookie
     return { requiresOtp: true };
+  }
+
+  /**
+   * Resend OTP untuk registrasi tertunda (pending).
+   * Menerbitkan kode OTP baru tanpa memerlukan re-entry password di sisi client.
+   */
+  async resendOtp(
+    dto: ResendOtpDto,
+    ip: string,
+  ): Promise<{ ok: true; message: string }> {
+    const email = dto.email.trim().toLowerCase();
+
+    // 1. Cari baris OTP aktif yang belum diverifikasi
+    const result = await this.db.query(
+      `SELECT id, identifier, payload_enc, attempts, request_count, locked_until, expires_at, verified_at,
+              EXTRACT(EPOCH FROM (locked_until - now()))::int AS remaining_lock_sec
+       FROM transaction.t_trx_registration_otps
+       WHERE identifier = $1 AND verified_at IS NULL
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [email],
+    );
+
+    if (result.rowCount === 0) {
+      // Periksa apakah email sudah terdaftar di master.t_mtr_users
+      const userExists = await this.db.query(
+        'SELECT 1 FROM master.t_mtr_users WHERE email = $1',
+        [email],
+      );
+      if (userExists.rowCount && userExists.rowCount > 0) {
+        throw new ConflictException('This email is already registered. Please sign in instead.');
+      }
+      throw new BadRequestException('No pending registration found for this email. Please register again.');
+    }
+
+    const row = result.rows[0];
+
+    // 2. Cek apakah akun sedang terkunci karena brute force
+    if (row.remaining_lock_sec !== null && row.remaining_lock_sec > 0) {
+      throw new HttpException(
+        'Too many failed attempts. For your security, verification has been temporarily locked for 5 minutes.',
+        423,
+      );
+    }
+
+    // 3. Generate OTP baru & update baris yang ada
+    const otp = this.otpService.generateOtp();
+    const otpHash = await this.otpService.hashOtp(otp);
+    const ttlMinutes = await this.securityConfigService.get('otp.ttl_minutes');
+
+    await this.db.query(
+      `UPDATE transaction.t_trx_registration_otps
+       SET otp_hash = $1,
+           attempts = 0,
+           request_count = request_count + 1,
+           expires_at = now() + ($2 || ' minutes')::interval
+       WHERE id = $3`,
+      [otpHash, ttlMinutes, row.id],
+    );
+
+    // 4. Kirim email OTP
+    await this.mailerService.sendOtpEmail(email, otp);
+
+    return { ok: true, message: 'Verification code resent successfully.' };
   }
 
   /**
