@@ -120,6 +120,7 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [autoVerifyCode, setAutoVerifyCode] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   let notify: any = null;
   try {
@@ -162,6 +163,20 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
       }
     } catch {
       // Ignore URL parsing errors
+    }
+  }, []);
+
+  // Prepopulate saved email if Remember Me was previously enabled
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const savedEmail = localStorage.getItem('arm_remember_email');
+      if (savedEmail) {
+        setEmail(savedEmail);
+        setRememberMe(true);
+      }
+    } catch {
+      // Ignore localStorage access restrictions
     }
   }, []);
 
@@ -292,6 +307,16 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
 
       setLoading(true);
       const endpoint = `/api/auth/${isRegister ? 'register' : 'login'}`;
+      if (!isRegister && typeof window !== 'undefined') {
+        try {
+          if (rememberMe) {
+            localStorage.setItem('arm_remember_email', email.trim().toLowerCase());
+          } else {
+            localStorage.removeItem('arm_remember_email');
+          }
+        } catch {}
+      }
+
       const payload = isRegister
         ? {
             name: name.trim(),
@@ -302,6 +327,7 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
         : {
             email: email.trim().toLowerCase(),
             password,
+            rememberMe,
             ...(captchaToken ? { captchaToken } : {}),
           };
 
@@ -358,7 +384,7 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
         setLoading(false);
       }
     },
-    [validate, isRegister, name, email, password, captchaToken, onSuccess]
+    [validate, isRegister, name, email, password, captchaToken, rememberMe, onSuccess]
   );
 
   const verifyOtp = useCallback(
@@ -595,6 +621,8 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
     email,
     password,
     confirmPassword,
+    rememberMe,
+    setRememberMe,
     error,
     loading,
     otpLoading,

@@ -39,4 +39,5 @@ export interface AuthFormState {
   password: string;
   error: string;
   loading: boolean;
+  rememberMe?: boolean;
 }
