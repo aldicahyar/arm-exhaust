@@ -69,7 +69,8 @@ html {
   stroke-dashoffset: 0;
   transition: stroke 0.22s, stroke-width 0.22s, stroke-dashoffset 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.lbi[data-up="true"] .lbi-gap {
+.lbi[data-up="true"] .lbi-gap,
+.lbi:has(.lbi-field:-webkit-autofill) .lbi-gap {
   stroke-dashoffset: -1px;
 }
 .lbi-label {
@@ -88,7 +89,8 @@ html {
   transform: translateY(-50%);
   pointer-events: none;
 }
-.lbi[data-up="true"] .lbi-label {
+.lbi[data-up="true"] .lbi-label,
+.lbi:has(.lbi-field:-webkit-autofill) .lbi-label {
   color: #9AA0A8;
   transform: translateY(-50%) translateY(-26px) scale(0.8);
 }
@@ -183,3 +185,16 @@ html {
     animation: none;
   }
 }
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+    width: 0px;
+    height: 0px;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+

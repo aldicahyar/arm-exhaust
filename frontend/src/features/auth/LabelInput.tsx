@@ -2,6 +2,8 @@
 
 import React, { useId, useState, useRef, useLayoutEffect, useEffect } from 'react';
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export interface LabelInputProps {
   label: string;
   value: string;
@@ -57,7 +59,7 @@ export function LabelInput({
 
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [flipCount, setFlipCount] = useState(0);
+  const [flipCount, setFlipCount] = useState<number | null>(null);
   const [labelWidth, setLabelWidth] = useState(40);
   const [boxWidth, setBoxWidth] = useState(320);
 
@@ -66,14 +68,14 @@ export function LabelInput({
   const measureSpanRef = useRef<HTMLSpanElement>(null);
 
   // Ukur lebar teks label untuk menghitung celah cut-out gap
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (measureSpanRef.current) {
       setLabelWidth(measureSpanRef.current.offsetWidth || 40);
     }
   }, [label]);
 
   // Ukur lebar kontainer secara responsif (ResizeObserver)
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!boxRef.current) return;
     const updateSize = () => {
       if (boxRef.current) {
@@ -89,16 +91,16 @@ export function LabelInput({
   // Handle password toggle
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
-    setFlipCount((prev) => prev + 1);
+    setFlipCount((prev) => (prev === null ? 1 : prev + 1));
   };
 
   const isUp = isFocused || (value && value.length > 0);
 
   // SVG Path Calculations
   const radius = CLAMP(corner, 0, HEIGHT / 2);
-  const labelStartX = Math.max(16, radius + 2);
-  const gapStartX = Math.max(radius * 0.6, labelStartX - 6);
-  const gapEndX = labelStartX + labelWidth * SCALE_LABEL + 6;
+  const labelStartX = Math.max(radius + 4, 22);
+  const gapStartX = Math.max(radius, labelStartX - 4);
+  const gapEndX = labelStartX + labelWidth * SCALE_LABEL + 4;
   const arcRadius = radius - STROKE_OFFSET;
   const maxX = boxWidth - 0.75;
   const maxY = HEIGHT - 0.75;
@@ -195,7 +197,7 @@ export function LabelInput({
           autoComplete={autoComplete}
           minLength={minLength}
           maxLength={maxLength}
-          data-flip={flipCount % 2}
+          data-flip={flipCount !== null ? flipCount % 2 : undefined}
           className="lbi-field"
           style={{
             paddingRight: isPassword ? 48 : labelStartX,
@@ -212,6 +214,7 @@ export function LabelInput({
             onPointerDown={(e) => e.preventDefault()}
             onClick={togglePasswordVisibility}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-controls={inputId}
           >
             {/* Eye Icon (Open) */}
             <svg
