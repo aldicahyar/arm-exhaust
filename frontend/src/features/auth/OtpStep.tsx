@@ -217,7 +217,7 @@ export function OtpStep({
     <div className="flex flex-col animate-in fade-in duration-200">
       {/* Precision Security Header */}
       <div className="text-center mb-[clamp(10px,1.6vh,16px)]">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#18181C] border border-[#2B2B32] mb-2 text-[#E81828]">
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#18181C] border border-[#2B2B32] mb-2 text-[#9AA0A8]">
           <svg
             className="w-5 h-5"
             fill="none"
@@ -270,8 +270,8 @@ export function OtpStep({
                 verifiedSuccess
                   ? 'border-[#22C55E] bg-[#22C55E]/10 text-[#4ADE80] shadow-[0_0_8px_rgba(34,197,94,0.3)]'
                   : digit
-                  ? 'border-[#E81828] bg-[#17171B] shadow-[0_0_6px_rgba(232,24,40,0.25)]'
-                  : 'border-[#2B2B32] hover:border-[#3E424B] focus:border-[#E81828]'
+                  ? 'border-white bg-[#17171B] shadow-[0_0_6px_rgba(255,255,255,0.15)]'
+                  : 'border-[#2B2B32] hover:border-[#3E424B] focus:border-white focus:ring-1 focus:ring-white'
               }`}
             />
           ))}
@@ -305,14 +305,14 @@ export function OtpStep({
           </span>
         </div>
 
-        {/* Action Button */}
+        {/* Action Button: Bencho Minimalist Monochrome Style */}
         <button
           type="submit"
           disabled={loading || isAutoFilling || !isComplete || remainingTtl <= 0 || verifiedSuccess}
-          className={`w-full mt-1 rounded-md px-4 py-[clamp(7px,1vh,9px)] text-xs sm:text-[13px] font-semibold text-white transition duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-[#E81828] focus:ring-offset-2 focus:ring-offset-[#0F0F11] active:scale-98 disabled:cursor-not-allowed ${
+          className={`w-full mt-1 rounded-2xl px-4 py-2 text-[13px] font-semibold transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0F0F11] active:scale-[0.98] disabled:cursor-not-allowed ${
             verifiedSuccess
-              ? 'bg-[#22C55E] text-white hover:bg-[#22C55E]'
-              : 'bg-[#E81828] hover:bg-[#FF2B3C] disabled:opacity-50'
+              ? 'bg-[#22C55E] text-white focus:ring-[#22C55E]'
+              : 'bg-white text-black hover:bg-[#E5E5E5] focus:ring-white disabled:opacity-50'
           }`}
         >
           {verifiedSuccess ? (
@@ -346,7 +346,7 @@ export function OtpStep({
             type="button"
             onClick={handleResendClick}
             disabled={resendCooldown > 0 || resending || loading || isAutoFilling}
-            className="font-medium text-[#E81828] hover:text-[#FF2B3C] hover:underline disabled:text-[#5C6068] disabled:no-underline disabled:cursor-not-allowed transition"
+            className="font-medium text-white hover:underline disabled:text-[#5C6068] disabled:no-underline disabled:cursor-not-allowed transition"
           >
             {resendCooldown > 0
               ? `Resend in (${resendCooldown}s)`
