@@ -25,3 +25,161 @@ html {
   background-color: rgba(248, 167, 18, 0.25);
   color: #1e1501;
 }
+
+
+/* ==========================================================================
+   Bencho-Style LabelInput Micro-Interactions (.lbi)
+   ========================================================================== */
+.lbi {
+  place-items: center;
+  padding-top: 10px;
+  display: grid;
+  position: relative;
+  width: 100%;
+}
+.lbi-box {
+  cursor: text;
+  background: transparent;
+  position: relative;
+  width: 100%;
+}
+.lbi-ring {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.lbi-ring path {
+  fill: none;
+  stroke: #2B2B30;
+  stroke-width: 1px;
+  stroke-linecap: butt;
+  transition: stroke 0.22s, stroke-width 0.22s;
+}
+.lbi[data-focus="true"] .lbi-ring path {
+  stroke: #FFFFFF;
+  stroke-width: 1.5px;
+}
+.lbi[data-error="true"] .lbi-ring path {
+  stroke: #EF4444 !important;
+  stroke-width: 1.5px;
+}
+.lbi-gap {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 0;
+  transition: stroke 0.22s, stroke-width 0.22s, stroke-dashoffset 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lbi[data-up="true"] .lbi-gap {
+  stroke-dashoffset: -1px;
+}
+.lbi-label {
+  left: var(--lbi-x);
+  letter-spacing: -0.01em;
+  white-space: pre;
+  color: #8A8F98;
+  transform-origin: 0;
+  cursor: text;
+  user-select: none;
+  font-size: 13px;
+  line-height: 1;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), color 0.22s;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.lbi[data-up="true"] .lbi-label {
+  color: #9AA0A8;
+  transform: translateY(-50%) translateY(-26px) scale(0.8);
+}
+.lbi[data-focus="true"] .lbi-label {
+  color: #FFFFFF;
+}
+.lbi[data-error="true"] .lbi-label {
+  color: #FF6B77;
+}
+.lbi-label span {
+  display: inline-block;
+}
+.lbi[data-focus="true"] .lbi-label span {
+  animation: 0.46s cubic-bezier(0.3, 0.7, 0.3, 1) both lbi-hop;
+  animation-delay: calc(var(--i) * 24ms);
+}
+@keyframes lbi-hop {
+  0% { transform: translateY(0); }
+  38% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+.lbi-field {
+  width: 100%;
+  height: 100%;
+  padding: 0 16px 0 var(--lbi-x);
+  border-radius: inherit;
+  font: inherit;
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: 13px;
+  position: absolute;
+  inset: 0;
+}
+.lbi-field[data-flip="1"] {
+  animation: 0.26s ease-out lbi-flip-a;
+}
+.lbi-field[data-flip="0"] {
+  animation: 0.26s ease-out lbi-flip-b;
+}
+@keyframes lbi-flip-a {
+  0% { filter: blur(3px); opacity: 0.5; }
+}
+@keyframes lbi-flip-b {
+  0% { filter: blur(3px); opacity: 0.5; }
+}
+.lbi-eye {
+  width: 32px;
+  height: 32px;
+  color: #8A8F98;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  place-items: center;
+  margin-top: -16px;
+  padding: 0;
+  transition: color 0.16s, transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  display: grid;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+}
+.lbi-eye:hover {
+  color: #FFFFFF;
+}
+.lbi-eye:active {
+  transform: scale(0.95);
+}
+.lbi-eye svg {
+  grid-area: 1/1;
+  transition: opacity 0.22s, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), filter 0.22s;
+}
+.lbi-eye svg:last-child,
+.lbi-eye[data-show="true"] svg:first-child {
+  opacity: 0;
+  filter: blur(2px);
+  transform: scale(0.7);
+}
+.lbi-eye[data-show="true"] svg:last-child {
+  opacity: 1;
+  filter: none;
+  transform: scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lbi-ring path, .lbi-gap, .lbi-label {
+    transition-duration: 0.16s;
+  }
+  .lbi[data-focus="true"] .lbi-label span, .lbi-field {
+    animation: none;
+  }
+}
