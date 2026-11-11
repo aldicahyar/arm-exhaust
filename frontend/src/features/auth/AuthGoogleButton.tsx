@@ -114,12 +114,12 @@ export function AuthGoogleButton({ disabled = false, onClick, onCredential }: Au
           onLoad={() => setGisLoaded(true)}
         />
       )}
-      <div className="relative w-full overflow-hidden rounded-lg">
+      <div className="relative w-full overflow-hidden rounded-2xl">
         {/* Google GSI Native Rendered Overlay (Transparan presisi di atas tombol kustom) */}
         {clientId && (
           <div
             ref={hiddenBtnRef}
-            className="absolute inset-0 z-10 flex w-full items-center justify-center opacity-[0.0001] cursor-pointer overflow-hidden scale-110"
+            className="absolute inset-0 z-10 flex w-full items-center justify-center opacity-[0.0001] cursor-pointer overflow-hidden scale-110 rounded-2xl"
             title="Continue with Google"
           />
         )}
@@ -129,7 +129,7 @@ export function AuthGoogleButton({ disabled = false, onClick, onCredential }: Au
           onClick={handleClick}
           title={!clientId ? 'Google SSO (Mode simulasi pengujian lokal)' : 'Continue with Google'}
           aria-label="Continue with Google account"
-          className="relative flex w-full items-center justify-center gap-2.5 rounded-lg border border-[#3A3A40] bg-[#141416] px-3 py-[clamp(6px,1.1vh,9px)] text-[13px] font-semibold text-white transition hover:border-[#52525C] hover:bg-[#1C1C20] focus:outline-none focus:ring-2 focus:ring-[#E81828] disabled:cursor-not-allowed disabled:opacity-50"
+          className="relative flex w-full items-center justify-center gap-2.5 rounded-2xl border border-[#2B2B30] bg-[#141416] px-4 py-3 text-[13px] font-medium text-white transition hover:border-[#44444C] hover:bg-[#1A1A1E] focus:outline-none focus:ring-2 focus:ring-white active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="shrink-0">
             <path
@@ -151,7 +151,7 @@ export function AuthGoogleButton({ disabled = false, onClick, onCredential }: Au
           </svg>
           <span>Continue with Google</span>
           {!clientId && isDev && (
-            <span className="ml-1 rounded bg-[#2B2B30] px-1.5 py-0.5 text-[10px] font-medium text-[#9AA0A8]">
+            <span className="ml-1 rounded-md bg-[#2B2B30] px-1.5 py-0.5 text-[10px] font-medium text-[#9AA0A8]">
               Demo
             </span>
           )}
