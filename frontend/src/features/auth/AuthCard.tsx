@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { AnimatePresence, motion } from 'framer-motion';
 import { AuthSlider } from './AuthSlider';
 import { AuthGoogleButton } from './AuthGoogleButton';
 import { LabelInput } from './LabelInput';
+import { AuthCheckbox } from './AuthCheckbox';
 import { useAuthForm } from './useAuthForm';
 import { PasswordStrength } from './PasswordStrength';
 import { Turnstile } from './Turnstile';
@@ -93,12 +95,23 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
               />
             </div>
 
-            {/* Subtitle dinamis */}
-            <p className="mb-1.5 text-center text-[11px] text-[#9AA0A8]">
-              {isRegister
-                ? 'Create an account to enjoy ARM Exhaust features.'
-                : 'Welcome back to ARM Exhaust.'}
-            </p>
+            {/* Subtitle dinamis dengan smooth cross-fade */}
+            <div className="relative mb-1.5 min-h-[16px] flex items-center justify-center overflow-hidden">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.p
+                  key={isRegister ? 'reg' : 'log'}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  className="text-center text-[11px] text-[#9AA0A8]"
+                >
+                  {isRegister
+                    ? 'Create an account to enjoy ARM Exhaust features.'
+                    : 'Welcome back to ARM Exhaust.'}
+                </motion.p>
+              </AnimatePresence>
+            </div>
 
             {/* Tombol SSO Google */}
             <div className="mb-1.5">
@@ -115,96 +128,146 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
             {/* Accessible screen-reader live region */}
             {error && <span role="alert" className="sr-only">{error}</span>}
 
-            {/* Form Body dengan Bencho LabelInput */}
-            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-1.5">
-              {isRegister && (
+            {/* Form Body dengan Bencho LabelInput & Smooth Layout Transition */}
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col">
+              <AnimatePresence initial={false}>
+                {isRegister && (
+                  <motion.div
+                    key="field-name"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pb-1.5">
+                      <LabelInput
+                        label="Full Name"
+                        name="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        autoComplete="name"
+                        disabled={loading}
+                        corner={14}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="mb-1.5">
                 <LabelInput
-                  label="Full Name"
-                  name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  label="Email"
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  minLength={2}
-                  maxLength={100}
-                  autoComplete="name"
+                  autoComplete="email"
                   disabled={loading}
                   corner={14}
                 />
-              )}
+              </div>
 
-              <LabelInput
-                label="Email"
-                type="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                disabled={loading}
-                corner={14}
-              />
-
-              <LabelInput
-                label="Password"
-                type="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => setIsPasswordFocused(true)}
-                onBlur={() => setIsPasswordFocused(false)}
-                required
-                minLength={8}
-                autoComplete={isRegister ? 'new-password' : 'current-password'}
-                disabled={loading}
-                corner={14}
-              />
-
-              {isRegister && (
-                <PasswordStrength
-                  password={password}
-                  isFocused={isPasswordFocused}
+              <div className="mb-1.5">
+                <LabelInput
+                  label="Password"
+                  type="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setIsPasswordFocused(true)}
+                  onBlur={() => setIsPasswordFocused(false)}
+                  required
+                  minLength={8}
+                  autoComplete={isRegister ? 'new-password' : 'current-password'}
+                  disabled={loading}
+                  corner={14}
                 />
-              )}
+              </div>
 
-              {isRegister && (
-                <div className="flex flex-col gap-0.5">
-                  <LabelInput
-                    label="Confirm Password"
-                    type="password"
-                    name="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    autoComplete="new-password"
-                    disabled={loading}
-                    error={passwordsMismatch}
-                    corner={14}
-                  />
-                  {passwordsMismatch && (
-                    <span className="text-[10px] font-medium text-[#FF6B77] pl-2">
-                      Passwords do not match.
-                    </span>
-                  )}
-                </div>
-              )}
+              <AnimatePresence initial={false}>
+                {isRegister && (
+                  <motion.div
+                    key="field-password-strength"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pb-1.5">
+                      <PasswordStrength
+                        password={password}
+                        isFocused={isPasswordFocused}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              {/* Sesi "Remember Me" (Hanya pada Mode Login) */}
-              {!isRegister && (
-                <div className="flex items-center justify-between text-xs py-0.5">
-                  <label className="flex items-center gap-2 cursor-pointer select-none text-[#9AA0A8] hover:text-white transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(rememberMe)}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded-md border border-[#3A3A40] bg-[#141416] text-white accent-white focus:ring-0 focus:outline-none"
-                    />
-                    <span>Remember me</span>
-                  </label>
-                </div>
-              )}
+              <AnimatePresence initial={false}>
+                {isRegister && (
+                  <motion.div
+                    key="field-confirm-password"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex flex-col gap-0.5 pb-1.5">
+                      <LabelInput
+                        label="Confirm Password"
+                        type="password"
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        autoComplete="new-password"
+                        disabled={loading}
+                        error={passwordsMismatch}
+                        corner={14}
+                      />
+                      {passwordsMismatch && (
+                        <span className="text-[10px] font-medium text-[#FF6B77] pl-2">
+                          Passwords do not match.
+                        </span>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Sesi "Remember Me" (Hanya pada Mode Login dengan Smooth Transition) */}
+              <AnimatePresence initial={false}>
+                {!isRegister && (
+                  <motion.div
+                    key="field-remember-me"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between text-xs pb-1.5 pt-0.5">
+                      <AuthCheckbox
+                        checked={Boolean(rememberMe)}
+                        onChange={setRememberMe}
+                        label="Remember me"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Cloudflare Turnstile Protection */}
-              <Turnstile onVerify={setCaptchaToken} className="my-0.5" />
+              <div className="my-0.5">
+                <Turnstile onVerify={setCaptchaToken} />
+              </div>
 
               {/* Action Button: Solid White Kontras Tinggi (Bencho Monochrome Style) */}
               <button
@@ -212,7 +275,18 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                 disabled={loading}
                 className="mt-0.5 w-full rounded-2xl bg-white px-4 py-2 text-[13px] font-semibold text-black transition-all duration-150 ease-out hover:bg-[#E5E5E5] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0F0F11] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? 'Processing…' : isRegister ? 'Create Account' : 'Sign In'}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={loading ? 'loading' : isRegister ? 'register' : 'signin'}
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -3 }}
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                    className="inline-block"
+                  >
+                    {loading ? 'Processing…' : isRegister ? 'Create Account' : 'Sign In'}
+                  </motion.span>
+                </AnimatePresence>
               </button>
             </form>
 
