@@ -140,45 +140,48 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
     [notify]
   );
 
-  // Parse email and OTP from URL query parameters (for One-Click verification from email)
+  // Coordinated State Initialization:
+  // 1. Prioritize URL query parameters (for 1-click verification links like ?email=...&otp=...)
+  // 2. Validate email format strictly against script injection / malformed input
+  // 3. Preserve '+' in email plus-addressing (e.g. arkanpasiva+8@gmail.com)
+  // 4. Prepopulate saved email from localStorage ONLY if on login form and no email param in URL
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const search = window.location.search;
-    if (!search) return;
-    try {
-      const params = new URLSearchParams(search);
-      const emailParam = params.get('email');
-      const otpParam = params.get('otp');
+    const params = search ? new URLSearchParams(search) : null;
+    const rawEmailParam = params?.get('email');
+    const rawOtpParam = params?.get('otp');
 
-      if (emailParam && otpParam && /^\d{6}$/.test(otpParam.trim())) {
-        setEmail(emailParam.trim().toLowerCase());
-        setStep('otp');
-        setAutoVerifyCode(otpParam.trim());
+    if (rawEmailParam) {
+      // Preserve '+' for plus-addressing (standard URLSearchParams decodes unencoded '+' to space ' ')
+      const sanitizedEmail = rawEmailParam.trim().replace(/\s+/g, '+').toLowerCase();
+      if (isValidEmail(sanitizedEmail)) {
+        setEmail(sanitizedEmail);
+        if (rawOtpParam && /^\d{6}$/.test(rawOtpParam.trim())) {
+          setStep('otp');
+          setAutoVerifyCode(rawOtpParam.trim());
+        }
 
         // Security best practice: Strip credentials from browser address bar immediately
-        if (typeof window !== 'undefined' && window.history?.replaceState) {
+        if (window.history?.replaceState) {
           const cleanUrl = window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);
         }
+        return; // Absolute precedence: Skip localStorage completely
       }
-    } catch {
-      // Ignore URL parsing errors
     }
-  }, []);
 
-  // Prepopulate saved email if Remember Me was previously enabled
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Prepopulate saved email if Remember Me was previously enabled (only in clean login form)
     try {
       const savedEmail = localStorage.getItem('arm_remember_email');
-      if (savedEmail) {
+      if (savedEmail && initialMode === 'login') {
         setEmail(savedEmail);
         setRememberMe(true);
       }
     } catch {
       // Ignore localStorage access restrictions
     }
-  }, []);
+  }, [initialMode]);
 
   // Cross-tab sync: Automatically detect if user verified in another tab or device
   useEffect(() => {
@@ -478,17 +481,12 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
     setError('');
     setOtpLoading(true);
     try {
-      const payload = {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        password,
-        ...(captchaToken ? { captchaToken } : {}),
-      };
-
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch('/api/auth/resend-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+        }),
       });
 
       let data: AuthApiResponse;
@@ -496,6 +494,7 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
         data = await res.json();
       } catch {
         data = {
+          statusCode: res.status,
           error: res.status >= 500
             ? 'Tidak dapat terhubung ke server backend (Port 4000). Pastikan backend aktif.'
             : res.status === 404
@@ -512,6 +511,8 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
         setErrorMessage(parseApiErrorMessage(data, 'Failed to resend OTP code. Please try again.'));
         return false;
       }
+
+      notify?.success('A new verification code has been sent to your email.');
       return true;
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -523,11 +524,13 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
     } finally {
       setOtpLoading(false);
     }
-  }, [name, email, password, captchaToken, setErrorMessage]);
+  }, [email, notify, setErrorMessage]);
 
   const backToForm = useCallback(() => {
     setStep('form');
+    setMode('register');
     setError('');
+    setAutoVerifyCode(null);
   }, []);
 
   const handleGoogleSuccess = useCallback(
