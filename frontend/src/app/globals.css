@@ -70,7 +70,8 @@ html {
   transition: stroke 0.22s, stroke-width 0.22s, stroke-dashoffset 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .lbi[data-up="true"] .lbi-gap,
-.lbi:has(.lbi-field:-webkit-autofill) .lbi-gap {
+.lbi:has(.lbi-field:-webkit-autofill) .lbi-gap,
+.lbi:has(.lbi-field:autofill) .lbi-gap {
   stroke-dashoffset: -1px;
 }
 .lbi-label {
@@ -90,7 +91,8 @@ html {
   pointer-events: none;
 }
 .lbi[data-up="true"] .lbi-label,
-.lbi:has(.lbi-field:-webkit-autofill) .lbi-label {
+.lbi:has(.lbi-field:-webkit-autofill) .lbi-label,
+.lbi:has(.lbi-field:autofill) .lbi-label {
   color: #9AA0A8;
   transform: translateY(-50%) translateY(-21px) scale(0.76);
 }
@@ -126,6 +128,19 @@ html {
   font-size: 13px;
   position: absolute;
   inset: 0;
+  color-scheme: dark;
+}
+.lbi-field:-webkit-autofill,
+.lbi-field:-webkit-autofill:hover,
+.lbi-field:-webkit-autofill:focus,
+.lbi-field:-webkit-autofill:active,
+.lbi-field:autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0F0F11 inset !important;
+  box-shadow: 0 0 0 1000px #0F0F11 inset !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  caret-color: #FFFFFF !important;
+  color-scheme: dark;
+  transition: background-color 5000s ease-in-out 0s;
 }
 .lbi-field[data-flip="1"] {
   animation: 0.26s ease-out lbi-flip-a;
