@@ -25,7 +25,7 @@ export interface LabelInputProps {
 }
 
 const CLAMP = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val));
-const HEIGHT = 52;
+const HEIGHT = 46;
 const SCALE_LABEL = 0.78;
 const STROKE_OFFSET = 0.75;
 
@@ -47,7 +47,7 @@ export function LabelInput({
   autoComplete,
   minLength,
   maxLength,
-  corner = 18,
+  corner = 16,
   error = false,
   onFocus,
   onBlur,

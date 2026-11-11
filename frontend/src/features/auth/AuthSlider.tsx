@@ -119,7 +119,7 @@ export function AuthSlider({
 
             {/* Teks promo */}
             <div className="absolute bottom-11 left-6 right-6 z-20">
-              <span className="inline-block rounded bg-[#E81828] px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase text-white shadow-sm">
+              <span className="inline-block rounded-md bg-white px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase text-black shadow-sm">
                 {slide.tag}
               </span>
               <h2 className="mt-1.5 text-lg font-bold leading-tight tracking-tight text-white sm:text-[19px]">
@@ -138,7 +138,7 @@ export function AuthSlider({
         type="button"
         onClick={prevSlide}
         aria-label="Previous promo slide"
-        className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-[#0A0A0B]/60 text-white transition hover:bg-[#E81828] hover:border-[#E81828] focus:outline-none focus:ring-2 focus:ring-[#E81828]"
+        className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-[#0A0A0B]/60 text-white transition hover:bg-white hover:text-black hover:border-white focus:outline-none focus:ring-2 focus:ring-white"
       >
         <span aria-hidden="true" className="text-xs">&#10094;</span>
       </button>
@@ -147,7 +147,7 @@ export function AuthSlider({
         type="button"
         onClick={nextSlide}
         aria-label="Next promo slide"
-        className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-[#0A0A0B]/60 text-white transition hover:bg-[#E81828] hover:border-[#E81828] focus:outline-none focus:ring-2 focus:ring-[#E81828]"
+        className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-[#0A0A0B]/60 text-white transition hover:bg-white hover:text-black hover:border-white focus:outline-none focus:ring-2 focus:ring-white"
       >
         <span aria-hidden="true" className="text-xs">&#10095;</span>
       </button>
@@ -169,7 +169,7 @@ export function AuthSlider({
               aria-label={`View slide ${idx + 1}: ${slide.title}`}
               onClick={() => goTo(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-white ${
-                isActive ? 'w-5 bg-[#E81828]' : 'w-1.5 bg-white/30 hover:bg-white/60'
+                isActive ? 'w-5 bg-white' : 'w-1.5 bg-white/30 hover:bg-white/60'
               }`}
             />
           );

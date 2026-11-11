@@ -59,16 +59,16 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
 
   return (
     <div
-      className="grid w-full max-w-[920px] grid-cols-1 overflow-hidden rounded-2xl border border-[#2B2B30] bg-[#0F0F11] shadow-2xl md:grid-cols-[1.05fr_1fr]"
+      className="grid w-full max-w-[900px] grid-cols-1 overflow-hidden rounded-2xl border border-[#2B2B30] bg-[#0F0F11] shadow-2xl md:grid-cols-[1.05fr_1fr] my-auto"
       style={{
-        minHeight: 'clamp(480px, 86vh, 600px)',
+        minHeight: 'clamp(440px, 78vh, 560px)',
       }}
     >
       {/* Kolom Kiri: Slider Promosi & Aset Visual 2:3 */}
       <AuthSlider />
 
       {/* Kolom Kanan: Form Autentikasi Single-Card / Verifikasi OTP */}
-      <div className="flex flex-col justify-center px-[clamp(20px,3vw,36px)] py-[clamp(16px,2.5vh,26px)]">
+      <div className="flex flex-col justify-center px-[clamp(16px,2.5vw,32px)] py-[clamp(12px,1.8vh,20px)]">
         {step === 'otp' ? (
           <OtpStep
             email={email}
@@ -82,31 +82,31 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
         ) : (
           <>
             {/* Brand Logo: Hanya logo yang mempertahankan warna aslinya */}
-            <div className="flex justify-center mb-[clamp(6px,1.2vh,12px)]">
+            <div className="flex justify-center mb-[clamp(4px,1vh,8px)]">
               <Image
                 src="/assets/Logo ARM no BG.png"
                 alt="ARM Exhaust"
-                width={96}
-                height={48}
+                width={92}
+                height={46}
                 priority
-                className="h-auto w-auto max-w-[96px] object-contain"
+                className="h-auto w-auto max-w-[92px] object-contain"
               />
             </div>
 
             {/* Subtitle dinamis */}
-            <p className="mb-[clamp(8px,1.3vh,14px)] text-center text-xs text-[#9AA0A8]">
+            <p className="mb-[clamp(6px,1.1vh,10px)] text-center text-xs text-[#9AA0A8]">
               {isRegister
                 ? 'Create an account to enjoy ARM Exhaust features.'
                 : 'Welcome back to ARM Exhaust.'}
             </p>
 
             {/* Tombol SSO Google */}
-            <div className="mb-[clamp(6px,1.1vh,12px)]">
+            <div className="mb-[clamp(4px,0.9vh,8px)]">
               <AuthGoogleButton disabled={loading} onCredential={handleGoogleSuccess} />
             </div>
 
             {/* Divider pemisah */}
-            <div className="mb-[clamp(6px,1.1vh,12px)] flex items-center gap-2.5 text-[10px] uppercase tracking-widest text-[#5C6068]">
+            <div className="mb-[clamp(4px,0.9vh,8px)] flex items-center gap-2.5 text-[10px] uppercase tracking-widest text-[#5C6068]">
               <span className="h-px flex-1 bg-[#2B2B30]" />
               <span>or</span>
               <span className="h-px flex-1 bg-[#2B2B30]" />
@@ -116,7 +116,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
             {error && <span role="alert" className="sr-only">{error}</span>}
 
             {/* Form Body dengan Bencho LabelInput */}
-            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-2.5">
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-2">
               {isRegister && (
                 <LabelInput
                   label="Full Name"
@@ -128,7 +128,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                   maxLength={100}
                   autoComplete="name"
                   disabled={loading}
-                  corner={18}
+                  corner={16}
                 />
               )}
 
@@ -141,7 +141,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                 required
                 autoComplete="email"
                 disabled={loading}
-                corner={18}
+                corner={16}
               />
 
               <LabelInput
@@ -156,7 +156,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                 minLength={8}
                 autoComplete={isRegister ? 'new-password' : 'current-password'}
                 disabled={loading}
-                corner={18}
+                corner={16}
               />
 
               {isRegister && (
@@ -178,7 +178,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
                     autoComplete="new-password"
                     disabled={loading}
                     error={passwordsMismatch}
-                    corner={18}
+                    corner={16}
                   />
                   {passwordsMismatch && (
                     <span className="text-[10px] font-medium text-[#FF6B77] pl-2">
@@ -190,7 +190,7 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
 
               {/* Sesi "Remember Me" (Hanya pada Mode Login) */}
               {!isRegister && (
-                <div className="flex items-center justify-between text-xs py-1">
+                <div className="flex items-center justify-between text-xs py-0.5">
                   <label className="flex items-center gap-2 cursor-pointer select-none text-[#9AA0A8] hover:text-white transition-colors">
                     <input
                       type="checkbox"
@@ -210,14 +210,14 @@ export function AuthCard({ initialMode = 'login' }: AuthCardProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-1 w-full rounded-2xl bg-white px-4 py-3 text-[13px] font-semibold text-black transition-all duration-150 ease-out hover:bg-[#E5E5E5] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0F0F11] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-0.5 w-full rounded-2xl bg-white px-4 py-2.5 text-[13px] font-semibold text-black transition-all duration-150 ease-out hover:bg-[#E5E5E5] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#0F0F11] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? 'Processing…' : isRegister ? 'Create Account' : 'Sign In'}
               </button>
             </form>
 
             {/* Switch Link: Sign In <-> Register */}
-            <p className="mt-[clamp(8px,1.4vh,14px)] text-center text-xs text-[#9AA0A8]">
+            <p className="mt-[clamp(6px,1.2vh,10px)] text-center text-xs text-[#9AA0A8]">
               <span>{isRegister ? 'Already have an account? ' : "Don't have an account? "}</span>
               <button
                 type="button"
