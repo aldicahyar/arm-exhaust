@@ -11,6 +11,8 @@ import {
   RefreshCw,
   Pencil,
   Trash2,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
 import { useNotice, useDoubleSafetyAction, ACTION_PRESETS } from '@/shared/components';
 import { cn } from '@/shared/utils/cn';
@@ -680,6 +682,31 @@ export function HeroManagementPanel() {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<boolean>(false);
+  const [isPreviewVisible, setIsPreviewVisible] = useState<boolean>(true);
+
+  // Initialize from localStorage after mounting to avoid Next.js SSR hydration mismatch
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('arm_admin_hero_preview_visible');
+      if (saved !== null) {
+        setIsPreviewVisible(saved === 'true');
+      }
+    } catch {
+      // Safe fallback for restricted storage environments
+    }
+  }, []);
+
+  const handleTogglePreview = () => {
+    setIsPreviewVisible((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('arm_admin_hero_preview_visible', String(next));
+      } catch {
+        // Safe fallback
+      }
+      return next;
+    });
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastCommittedRef = useRef<HeroSlide[]>([]);
@@ -1087,14 +1114,37 @@ export function HeroManagementPanel() {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#141416] hover:bg-zinc-800 px-3.5 py-2 text-xs font-semibold text-white transition shadow-xs active:scale-[0.98]"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>Tambah Slide</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Collapsible Preview Toggle */}
+          <button
+            type="button"
+            onClick={handleTogglePreview}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-100 hover:border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 transition shadow-xs active:scale-[0.98]"
+            title={isPreviewVisible ? 'Sembunyikan Pratinjau Storefront' : 'Tampilkan Pratinjau Storefront'}
+            aria-label={isPreviewVisible ? 'Sembunyikan Pratinjau Storefront' : 'Tampilkan Pratinjau Storefront'}
+          >
+            {isPreviewVisible ? (
+              <>
+                <PanelRightClose className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Sembunyikan Pratinjau</span>
+              </>
+            ) : (
+              <>
+                <PanelRightOpen className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Tampilkan Pratinjau</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#141416] hover:bg-zinc-800 px-3.5 py-2 text-xs font-semibold text-white transition shadow-xs active:scale-[0.98]"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Tambah Slide</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -1120,8 +1170,12 @@ export function HeroManagementPanel() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left: Sortable List */}
-          <div className="lg:col-span-7">
+          {/* Left: Sortable List (Dynamic 7 cols vs 12 cols) */}
+          <motion.div
+            layout
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className={cn(isPreviewVisible ? 'lg:col-span-7' : 'lg:col-span-12')}
+          >
             <Reorder.Group
               axis="y"
               values={slides}
@@ -1146,16 +1200,26 @@ export function HeroManagementPanel() {
                 />
               ))}
             </Reorder.Group>
-          </div>
+          </motion.div>
 
-          {/* Right: Eye-Catching Live Storefront Mirror */}
-          <div className="lg:col-span-5 lg:sticky lg:top-20">
-            <HeroLivePreview
-              slides={slides}
-              focusedSlide={focusedSlide}
-              onSelectSlide={setFocusedSlideId}
-            />
-          </div>
+          {/* Right: Eye-Catching Live Storefront Mirror (Collapsible with AnimatePresence) */}
+          <AnimatePresence>
+            {isPreviewVisible && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="lg:col-span-5 lg:sticky lg:top-20"
+              >
+                <HeroLivePreview
+                  slides={slides}
+                  focusedSlide={focusedSlide}
+                  onSelectSlide={setFocusedSlideId}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
