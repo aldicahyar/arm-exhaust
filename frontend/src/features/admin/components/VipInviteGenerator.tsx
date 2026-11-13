@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNotice } from '@/shared/components';
-import { Check, Copy, Send, RefreshCw, Plus } from 'lucide-react';
+import { useNotice, useDoubleSafetyAction, ACTION_PRESETS } from '@/shared/components';
+import {  RefreshCw } from 'lucide-react';
 import type { VipInviteItem, GeneratedInviteResult } from '../types';
 
 const DURATION_OPTIONS = [
@@ -94,29 +94,39 @@ export function VipInviteGenerator() {
     }
   };
 
-  const handleRevoke = async (inviteId: string, pName: string) => {
-    if (!confirm(`Batalkan token VIP untuk "${pName}"? Token tidak akan dapat diklaim lagi.`)) {
-      return;
-    }
-
-    setRevokingId(inviteId);
-    try {
-      const res = await fetch(`/api/admin/reseller-invites/${inviteId}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Gagal membatalkan token.');
+  const { executeAction: executeRevokeInvite } = useDoubleSafetyAction<VipInviteItem>({
+    preset: ACTION_PRESETS.VIP_INVITE_REVOKE,
+    noticeSource: 'Undangan VIP',
+    getItemPreview: (inv) => inv.partner_name || inv.partnerName || inv.token,
+    onOptimisticExecute: (inv) => {
+      setInvites((prev) =>
+        prev.map((item) => (item.id === inv.id ? { ...item, status: 'revoked' } : item))
+      );
+    },
+    onRestore: (inv) => {
+      setInvites((prev) =>
+        prev.map((item) => (item.id === inv.id ? inv : item))
+      );
+    },
+    onCommit: async (inv) => {
+      setRevokingId(inv.id);
+      try {
+        const res = await fetch(`/api/admin/reseller-invites/${inv.id}`, {
+          method: 'DELETE',
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(data?.message || 'Gagal membatalkan token.');
+        }
+        await fetchInvites();
+      } finally {
+        setRevokingId(null);
       }
+    },
+  });
 
-      notify?.success('Token Dibatalkan', `Token untuk ${pName} telah dinonaktifkan.`);
-      fetchInvites();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal membatalkan token.';
-      notify?.error('Error', msg);
-    } finally {
-      setRevokingId(null);
-    }
+  const handleRevoke = (invite: VipInviteItem) => {
+    void executeRevokeInvite(invite);
   };
 
   const copyToClipboard = async (text: string) => {
@@ -441,7 +451,7 @@ export function VipInviteGenerator() {
                               <button
                                 type="button"
                                 disabled={isRevoking}
-                                onClick={() => handleRevoke(inv.id, pName)}
+                                onClick={() => handleRevoke(inv)}
                                 className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 transition disabled:opacity-40"
                               >
                                 {isRevoking ? '…' : 'Batal'}

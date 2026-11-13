@@ -19,12 +19,14 @@ const eventContent = fs.readFileSync(eventPanelPath, 'utf8');
 assert.ok(!heroContent.includes('window.confirm'), 'HeroManagementPanel must not use window.confirm');
 assert.ok(!eventContent.includes('window.confirm'), 'EventManagementPanel must not use window.confirm');
 
-// 2. Assert consumption of useConfirm
-assert.ok(heroContent.includes('useConfirm'), 'HeroManagementPanel must use useConfirm');
-assert.ok(eventContent.includes('useConfirm'), 'EventManagementPanel must use useConfirm');
-
-// 3. Assert Undo action button in notifications
-assert.ok(heroContent.includes('Urungkan'), 'HeroManagementPanel must provide Urungkan undo button');
-assert.ok(eventContent.includes('Urungkan'), 'EventManagementPanel must provide Urungkan undo button');
+// 2. Assert consumption of useDoubleSafetyAction and ACTION_PRESETS
+assert.ok(
+  heroContent.includes('useDoubleSafetyAction') && heroContent.includes('ACTION_PRESETS'),
+  'HeroManagementPanel must use useDoubleSafetyAction and ACTION_PRESETS'
+);
+assert.ok(
+  eventContent.includes('useDoubleSafetyAction') && eventContent.includes('ACTION_PRESETS'),
+  'EventManagementPanel must use useDoubleSafetyAction and ACTION_PRESETS'
+);
 
 console.log('✅ Double-safety deletion contract verified.\n');

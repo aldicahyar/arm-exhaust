@@ -10,7 +10,7 @@ import {
   Image as ImageIcon,
   RefreshCw,
 } from 'lucide-react';
-import { useNotice, useConfirm } from '@/shared/components';
+import { useNotice, useDoubleSafetyAction, ACTION_PRESETS } from '@/shared/components';
 import { cn } from '@/shared/utils/cn';
 import type { HeroSlide } from '../types';
 import {
@@ -655,7 +655,6 @@ function HeroSlideModal({
 
 export function HeroManagementPanel() {
   const { notify } = useNotice();
-  const confirm = useConfirm();
 
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [focusedSlideId, setFocusedSlideId] = useState<string | null>(null);
@@ -672,16 +671,6 @@ export function HeroManagementPanel() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastCommittedRef = useRef<HeroSlide[]>([]);
   const latestOrderRef = useRef<HeroSlide[]>([]);
-  const pendingDeletesRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
-
-  // Cleanup pending delete timers on unmount
-  useEffect(() => {
-    const pending = pendingDeletesRef.current;
-    return () => {
-      pending.forEach((timer) => clearTimeout(timer));
-      pending.clear();
-    };
-  }, []);
 
   const fetchSlides = useCallback(async () => {
     setLoading(true);
@@ -1023,91 +1012,48 @@ export function HeroManagementPanel() {
     void persistOrder(swapped, fallback);
   };
 
-  const handleDelete = async (slide: HeroSlide) => {
-    const confirmed = await confirm({
-      title: 'Hapus Slide Hero?',
-      description: 'Slide ini akan dihapus dari banner beranda storefront.',
-      itemPreview: slide.title,
-      confirmText: 'Hapus Slide',
-      variant: 'danger',
-    });
-    if (!confirmed) return;
-
-    // 1. Optimistic removal from state
-    const previousSlides = slides;
-    const removedIndex = slides.findIndex((s) => s.id === slide.id);
-    setSlides((prev) => {
-      const next = prev.filter((s) => s.id !== slide.id);
-      lastCommittedRef.current = next;
-      latestOrderRef.current = next;
-      if (focusedSlideId === slide.id) {
-        setFocusedSlideId(next[0]?.id ?? null);
-      }
-      return next;
-    });
-
-    // 2. Schedule commit with 6-second delay
-    let isUndone = false;
-    const timeoutId = setTimeout(async () => {
-      pendingDeletesRef.current.delete(slide.id);
-      if (isUndone) return;
-
-      try {
-        const res = await fetch(`/api/admin/hero-slides/${slide.id}`, {
-          method: 'DELETE',
-        });
-        if (!res.ok) {
-          throw new Error('Gagal menghapus slide dari server.');
+  const { executeAction: executeDeleteSlide } = useDoubleSafetyAction<HeroSlide>({
+    preset: ACTION_PRESETS.HERO_SLIDE_DELETE,
+    noticeSource: HERO_NOTICE_SOURCE,
+    getItemPreview: (slide) => slide.title,
+    onOptimisticExecute: (slide) => {
+      setSlides((prev) => {
+        const next = prev.filter((s) => s.id !== slide.id);
+        lastCommittedRef.current = next;
+        latestOrderRef.current = next;
+        if (focusedSlideId === slide.id) {
+          setFocusedSlideId(next[0]?.id ?? null);
         }
-      } catch (err: unknown) {
-        // Rollback on server error
-        setSlides(previousSlides);
-        lastCommittedRef.current = previousSlides;
-        latestOrderRef.current = previousSlides;
-        const msg = err instanceof Error ? err.message : 'Gagal menghapus slide.';
-        notify?.error('Gagal Menghapus', `${msg} Data slide dipulihkan.`, {
-          source: HERO_NOTICE_SOURCE,
-          action: 'delete',
-          detail: msg,
-        });
+        return next;
+      });
+    },
+    onRestore: (slide, originalIndex) => {
+      setSlides((prev) => {
+        if (prev.some((s) => s.id === slide.id)) return prev;
+        const next = [...prev];
+        const insertIdx =
+          typeof originalIndex === 'number' && originalIndex >= 0 && originalIndex <= next.length
+            ? originalIndex
+            : next.length;
+        next.splice(insertIdx, 0, slide);
+        lastCommittedRef.current = next;
+        latestOrderRef.current = next;
+        return next;
+      });
+    },
+    onCommit: async (slide) => {
+      const res = await fetch(`/api/admin/hero-slides/${slide.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        throw new Error('Gagal menghapus slide dari server.');
       }
-    }, 6000);
+    },
+  });
 
-    pendingDeletesRef.current.set(slide.id, timeoutId);
-
-    // 3. Show DynamicIslandNotice with Undo button
-    notify?.info('Slide Dihapus', `Slide "${slide.title}" disembunyikan.`, {
-      duration: 6000,
-      source: HERO_NOTICE_SOURCE,
-      action: 'delete',
-      detail: `ID: ${slide.id}`,
-      actionButton: {
-        label: 'Urungkan',
-        onClick: () => {
-          isUndone = true;
-          const timer = pendingDeletesRef.current.get(slide.id);
-          if (timer) {
-            clearTimeout(timer);
-            pendingDeletesRef.current.delete(slide.id);
-          }
-          setSlides((prev) => {
-            const exists = prev.some((s) => s.id === slide.id);
-            if (exists) return prev;
-            const next = [...prev];
-            const insertIdx =
-              removedIndex >= 0 && removedIndex <= next.length ? removedIndex : next.length;
-            next.splice(insertIdx, 0, slide);
-            lastCommittedRef.current = next;
-            latestOrderRef.current = next;
-            return next;
-          });
-          notify?.success('Pemulihan Berhasil', `Slide "${slide.title}" telah dipulihkan.`, {
-            source: HERO_NOTICE_SOURCE,
-            action: 'undo',
-          });
-        },
-      },
-    });
+  const handleDelete = (slide: HeroSlide) => {
+    const index = slides.findIndex((s) => s.id === slide.id);
+    void executeDeleteSlide(slide, index);
   };
 
   const activeCount = slides.filter((s) => s.is_active).length;

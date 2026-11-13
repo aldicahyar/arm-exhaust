@@ -15,7 +15,7 @@ import {
   RefreshCw,
   Image as ImageIcon,
 } from 'lucide-react';
-import { useNotice, useConfirm } from '@/shared/components';
+import { useNotice, useDoubleSafetyAction, ACTION_PRESETS } from '@/shared/components';
 import { cn } from '@/shared/utils/cn';
 import type { CommunityEvent } from '../types';
 import {
@@ -372,7 +372,6 @@ function EventFormModal({
 
 export function EventManagementPanel() {
   const { notify } = useNotice();
-  const confirm = useConfirm();
 
   const [events, setEvents] = useState<CommunityEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -382,20 +381,9 @@ export function EventManagementPanel() {
   const [formData, setFormData] = useState<EventFormData>(INITIAL_FORM);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const pendingDeletesRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
-
-  // Cleanup pending delete timers on unmount
-  useEffect(() => {
-    const pending = pendingDeletesRef.current;
-    return () => {
-      pending.forEach((timer) => clearTimeout(timer));
-      pending.clear();
-    };
-  }, []);
 
   // Fetch all community events
   const fetchEvents = useCallback(async () => {
@@ -709,80 +697,39 @@ export function EventManagementPanel() {
     }
   };
 
-  // Delete Event
-  const handleDelete = async (eventItem: CommunityEvent) => {
-    const confirmed = await confirm({
-      title: 'Hapus Event Komunitas?',
-      description: 'Event ini akan dihapus dari daftar kalender kegiatan storefront.',
-      itemPreview: eventItem.title,
-      confirmText: 'Hapus Event',
-      variant: 'danger',
-    });
-    if (!confirmed) return;
-
-    // 1. Optimistic removal from state
-    const previousEvents = events;
-    const removedIndex = events.findIndex((ev) => ev.id === eventItem.id);
-    setEvents((prev) => prev.filter((ev) => ev.id !== eventItem.id));
-
-    // 2. Schedule commit with 6-second delay
-    let isUndone = false;
-    const timeoutId = setTimeout(async () => {
-      pendingDeletesRef.current.delete(eventItem.id);
-      if (isUndone) return;
-
-      try {
-        const res = await fetch(`/api/admin/community-events/${eventItem.id}`, {
-          method: 'DELETE',
-        });
-        if (!res.ok) {
-          throw new Error('Gagal menghapus event dari server.');
-        }
-      } catch (err: unknown) {
-        // Rollback on server error
-        setEvents(previousEvents);
-        const msg = err instanceof Error ? err.message : 'Gagal menghapus event.';
-        notify?.error('Gagal Menghapus', `${msg} Data event dipulihkan.`, {
-          source: EVENT_NOTICE_SOURCE,
-          action: 'delete',
-          detail: msg,
-        });
+  // Delete Event via Universal Double-Safety Engine
+  const { executeAction: executeDeleteEvent } = useDoubleSafetyAction<CommunityEvent>({
+    preset: ACTION_PRESETS.COMMUNITY_EVENT_DELETE,
+    noticeSource: EVENT_NOTICE_SOURCE,
+    getItemPreview: (item) => item.title,
+    onOptimisticExecute: (item) => {
+      setEvents((prev) => prev.filter((ev) => ev.id !== item.id));
+    },
+    onRestore: (item, originalIndex) => {
+      setEvents((prev) => {
+        if (prev.some((ev) => ev.id === item.id)) return prev;
+        const next = [...prev];
+        const insertIdx =
+          typeof originalIndex === 'number' && originalIndex >= 0 && originalIndex <= next.length
+            ? originalIndex
+            : next.length;
+        next.splice(insertIdx, 0, item);
+        return next;
+      });
+    },
+    onCommit: async (item) => {
+      const res = await fetch(`/api/admin/community-events/${item.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        throw new Error('Gagal menghapus event dari server.');
       }
-    }, 6000);
+    },
+  });
 
-    pendingDeletesRef.current.set(eventItem.id, timeoutId);
-
-    // 3. Show DynamicIslandNotice with Undo button
-    notify?.info('Event Dihapus', `Event "${eventItem.title}" disembunyikan.`, {
-      duration: 6000,
-      source: EVENT_NOTICE_SOURCE,
-      action: 'delete',
-      detail: `ID: ${eventItem.id}`,
-      actionButton: {
-        label: 'Urungkan',
-        onClick: () => {
-          isUndone = true;
-          const timer = pendingDeletesRef.current.get(eventItem.id);
-          if (timer) {
-            clearTimeout(timer);
-            pendingDeletesRef.current.delete(eventItem.id);
-          }
-          setEvents((prev) => {
-            const exists = prev.some((ev) => ev.id === eventItem.id);
-            if (exists) return prev;
-            const next = [...prev];
-            const insertIdx =
-              removedIndex >= 0 && removedIndex <= next.length ? removedIndex : next.length;
-            next.splice(insertIdx, 0, eventItem);
-            return next;
-          });
-          notify?.success('Pemulihan Berhasil', `Event "${eventItem.title}" telah dipulihkan.`, {
-            source: EVENT_NOTICE_SOURCE,
-            action: 'undo',
-          });
-        },
-      },
-    });
+  const handleDelete = (eventItem: CommunityEvent) => {
+    const index = events.findIndex((ev) => ev.id === eventItem.id);
+    void executeDeleteEvent(eventItem, index);
   };
 
   const activeCount = events.filter((ev) => ev.is_active).length;
@@ -839,7 +786,6 @@ export function EventManagementPanel() {
           {events.map((eventItem, index) => {
             const isFirst = index === 0;
             const isLast = index === events.length - 1;
-            const isDeleting = deletingId === eventItem.id;
 
             return (
               <div
@@ -973,8 +919,7 @@ export function EventManagementPanel() {
                     <button
                       type="button"
                       onClick={() => void handleDelete(eventItem)}
-                      disabled={isDeleting}
-                      className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition shadow-2xs disabled:opacity-50"
+                      className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition shadow-2xs"
                       title="Hapus event"
                       aria-label={`Hapus event ${eventItem.title}`}
                     >

@@ -11,3 +11,5 @@ export * from './notice';
 export * from './modal/ConfirmContext';
 export * from './modal/ConfirmDialog';
 export * from './modal/types';
+export * from './modal/action-presets';
+export * from './modal/useDoubleSafetyAction';
