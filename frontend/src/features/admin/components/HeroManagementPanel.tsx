@@ -1184,29 +1184,30 @@ export function HeroManagementPanel() {
       }
     }, 5000);
 
-    notify?.show({
-      type: 'info',
-      title: `${count} Slide Dihapus`,
-      message: `${count} slide telah dihapus dari daftar hero.`,
-      duration: 5,
-      source: HERO_NOTICE_SOURCE,
-      action: 'bulk-delete',
-      actionButton: {
-        label: 'Urungkan',
-        onClick: () => {
-          isUndone = true;
-          clearTimeout(timeoutId);
-          setSlides(previousSlides);
-          lastCommittedRef.current = previousSlides;
-          latestOrderRef.current = previousSlides;
-          setIsBulkDeleting(false);
-          notify?.success('Pemulihan Berhasil', `${count} slide telah dikembalikan ke daftar.`, {
-            source: HERO_NOTICE_SOURCE,
-            action: 'undo-bulk-delete',
-          });
+    notify?.info(
+      `${count} Slide Dihapus`,
+      `${count} slide telah dihapus dari daftar hero.`,
+      {
+        duration: 5000,
+        source: HERO_NOTICE_SOURCE,
+        action: 'bulk-delete',
+        actionButton: {
+          label: 'Urungkan',
+          onClick: () => {
+            isUndone = true;
+            clearTimeout(timeoutId);
+            setSlides(previousSlides);
+            lastCommittedRef.current = previousSlides;
+            latestOrderRef.current = previousSlides;
+            setIsBulkDeleting(false);
+            notify?.success('Pemulihan Berhasil', `${count} slide telah dikembalikan ke daftar.`, {
+              source: HERO_NOTICE_SOURCE,
+              action: 'undo-bulk-delete',
+            });
+          },
         },
-      },
-    });
+      }
+    );
   };
 
   const activeCount = slides.filter((s) => s.is_active).length;
