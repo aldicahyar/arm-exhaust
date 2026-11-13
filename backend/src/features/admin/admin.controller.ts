@@ -23,8 +23,18 @@ import {
 } from '../../core/security/security-config.service';
 import { AdminUsersService } from './admin-users.service';
 import { ResellerInviteService } from './reseller-invite.service';
+import { ContentManagementService } from './content-management.service';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { CreateResellerInviteDto } from './dto/create-reseller-invite.dto';
+import {
+  CreateCampaignSlideDto,
+  UpdateCampaignSlideDto,
+  ReorderContentDto,
+} from './dto/campaign-slide.dto';
+import {
+  CreateCommunityEventDto,
+  UpdateCommunityEventDto,
+} from './dto/community-event.dto';
 
 const CONFIG_LABELS: Record<string, string> = {
   'otp.ttl_minutes': 'Masa Berlaku OTP (Menit)',
@@ -45,6 +55,7 @@ export class AdminController {
     private readonly securityConfigService: SecurityConfigService,
     private readonly adminUsersService: AdminUsersService,
     private readonly resellerInviteService: ResellerInviteService,
+    private readonly contentManagementService: ContentManagementService,
   ) {}
 
   @Get('users')
@@ -211,5 +222,97 @@ export class AdminController {
   @Roles('superadmin')
   async getPolicies() {
     return this.adminUsersService.getDiscountPolicies();
+  }
+
+  // ==========================================
+  // Hero / Campaign Slides Endpoints
+  // ==========================================
+  @Get('hero-slides')
+  @Roles('admin', 'superadmin')
+  async getHeroSlides() {
+    return this.contentManagementService.getAllHeroSlides();
+  }
+
+  @Post('hero-slides')
+  @Roles('admin', 'superadmin')
+  @HttpCode(HttpStatus.CREATED)
+  async createHeroSlide(@Body() dto: CreateCampaignSlideDto) {
+    return this.contentManagementService.createHeroSlide(dto);
+  }
+
+  @Patch('hero-slides/reorder')
+  @Roles('admin', 'superadmin')
+  async reorderHeroSlides(
+    @Body() body: ReorderContentDto | { orderedIds: string[] } | string[],
+  ) {
+    const ids = Array.isArray(body) ? body : (body as any)?.orderedIds;
+    return this.contentManagementService.reorderHeroSlides(ids);
+  }
+
+  @Put('hero-slides/:id')
+  @Roles('admin', 'superadmin')
+  async updateHeroSlide(
+    @Param('id') id: string,
+    @Body() dto: UpdateCampaignSlideDto,
+  ) {
+    return this.contentManagementService.updateHeroSlide(id, dto);
+  }
+
+  @Patch('hero-slides/:id/toggle')
+  @Roles('admin', 'superadmin')
+  async toggleHeroSlideStatus(@Param('id') id: string) {
+    return this.contentManagementService.toggleHeroSlideStatus(id);
+  }
+
+  @Delete('hero-slides/:id')
+  @Roles('admin', 'superadmin')
+  async deleteHeroSlide(@Param('id') id: string) {
+    return this.contentManagementService.deleteHeroSlide(id);
+  }
+
+  // ==========================================
+  // Community Events Endpoints
+  // ==========================================
+  @Get('community-events')
+  @Roles('admin', 'superadmin')
+  async getCommunityEvents() {
+    return this.contentManagementService.getAllCommunityEvents();
+  }
+
+  @Post('community-events')
+  @Roles('admin', 'superadmin')
+  @HttpCode(HttpStatus.CREATED)
+  async createCommunityEvent(@Body() dto: CreateCommunityEventDto) {
+    return this.contentManagementService.createCommunityEvent(dto);
+  }
+
+  @Patch('community-events/reorder')
+  @Roles('admin', 'superadmin')
+  async reorderCommunityEvents(
+    @Body() body: ReorderContentDto | { orderedIds: string[] } | string[],
+  ) {
+    const ids = Array.isArray(body) ? body : (body as any)?.orderedIds;
+    return this.contentManagementService.reorderCommunityEvents(ids);
+  }
+
+  @Put('community-events/:id')
+  @Roles('admin', 'superadmin')
+  async updateCommunityEvent(
+    @Param('id') id: string,
+    @Body() dto: UpdateCommunityEventDto,
+  ) {
+    return this.contentManagementService.updateCommunityEvent(id, dto);
+  }
+
+  @Patch('community-events/:id/toggle')
+  @Roles('admin', 'superadmin')
+  async toggleCommunityEventStatus(@Param('id') id: string) {
+    return this.contentManagementService.toggleCommunityEventStatus(id);
+  }
+
+  @Delete('community-events/:id')
+  @Roles('admin', 'superadmin')
+  async deleteCommunityEvent(@Param('id') id: string) {
+    return this.contentManagementService.deleteCommunityEvent(id);
   }
 }

@@ -32,6 +32,7 @@ yarn-error.log*
 next-env.d.ts
 
 # editor / scratch
+.vscode/
 .trae-html-share-packages/
 .superpowers/
 AGENTS.md
