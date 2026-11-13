@@ -71,6 +71,8 @@ interface HeroSortableRowProps {
   readonly isFocused: boolean;
   readonly isDeleting: boolean;
   readonly reordering: boolean;
+  readonly isSelected: boolean;
+  readonly onSelect: (id: string) => void;
   readonly onFocusSlide: (id: string) => void;
   readonly onDragEnd: () => void;
   readonly onKeyboardMove: (index: number, direction: 'up' | 'down') => void;
@@ -86,6 +88,8 @@ function HeroSortableRow({
   isFocused,
   isDeleting,
   reordering,
+  isSelected,
+  onSelect,
   onFocusSlide,
   onDragEnd,
   onKeyboardMove,
@@ -107,9 +111,9 @@ function HeroSortableRow({
 
   const containerClass = cn(
     'group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border p-3 transition-colors duration-150 select-none',
-    isFocused
-      ? 'border-zinc-900 bg-white shadow-xs'
-      : 'border-zinc-200 bg-white hover:border-zinc-300',
+    isSelected && 'ring-1 ring-zinc-900 bg-zinc-50/70 border-zinc-900',
+    isFocused && !isSelected && 'border-zinc-900 bg-white shadow-xs',
+    !isFocused && !isSelected && 'border-zinc-200 bg-white hover:border-zinc-300',
     !slide.is_active && 'bg-zinc-50 opacity-65'
   );
 
@@ -128,8 +132,19 @@ function HeroSortableRow({
       onMouseEnter={() => onFocusSlide(slide.id)}
       className={containerClass}
     >
-      {/* Left + Center: Grip, Index, Thumbnail & Typography */}
+      {/* Left + Center: Checkbox, Grip, Index, Thumbnail & Typography */}
       <div className="flex items-center gap-3 min-w-0 flex-1">
+        {/* Row Selection Checkbox */}
+        <div className="flex items-center pl-0.5 shrink-0">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onSelect(slide.id)}
+            className="h-4 w-4 rounded border-zinc-300 text-zinc-950 accent-zinc-950 focus:ring-zinc-950/20 cursor-pointer"
+            aria-label={`Pilih slide ${slide.title}`}
+          />
+        </div>
+
         {/* Drag Grip + Order Index */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
@@ -708,6 +723,29 @@ export function HeroManagementPanel() {
     });
   };
 
+  const [selectedSlideIds, setSelectedSlideIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState<boolean>(false);
+
+  const handleSelectSlide = (id: string) => {
+    setSelectedSlideIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSlideIds.size === slides.length) {
+      setSelectedSlideIds(new Set());
+    } else {
+      setSelectedSlideIds(new Set(slides.map((s) => s.id)));
+    }
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastCommittedRef = useRef<HeroSlide[]>([]);
   const latestOrderRef = useRef<HeroSlide[]>([]);
@@ -1096,6 +1134,81 @@ export function HeroManagementPanel() {
     void executeDeleteSlide(slide, index);
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedSlideIds.size === 0 || isBulkDeleting) return;
+
+    const count = selectedSlideIds.size;
+    const slidesToDelete = slides.filter((s) => selectedSlideIds.has(s.id));
+    const activeSlides = slides.filter((s) => s.is_active);
+    const deletingActiveCount = slidesToDelete.filter((s) => s.is_active).length;
+    const willEmptyStorefront = activeSlides.length > 0 && deletingActiveCount === activeSlides.length;
+
+    if (willEmptyStorefront) {
+      notify?.info(
+        'Perhatian Storefront',
+        'Tindakan ini menghapus seluruh slide aktif. Pastikan menambahkan slide baru agar beranda tidak kosong.',
+        { source: HERO_NOTICE_SOURCE, action: 'bulk-delete-guard' }
+      );
+    }
+
+    setIsBulkDeleting(true);
+    const previousSlides = [...slides];
+
+    // Optimistically remove
+    setSlides((prev) => prev.filter((s) => !selectedSlideIds.has(s.id)));
+    setSelectedSlideIds(new Set());
+
+    let isUndone = false;
+    const timeoutId = setTimeout(async () => {
+      if (isUndone) return;
+      try {
+        await Promise.all(
+          slidesToDelete.map(async (slide) => {
+            const res = await fetch(`/api/admin/hero-slides/${slide.id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error(`Gagal menghapus slide "${slide.title}".`);
+          })
+        );
+        notify?.success(
+          'Slide Dihapus Massal',
+          `${count} slide berhasil dihapus secara permanen.`,
+          { source: HERO_NOTICE_SOURCE, action: 'bulk-delete' }
+        );
+      } catch (err: unknown) {
+        setSlides(previousSlides);
+        lastCommittedRef.current = previousSlides;
+        latestOrderRef.current = previousSlides;
+        const msg = err instanceof Error ? err.message : 'Gagal menghapus slide massal di server.';
+        notify?.error('Gagal Hapus Massal', msg, { source: HERO_NOTICE_SOURCE, action: 'bulk-delete' });
+      } finally {
+        setIsBulkDeleting(false);
+      }
+    }, 5000);
+
+    notify?.show({
+      type: 'info',
+      title: `${count} Slide Dihapus`,
+      message: `${count} slide telah dihapus dari daftar hero.`,
+      duration: 5,
+      source: HERO_NOTICE_SOURCE,
+      action: 'bulk-delete',
+      actionButton: {
+        label: 'Urungkan',
+        onClick: () => {
+          isUndone = true;
+          clearTimeout(timeoutId);
+          setSlides(previousSlides);
+          lastCommittedRef.current = previousSlides;
+          latestOrderRef.current = previousSlides;
+          setIsBulkDeleting(false);
+          notify?.success('Pemulihan Berhasil', `${count} slide telah dikembalikan ke daftar.`, {
+            source: HERO_NOTICE_SOURCE,
+            action: 'undo-bulk-delete',
+          });
+        },
+      },
+    });
+  };
+
   const activeCount = slides.filter((s) => s.is_active).length;
   const focusedSlide = slides.find((s) => s.id === focusedSlideId) ?? slides[0] ?? null;
 
@@ -1104,6 +1217,22 @@ export function HeroManagementPanel() {
       {/* Minimalist Toolbar (No Duplicate Title Card) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 text-xs text-zinc-500">
+          {/* Select All Checkbox */}
+          {slides.length > 0 && (
+            <label className="flex items-center gap-2 cursor-pointer select-none py-1">
+              <input
+                type="checkbox"
+                checked={selectedSlideIds.size === slides.length && slides.length > 0}
+                onChange={handleSelectAll}
+                className="h-4 w-4 rounded border-zinc-300 text-zinc-950 accent-zinc-950 focus:ring-zinc-950/20 cursor-pointer"
+                aria-label="Pilih semua slide"
+              />
+              <span className="text-[11px] font-medium text-zinc-700">Pilih Semua</span>
+            </label>
+          )}
+
+          {slides.length > 0 && <span className="hidden sm:inline text-zinc-300">·</span>}
+
           <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-zinc-950">
             <span className="h-1.5 w-1.5 rounded-full bg-zinc-950" aria-hidden="true" />
             {`${activeCount} Tayang / ${slides.length} Slide`}
@@ -1191,6 +1320,8 @@ export function HeroManagementPanel() {
                   isFocused={focusedSlide?.id === slide.id}
                   isDeleting={deletingId === slide.id}
                   reordering={reordering}
+                  isSelected={selectedSlideIds.has(slide.id)}
+                  onSelect={handleSelectSlide}
                   onFocusSlide={setFocusedSlideId}
                   onDragEnd={handleDragEnd}
                   onKeyboardMove={handleKeyboardMove}
@@ -1239,6 +1370,43 @@ export function HeroManagementPanel() {
         onDrop={handleDrop}
         onFileChange={handleFileChange}
       />
+      {/* Floating Action Bar (Monochrome Dock for Multi-Select Bulk Delete) */}
+      <AnimatePresence>
+        {selectedSlideIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3.5 rounded-full border border-zinc-800 bg-[#141416] px-5 py-2.5 text-white shadow-2xl backdrop-blur-md"
+          >
+            <div className="flex items-center gap-2 pr-3 border-r border-zinc-800 text-xs font-medium">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-zinc-950 tabular-nums">
+                {selectedSlideIds.size}
+              </span>
+              <span>Slide Terpilih</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedSlideIds(new Set())}
+              className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              Batalkan
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleBulkDelete()}
+              disabled={isBulkDeleting}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1 text-xs font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors shadow-xs active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Hapus ({selectedSlideIds.size})</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
