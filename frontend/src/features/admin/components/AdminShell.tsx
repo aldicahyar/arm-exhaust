@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/shared/utils/cn';
+import { useOptionalNotice } from '@/shared/components/notice/NoticeContext';
+import type { NoticeItem } from '@/shared/components/notice/types';
 import {
   Users,
   Ticket,
@@ -16,7 +19,8 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
-  Plus,
+  Sliders,
+  Settings,
 } from 'lucide-react';
 import {
   AnimatedSidebarProvider,
@@ -25,44 +29,127 @@ import {
   AnimatedSidebarContent,
   AnimatedSidebarFooter,
   AnimatedSidebarGroup,
-  AnimatedSidebarGroupLabel,
   AnimatedSidebarGroupContent,
   AnimatedSidebarMenu,
   AnimatedSidebarMenuItem,
   AnimatedSidebarMenuButton,
+  AnimatedSidebarMenuSub,
+  AnimatedSidebarMenuSubItem,
+  AnimatedSidebarMenuSubButton,
   AnimatedSidebarTrigger,
 } from './ui/Sidebar';
 import { UserManagementTable } from './UserManagementTable';
 import { VipInviteGenerator } from './VipInviteGenerator';
-import { VipInviteModal } from './VipInviteModal';
 import { DiscountPoliciesPanel } from './DiscountPoliciesPanel';
 import { SecurityConfigPanel } from '../SecurityConfigPanel';
 import { SidebarSearch } from './SidebarSearch';
-import { SidebarNotification } from './SidebarNotification';
+import {
+  SidebarNotification,
+  DEFAULT_ADMIN_NOTIFICATIONS,
+  type NotificationItem,
+} from './SidebarNotification';
 import { CommandPaletteModal } from './CommandPaletteModal';
 import { OrdersTable } from './OrdersTable';
 import { TaxConfigPanel } from './TaxConfigPanel';
+import { HeroManagementPanel } from './HeroManagementPanel';
+import { EventManagementPanel } from './EventManagementPanel';
 import type { AdminShellTab } from '../types';
 
 export type { AdminShellTab };
 
+const TAB_INFERENCE_RULES: readonly {
+  readonly tab: AdminShellTab;
+  readonly keywords: readonly string[];
+}[] = [
+  { tab: 'hero', keywords: ['hero', 'slide', 'carousel', 'banner'] },
+  { tab: 'events', keywords: ['event', 'komunitas', 'community'] },
+  { tab: 'security', keywords: ['security', 'keamanan', 'otp', 'rbac', 'brute'] },
+  { tab: 'invites', keywords: ['invite', 'undangan', 'vip', 'token'] },
+  { tab: 'customers', keywords: ['customer', 'user', 'mitra', 'partner', 'pelanggan', 'role'] },
+  { tab: 'tax', keywords: ['tax', 'pajak', 'faktur', 'ppn'] },
+  { tab: 'policies', keywords: ['policy', 'policies', 'diskon', 'discount', 'margin'] },
+  { tab: 'orders', keywords: ['order', 'pesanan', 'dispatch', 'sla'] },
+];
+
+function formatTraceTime(timestamp: number): string {
+  if (typeof timestamp !== 'number' || !Number.isFinite(timestamp)) {
+    return '--:--:--';
+  }
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '--:--:--';
+  }
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+function inferTargetTab(source?: string, action?: string): AdminShellTab | undefined {
+  const combined = `${source ?? ''} ${action ?? ''}`.toLowerCase().trim();
+  if (!combined) {
+    return undefined;
+  }
+  for (const rule of TAB_INFERENCE_RULES) {
+    if (rule.keywords.some((kw) => combined.includes(kw))) {
+      return rule.tab;
+    }
+  }
+  return undefined;
+}
+
+export function mapNoticeHistoryToNotificationItems(
+  history: readonly NoticeItem[]
+): NotificationItem[] {
+  if (!Array.isArray(history) || history.length === 0) {
+    return [];
+  }
+
+  return history.map((item) => ({
+    id: item.id,
+    title: item.title,
+    description: item.description ?? '',
+    time: formatTraceTime(item.timestamp),
+    category: 'trace',
+    unread: !item.read,
+    targetTab: inferTargetTab(item.source, item.action),
+    traceId: item.traceId,
+    noticeType: item.type,
+    source: item.source,
+    action: item.action,
+    detail: item.detail,
+    timestamp: item.timestamp,
+  }));
+}
+
 interface AdminShellProps {
-  user: {
-    name: string;
-    email: string;
-    role: string;
+  readonly user: {
+    readonly name: string;
+    readonly email: string;
+    readonly role: string;
   };
 }
 
-export function AdminShell({ user }: AdminShellProps) {
+export function AdminShell({ user }: Readonly<AdminShellProps>) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminShellTab>('orders');
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
+  const [isContentMenuOpen, setIsContentMenuOpen] = useState<boolean>(
+    activeTab === 'hero' || activeTab === 'events'
+  );
+  const [isConfigMenuOpen, setIsConfigMenuOpen] = useState<boolean>(
+    activeTab === 'tax' || activeTab === 'policies' || activeTab === 'security'
+  );
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const router = useRouter();
+  const noticeCtx = useOptionalNotice();
+
+  const mergedNotifications = useMemo(() => {
+    const traceItems = mapNoticeHistoryToNotificationItems(noticeCtx?.history ?? []);
+    return [...traceItems, ...DEFAULT_ADMIN_NOTIFICATIONS];
+  }, [noticeCtx?.history]);
 
   const isSuperadmin = user.role === 'superadmin';
 
@@ -72,6 +159,19 @@ export function AdminShell({ user }: AdminShellProps) {
       setActiveTab('orders');
     }
   }, [isSuperadmin, activeTab]);
+
+  // Auto-expand menus when their child tabs are active
+  useEffect(() => {
+    if (activeTab === 'hero' || activeTab === 'events') {
+      setIsContentMenuOpen(true);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'tax' || activeTab === 'policies' || activeTab === 'security') {
+      setIsConfigMenuOpen(true);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
@@ -122,6 +222,16 @@ export function AdminShell({ user }: AdminShellProps) {
       subtitle: 'Penerbitan token registrasi instan untuk bengkel rekanan (20%) dan distributor regional (35%).',
       category: 'Operasional',
     },
+    hero: {
+      title: 'Manajemen Hero Carousel',
+      subtitle: 'Kelola banner visual utama storefront, urutan slide, headline, CTA, dan status tayang.',
+      category: 'Konten Web',
+    },
+    events: {
+      title: 'Event & Komunitas',
+      subtitle: 'Publikasi agenda track day, gathering komunitas, lokasi sirkuit, dan registrasi peserta.',
+      category: 'Konten Web',
+    },
     tax: {
       title: 'Pengaturan Pajak & Faktur',
       subtitle: 'Konfigurasi tarif PPN (0%, 11%, 12%), mode harga include/exclude, dan profil PKP perusahaan.',
@@ -143,15 +253,22 @@ export function AdminShell({ user }: AdminShellProps) {
 
   return (
     <AnimatedSidebarProvider open={open} onOpenChange={setOpen}>
-      <div className="flex h-screen w-full bg-[#fffbf5] text-[#1e1501] overflow-hidden font-sans antialiased selection:bg-[#f8a712]/25 selection:text-[#1e1501]">
+      <div className="flex h-screen w-full bg-[#FAFAFA] text-zinc-950 overflow-hidden font-sans antialiased selection:bg-zinc-900 selection:text-white">
         {/* 1. Left Animated Sidebar (starc007 / beui.dev pattern) */}
         <AnimatedSidebar collapsible="icon" variant="sidebar">
           {/* Header */}
           <AnimatedSidebarHeader>
             <div className="flex items-center justify-between gap-2.5">
               <Link href="/" className="flex items-center gap-2.5 group shrink-0 min-w-0">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f59e0b] font-mono text-xs font-black text-black shadow-xs shadow-[#f59e0b]/20">
-                  ARM
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 p-1 shadow-xs overflow-hidden">
+                  <Image
+                    src="/assets/Logo ARM no BG.png"
+                    alt="ARM Exhaust"
+                    width={28}
+                    height={28}
+                    priority
+                    className="h-full w-full object-contain"
+                  />
                 </div>
                 <div className="flex flex-col min-w-0 group-data-[state=collapsed]/sidebar:hidden">
                   <div className="flex items-center gap-1.5 font-semibold text-xs text-white truncate">
@@ -173,16 +290,18 @@ export function AdminShell({ user }: AdminShellProps) {
           <SidebarNotification
             isCollapsed={!open}
             userRole={user.role}
+            notifications={mergedNotifications}
             onSelectTab={(tabId) => setActiveTab(tabId as AdminShellTab)}
+            onMarkAllRead={noticeCtx?.markAllHistoryRead}
+            onClearTraces={noticeCtx?.clearHistory}
           />
 
-          {/* Content with Group Sections & Smooth Hover/Active Pill */}
+          {/* Content with Flat Stream & Collapsible Submenus */}
           <AnimatedSidebarContent>
-            {/* Grup Operasional (Selalu aktif untuk Admin & Superadmin) */}
             <AnimatedSidebarGroup>
-              <AnimatedSidebarGroupLabel>Operasional</AnimatedSidebarGroupLabel>
               <AnimatedSidebarGroupContent>
                 <AnimatedSidebarMenu>
+                  {/* Group 1: Operasional (Flat 3 items) */}
                   <AnimatedSidebarMenuItem>
                     <AnimatedSidebarMenuButton
                       icon={<Package className="h-4 w-4" />}
@@ -213,53 +332,79 @@ export function AdminShell({ user }: AdminShellProps) {
                       Undangan VIP
                     </AnimatedSidebarMenuButton>
                   </AnimatedSidebarMenuItem>
-                </AnimatedSidebarMenu>
-              </AnimatedSidebarGroupContent>
-            </AnimatedSidebarGroup>
 
-            {/* Grup Konfigurasi Sistem (Superadmin Only - Opsi A: Bersih tanpa disabled clutter) */}
-            {user.role === 'superadmin' && (
-              <AnimatedSidebarGroup>
-                <AnimatedSidebarGroupLabel>Konfigurasi Sistem</AnimatedSidebarGroupLabel>
-                <AnimatedSidebarGroupContent>
-                  <AnimatedSidebarMenu>
-                    <AnimatedSidebarMenuItem>
-                      <AnimatedSidebarMenuButton
-                        icon={<Receipt className="h-4 w-4" />}
-                        isActive={activeTab === 'tax'}
-                        onSelect={() => setActiveTab('tax')}
-                      >
-                        Pengaturan Pajak
-                      </AnimatedSidebarMenuButton>
-                    </AnimatedSidebarMenuItem>
-                    <AnimatedSidebarMenuItem>
-                      <AnimatedSidebarMenuButton
-                        icon={<Percent className="h-4 w-4" />}
-                        isActive={activeTab === 'policies'}
-                        onSelect={() => setActiveTab('policies')}
-                      >
-                        Matriks Diskon
-                      </AnimatedSidebarMenuButton>
-                    </AnimatedSidebarMenuItem>
-                    <AnimatedSidebarMenuItem>
-                      <AnimatedSidebarMenuButton
-                        icon={<ShieldCheck className="h-4 w-4" />}
-                        isActive={activeTab === 'security'}
-                        onSelect={() => setActiveTab('security')}
-                      >
-                        Keamanan & RBAC
-                      </AnimatedSidebarMenuButton>
-                    </AnimatedSidebarMenuItem>
-                  </AnimatedSidebarMenu>
-                </AnimatedSidebarGroupContent>
-              </AnimatedSidebarGroup>
-            )}
+                  {/* Group 2: Collapsible Konten Web */}
+                  <AnimatedSidebarMenuItem>
+                    <AnimatedSidebarMenuButton
+                      icon={<Sliders className="h-4 w-4" />}
+                      ariaExpanded={isContentMenuOpen}
+                      onSelect={() => setIsContentMenuOpen((prev) => !prev)}
+                    >
+                      Konten Web
+                    </AnimatedSidebarMenuButton>
+                    <AnimatedSidebarMenuSub open={isContentMenuOpen}>
+                      <AnimatedSidebarMenuSubItem>
+                        <AnimatedSidebarMenuSubButton
+                          isActive={activeTab === 'hero'}
+                          onSelect={() => setActiveTab('hero')}
+                        >
+                          Hero Carousel
+                        </AnimatedSidebarMenuSubButton>
+                      </AnimatedSidebarMenuSubItem>
+                      <AnimatedSidebarMenuSubItem>
+                        <AnimatedSidebarMenuSubButton
+                          isActive={activeTab === 'events'}
+                          onSelect={() => setActiveTab('events')}
+                        >
+                          Event & Komunitas
+                        </AnimatedSidebarMenuSubButton>
+                      </AnimatedSidebarMenuSubItem>
+                    </AnimatedSidebarMenuSub>
+                  </AnimatedSidebarMenuItem>
 
-            {/* Navigasi Publik */}
-            <AnimatedSidebarGroup>
-              <AnimatedSidebarGroupLabel>Navigasi Publik</AnimatedSidebarGroupLabel>
-              <AnimatedSidebarGroupContent>
-                <AnimatedSidebarMenu>
+                  {/* Group 3: Collapsible Konfigurasi Sistem (Superadmin Only) */}
+                  {user.role === 'superadmin' && (
+                    <AnimatedSidebarMenuItem>
+                      <AnimatedSidebarMenuButton
+                        icon={<Settings className="h-4 w-4" />}
+                        ariaExpanded={isConfigMenuOpen}
+                        onSelect={() => setIsConfigMenuOpen((prev) => !prev)}
+                      >
+                        Konfigurasi Sistem
+                      </AnimatedSidebarMenuButton>
+                      <AnimatedSidebarMenuSub open={isConfigMenuOpen}>
+                        <AnimatedSidebarMenuSubItem>
+                          <AnimatedSidebarMenuSubButton
+                            icon={<Receipt className="h-3.5 w-3.5" />}
+                            isActive={activeTab === 'tax'}
+                            onSelect={() => setActiveTab('tax')}
+                          >
+                            Pengaturan Pajak
+                          </AnimatedSidebarMenuSubButton>
+                        </AnimatedSidebarMenuSubItem>
+                        <AnimatedSidebarMenuSubItem>
+                          <AnimatedSidebarMenuSubButton
+                            icon={<Percent className="h-3.5 w-3.5" />}
+                            isActive={activeTab === 'policies'}
+                            onSelect={() => setActiveTab('policies')}
+                          >
+                            Matriks Diskon
+                          </AnimatedSidebarMenuSubButton>
+                        </AnimatedSidebarMenuSubItem>
+                        <AnimatedSidebarMenuSubItem>
+                          <AnimatedSidebarMenuSubButton
+                            icon={<ShieldCheck className="h-3.5 w-3.5" />}
+                            isActive={activeTab === 'security'}
+                            onSelect={() => setActiveTab('security')}
+                          >
+                            Keamanan & RBAC
+                          </AnimatedSidebarMenuSubButton>
+                        </AnimatedSidebarMenuSubItem>
+                      </AnimatedSidebarMenuSub>
+                    </AnimatedSidebarMenuItem>
+                  )}
+
+                  {/* Navigasi Publik */}
                   <AnimatedSidebarMenuItem>
                     <AnimatedSidebarMenuButton
                       icon={<ExternalLink className="h-4 w-4" />}
@@ -333,18 +478,18 @@ export function AdminShell({ user }: AdminShellProps) {
           ref={scrollContainerRef}
           data-lenis-prevent="true"
           onScroll={handleScroll}
-          className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#fffbf5] scrollbar-none overscroll-y-contain"
+          className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#FAFAFA] scrollbar-none overscroll-y-contain"
         >
           {/* Topbar Header */}
           <header className={cn(
             "sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 px-4 sm:px-6 transition-all duration-200 border-b",
             isScrolled
-              ? "bg-white/90 backdrop-blur-md border-[#eedec5] shadow-xs"
-              : "bg-[#fffbf5]/80 backdrop-blur-xs border-transparent"
+              ? "bg-white/90 backdrop-blur-md border-zinc-200 shadow-xs"
+              : "bg-[#FAFAFA]/80 backdrop-blur-xs border-transparent"
           )}>
             {/* Left: Sidebar Toggle & Clean Breadcrumb */}
             <div className="flex items-center gap-3 min-w-0">
-              <AnimatedSidebarTrigger className="p-1.5 rounded-lg border border-[#eedec5] bg-white text-[#786b53] hover:text-[#1e1501] hover:bg-[#fbf5ea] transition shadow-xs">
+              <AnimatedSidebarTrigger className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 transition shadow-xs">
                 {open ? (
                   <PanelLeftClose className="h-4 w-4" />
                 ) : (
@@ -352,37 +497,24 @@ export function AdminShell({ user }: AdminShellProps) {
                 )}
               </AnimatedSidebarTrigger>
 
-              <nav className="flex items-center gap-2 text-xs text-[#786b53] min-w-0">
-                <span className="text-[#786b53] shrink-0">ARM</span>
-                <span className="text-[#786b53]/40 shrink-0">/</span>
-                <span className="text-[#786b53] shrink-0 hidden xs:inline">{currentMeta.category}</span>
-                <span className="text-[#786b53]/40 shrink-0 hidden xs:inline">/</span>
-                <span className="text-[#1e1501] font-semibold truncate max-w-[130px] sm:max-w-none">{currentMeta.title}</span>
+              <nav className="flex items-center gap-2 text-xs text-zinc-500 min-w-0">
+                <span className="text-zinc-500 shrink-0">ARM</span>
+                <span className="text-zinc-300 shrink-0">/</span>
+                <span className="text-zinc-500 shrink-0 hidden xs:inline">{currentMeta.category}</span>
+                <span className="text-zinc-300 shrink-0 hidden xs:inline">/</span>
+                <span className="text-zinc-950 font-semibold truncate max-w-[130px] sm:max-w-none">{currentMeta.title}</span>
               </nav>
-            </div>
-
-            {/* Right: Primary Action Button (High Contrast WCAG AAA on Golden Amber) */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsInviteModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f8a712] hover:bg-[#e09207] px-3.5 py-2 text-xs font-bold text-[#1e1501] transition shadow-xs active:scale-[0.98]"
-              >
-                <Plus className="h-4 w-4 stroke-[2.5]" />
-                <span className="hidden sm:inline">Buat Undangan VIP</span>
-                <span className="sm:hidden">Undang</span>
-              </button>
             </div>
           </header>
 
           {/* Content Body Canvas */}
           <main className="flex-1 p-5 sm:p-7 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
             {/* Clean Contextual Section Header */}
-            <div className="pb-4 border-b border-[#eedec5]">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1e1501]">
+            <div className="pb-4 border-b border-zinc-200">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950">
                 {currentMeta.title}
               </h1>
-              <p className="mt-1 text-xs text-[#786b53]">
+              <p className="mt-1 text-xs text-zinc-500">
                 {currentMeta.subtitle}
               </p>
             </div>
@@ -397,21 +529,22 @@ export function AdminShell({ user }: AdminShellProps) {
               {activeTab === 'orders' && <OrdersTable />}
               {activeTab === 'customers' && <UserManagementTable />}
               {activeTab === 'invites' && <VipInviteGenerator />}
+              {activeTab === 'hero' && (
+                <div data-testid="panel-hero">
+                  <HeroManagementPanel />
+                </div>
+              )}
+              {activeTab === 'events' && (
+                <div data-testid="panel-events">
+                  <EventManagementPanel />
+                </div>
+              )}
               {user.role === 'superadmin' && activeTab === 'tax' && <TaxConfigPanel />}
               {user.role === 'superadmin' && activeTab === 'policies' && <DiscountPoliciesPanel />}
               {user.role === 'superadmin' && activeTab === 'security' && <SecurityConfigPanel />}
             </motion.div>
           </main>
         </div>
-
-        {/* Global VIP Invite Modal */}
-        <VipInviteModal
-          isOpen={isInviteModalOpen}
-          onClose={() => setIsInviteModalOpen(false)}
-          onInviteCreated={() => {
-            // Handled inside
-          }}
-        />
 
         {/* Global ⌘K Command Palette Modal */}
         <CommandPaletteModal

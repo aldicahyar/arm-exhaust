@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { AuthMode, AuthStep, AuthApiResponse } from './types';
 import { useNotice } from '@/shared/components';
 
@@ -121,6 +121,7 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
   const [otpLoading, setOtpLoading] = useState(false);
   const [autoVerifyCode, setAutoVerifyCode] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
+  const hasInitializedRef = useRef(false);
 
   let notify: any = null;
   try {
@@ -141,12 +142,16 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
   );
 
   // Coordinated State Initialization:
-  // 1. Prioritize URL query parameters (for 1-click verification links like ?email=...&otp=...)
-  // 2. Validate email format strictly against script injection / malformed input
-  // 3. Preserve '+' in email plus-addressing (e.g. arkanpasiva+8@gmail.com)
-  // 4. Prepopulate saved email from localStorage ONLY if on login form and no email param in URL
+  // 1. Guard against React Strict Mode dual-mount (prevents address-bar clearing from resetting context)
+  // 2. Prioritize URL query parameters (for 1-click verification links like ?email=...&otp=...)
+  // 3. Validate email format strictly against script injection / malformed input
+  // 4. Preserve '+' in email plus-addressing (e.g. arkanpasiva+8@gmail.com)
+  // 5. Prepopulate saved email from localStorage ONLY if on clean login form, step === 'form', and no email param in URL
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
     const search = window.location.search;
     const params = search ? new URLSearchParams(search) : null;
     const rawEmailParam = params?.get('email');
@@ -174,14 +179,14 @@ export function useAuthForm({ initialMode = 'login', onSuccess }: UseAuthFormOpt
     // Prepopulate saved email if Remember Me was previously enabled (only in clean login form)
     try {
       const savedEmail = localStorage.getItem('arm_remember_email');
-      if (savedEmail && initialMode === 'login') {
+      if (savedEmail && initialMode === 'login' && step === 'form' && !rawEmailParam) {
         setEmail(savedEmail);
         setRememberMe(true);
       }
     } catch {
       // Ignore localStorage access restrictions
     }
-  }, [initialMode]);
+  }, [initialMode, step]);
 
   // Cross-tab sync: Automatically detect if user verified in another tab or device
   useEffect(() => {

@@ -160,13 +160,13 @@ export function VipInviteGenerator() {
     switch (status) {
       case 'active':
         return (
-          <span className="inline-flex items-center rounded-md border border-[#d6fa47] bg-[#d6fa47]/25 px-2 py-0.5 text-xs font-semibold text-[#1e1501]">
+          <span className="inline-flex items-center rounded-md border border-zinc-900 bg-zinc-900 px-2 py-0.5 text-xs font-semibold text-white">
             Aktif
           </span>
         );
       case 'claimed':
         return (
-          <span className="inline-flex items-center rounded-md border border-[#eedec5] bg-[#fffbf5] px-2 py-0.5 text-xs font-medium text-[#786b53]">
+          <span className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
             Terklaim
           </span>
         );
@@ -179,7 +179,7 @@ export function VipInviteGenerator() {
       case 'expired':
       default:
         return (
-          <span className="inline-flex items-center rounded-md border border-[#eedec5]/60 bg-[#fffbf5] px-2 py-0.5 text-xs font-medium text-[#786b53]/60">
+          <span className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-medium text-zinc-400">
             Kedaluwarsa
           </span>
         );
@@ -191,25 +191,25 @@ export function VipInviteGenerator() {
   return (
     <div className="flex flex-col gap-4">
       {/* 1. Generator Control Box */}
-      <div className="rounded-xl border border-[#eedec5] bg-white p-4 sm:p-5 shadow-xs">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 sm:p-5 shadow-xs">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <h2 className="text-base font-semibold tracking-tight text-[#1e1501]">
+            <h2 className="text-base font-semibold tracking-tight text-zinc-950">
               Penerbitan Undangan Kemitraan VIP
             </h2>
-            <p className="text-xs text-[#786b53]">
+            <p className="text-xs text-zinc-500">
               Buat token onboarding berbatas waktu untuk calon bengkel rekanan (Reseller 20%) atau distributor regional (35%).
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#786b53]">
-            <span>Aktif: <strong className="text-[#f8a712] tabular-nums font-bold">{activeCount}</strong></span>
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-zinc-500">
+            <span>Aktif: <strong className="text-zinc-950 tabular-nums font-bold">{activeCount}</strong></span>
           </div>
         </div>
 
         <form onSubmit={handleGenerate} className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
           {/* Partner Name */}
           <div className="lg:col-span-4">
-            <label className="block text-xs font-medium text-[#786b53] mb-1">
+            <label className="block text-xs font-medium text-zinc-600 mb-1">
               Nama Mitra / Bengkel <span className="text-red-500">*</span>
             </label>
             <input
@@ -218,13 +218,13 @@ export function VipInviteGenerator() {
               value={partnerName}
               onChange={(e) => setPartnerName(e.target.value)}
               placeholder="Contoh: Speed Motorsport"
-              className="w-full rounded-md border border-[#eedec5] bg-[#fffbf5] px-3 py-1.5 text-xs text-[#1e1501] placeholder-[#786b53]/50 focus:border-[#f8a712] focus:outline-none focus:ring-1 focus:ring-[#f8a712] transition"
+              className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-950 placeholder-zinc-400 focus:border-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 transition"
             />
           </div>
 
           {/* WhatsApp Phone */}
           <div className="lg:col-span-3">
-            <label className="block text-xs font-medium text-[#786b53] mb-1">
+            <label className="block text-xs font-medium text-zinc-600 mb-1">
               Nomor WhatsApp
             </label>
             <input
@@ -232,19 +232,19 @@ export function VipInviteGenerator() {
               value={partnerPhone}
               onChange={(e) => setPartnerPhone(e.target.value)}
               placeholder="08123456789"
-              className="w-full rounded-md border border-[#eedec5] bg-[#fffbf5] px-3 py-1.5 font-mono text-xs text-[#1e1501] placeholder-[#786b53]/50 focus:border-[#f8a712] focus:outline-none focus:ring-1 focus:ring-[#f8a712] transition"
+              className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 font-mono text-xs text-zinc-950 placeholder-zinc-400 focus:border-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 transition"
             />
           </div>
 
           {/* Role Target */}
           <div className="lg:col-span-2">
-            <label className="block text-xs font-medium text-[#786b53] mb-1">
+            <label className="block text-xs font-medium text-zinc-600 mb-1">
               Tingkat Margin
             </label>
             <select
               value={roleToGrant}
               onChange={(e) => setRoleToGrant(e.target.value)}
-              className="w-full rounded-md border border-[#eedec5] bg-[#fffbf5] px-2.5 py-1.5 text-xs text-[#1e1501] focus:border-[#f8a712] focus:outline-none focus:ring-1 focus:ring-[#f8a712] transition"
+              className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-xs text-zinc-950 focus:border-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 transition"
             >
               <option value="reseller">Reseller (20%)</option>
               <option value="distributor">Distributor (35%)</option>
@@ -253,7 +253,7 @@ export function VipInviteGenerator() {
 
           {/* Expiration Segment */}
           <div className="lg:col-span-3 flex flex-col justify-end">
-            <label className="block text-xs font-medium text-[#786b53] mb-1">
+            <label className="block text-xs font-medium text-zinc-600 mb-1">
               Masa Berlaku
             </label>
             <div className="grid grid-cols-4 gap-1">
@@ -264,8 +264,8 @@ export function VipInviteGenerator() {
                   onClick={() => setExpiresInHours(opt.hours)}
                   className={`rounded-md border py-1.5 text-xs transition text-center ${
                     expiresInHours === opt.hours
-                      ? 'border-[#f8a712] bg-[#fbf5ea] text-[#1e1501] font-semibold'
-                      : 'border-[#eedec5] bg-white text-[#786b53] hover:text-[#1e1501] hover:bg-[#fbf5ea]'
+                      ? 'border-zinc-900 bg-zinc-100 text-zinc-950 font-semibold'
+                      : 'border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50'
                   }`}
                 >
                   {opt.label}
@@ -279,11 +279,11 @@ export function VipInviteGenerator() {
             <button
               type="submit"
               disabled={!partnerName.trim() || isSubmitting}
-              className="w-full sm:w-auto rounded-md bg-[#f8a712] hover:bg-[#e09207] px-4 py-2 text-xs font-bold text-[#1e1501] transition disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-xs"
+              className="w-full sm:w-auto rounded-md bg-[#141416] hover:bg-zinc-800 px-4 py-2 text-xs font-semibold text-white transition disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-xs"
             >
               {isSubmitting ? (
                 <>
-                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#1e1501] border-t-transparent" />
+                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   <span>Menerbitkan Token…</span>
                 </>
               ) : (
@@ -295,15 +295,15 @@ export function VipInviteGenerator() {
 
         {/* Success Snippet Card */}
         {newInvite && (
-          <div className="mt-4 rounded-lg border border-[#f8a712]/50 bg-[#fbf5ea] p-3 text-xs transition-all animate-in fade-in duration-150">
-            <div className="flex items-center justify-between pb-2 border-b border-[#eedec5]">
-              <span className="font-semibold text-[#1e1501]">
-                Token VIP Siap: <strong className="text-[#1e1501] font-bold">{newInvite.partnerName}</strong> ({newInvite.roleToGrant.toUpperCase()})
+          <div className="mt-4 rounded-lg border border-zinc-300 bg-zinc-50 p-3 text-xs transition-all animate-in fade-in duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-200">
+              <span className="font-semibold text-zinc-950">
+                Token VIP Siap: <strong className="text-zinc-950 font-bold">{newInvite.partnerName}</strong> ({newInvite.roleToGrant.toUpperCase()})
               </span>
               <button
                 type="button"
                 onClick={() => setNewInvite(null)}
-                className="text-xs text-[#786b53] hover:text-[#1e1501]"
+                className="text-xs text-zinc-500 hover:text-zinc-950"
               >
                 ✕ Tutup
               </button>
@@ -314,13 +314,13 @@ export function VipInviteGenerator() {
                 type="text"
                 readOnly
                 value={newInvite.inviteUrl}
-                className="flex-1 rounded-md border border-[#eedec5] bg-white px-3 py-1.5 font-mono text-xs text-[#1e1501] select-all focus:outline-none"
+                className="flex-1 rounded-md border border-zinc-200 bg-white px-3 py-1.5 font-mono text-xs text-zinc-950 select-all focus:outline-none"
               />
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => copyToClipboard(newInvite.inviteUrl)}
-                  className="rounded-md border border-[#eedec5] bg-white px-3 py-1.5 text-xs font-semibold text-[#1e1501] hover:bg-[#fbf5ea] transition"
+                  className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-100 transition"
                 >
                   {copied ? 'Disalin' : 'Salin'}
                 </button>
@@ -328,7 +328,7 @@ export function VipInviteGenerator() {
                   href={getWhatsAppShareUrl(newInvite)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-md border border-[#d6fa47] bg-[#d6fa47]/20 px-3 py-1.5 text-xs font-semibold text-[#1e1501] hover:bg-[#d6fa47]/40 transition"
+                  className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-100 transition"
                 >
                   Kirim WA
                 </a>
@@ -339,25 +339,25 @@ export function VipInviteGenerator() {
       </div>
 
       {/* 2. Token Registry / Ledger Table */}
-      <div className="overflow-hidden rounded-xl border border-[#eedec5] bg-white shadow-xs">
-        <div className="px-4 py-3 border-b border-[#eedec5] bg-[#fffbf5] flex items-center justify-between">
-          <span className="text-xs font-semibold text-[#1e1501]">
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs">
+        <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between">
+          <span className="text-xs font-semibold text-zinc-950">
             Buku Registri Token Kemitraan
           </span>
           <button
             type="button"
             onClick={fetchInvites}
             disabled={loadingList}
-            className="flex items-center gap-1.5 text-xs text-[#786b53] hover:text-[#1e1501] transition disabled:opacity-40"
+            className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-950 transition disabled:opacity-40"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loadingList ? 'animate-spin text-[#f8a712]' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${loadingList ? 'animate-spin text-zinc-950' : ''}`} />
             <span>Segarkan</span>
           </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#eedec5] bg-[#fffbf5] text-xs font-medium text-[#786b53]">
+            <thead className="border-b border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Calon Mitra</th>
                 <th className="px-4 py-3 font-medium">Target Peran</th>
@@ -367,17 +367,17 @@ export function VipInviteGenerator() {
                 <th className="px-4 py-3 text-right font-medium">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#eedec5]/60 text-[#1e1501]">
+            <tbody className="divide-y divide-zinc-200/70 text-zinc-950">
               {loadingList && invites.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-[#786b53]">
-                    <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#eedec5] border-t-[#f8a712]" />
-                    <p className="mt-2 text-xs text-[#786b53]">Memuat riwayat token…</p>
+                  <td colSpan={6} className="py-10 text-center text-zinc-500">
+                    <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-950" />
+                    <p className="mt-2 text-xs text-zinc-500">Memuat riwayat token…</p>
                   </td>
                 </tr>
               ) : invites.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-[#786b53] text-xs">
+                  <td colSpan={6} className="py-10 text-center text-zinc-500 text-xs">
                     Belum ada token undangan VIP yang diterbitkan.
                   </td>
                 </tr>
@@ -389,22 +389,22 @@ export function VipInviteGenerator() {
                   const isRevoking = revokingId === inv.id;
 
                   return (
-                    <tr key={inv.id} className="hover:bg-[#fbf5ea]/70 transition">
+                    <tr key={inv.id} className="hover:bg-zinc-50 transition">
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-[#1e1501]">{pName}</div>
+                        <div className="font-semibold text-zinc-950">{pName}</div>
                         {phone && (
-                          <div className="font-mono text-xs text-[#786b53]">{phone}</div>
+                          <div className="font-mono text-xs text-zinc-500">{phone}</div>
                         )}
                       </td>
                       <td className="px-4 py-3 text-xs whitespace-nowrap">
-                        <span className="inline-flex items-center rounded px-2 py-0.5 text-[11px] font-mono font-bold border border-[#f7fb7e] bg-[#f7fb7e]/40 text-[#1e1501]">
+                        <span className="inline-flex items-center rounded px-2 py-0.5 text-[11px] font-mono font-bold border border-zinc-200 bg-zinc-100 text-zinc-900">
                           {(inv.roleToGrant || inv.role_to_grant).toUpperCase()}
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {getStatusBadge(inv.status)}
                       </td>
-                      <td className="px-4 py-3 text-xs text-[#786b53] whitespace-nowrap tabular-nums">
+                      <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap tabular-nums">
                         {expDate.toLocaleString('id-ID', {
                           day: 'numeric',
                           month: 'short',
@@ -414,9 +414,9 @@ export function VipInviteGenerator() {
                       </td>
                       <td className="px-4 py-3 text-xs">
                         {inv.claimed_by_email ? (
-                          <div className="text-[#1e1501]">{inv.claimed_by_email}</div>
+                          <div className="text-zinc-950">{inv.claimed_by_email}</div>
                         ) : (
-                          <span className="text-[#786b53]/40">—</span>
+                          <span className="text-zinc-300">—</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -426,7 +426,7 @@ export function VipInviteGenerator() {
                               <button
                                 type="button"
                                 onClick={() => copyToClipboard(inv.inviteUrl)}
-                                className="rounded-md border border-[#eedec5] bg-[#fffbf5] px-2 py-1 text-xs text-[#1e1501] hover:bg-white transition"
+                                className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs text-zinc-950 hover:bg-white transition"
                               >
                                 Salin
                               </button>
@@ -434,7 +434,7 @@ export function VipInviteGenerator() {
                                 href={getWhatsAppShareUrl(inv)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-md border border-[#d6fa47] bg-[#d6fa47]/20 px-2 py-1 text-xs font-medium text-[#1e1501] hover:bg-[#d6fa47]/40 transition"
+                                className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs font-medium text-zinc-950 hover:bg-zinc-100 transition"
                               >
                                 WA
                               </a>
@@ -449,7 +449,7 @@ export function VipInviteGenerator() {
                             </>
                           )}
                           {inv.status !== 'active' && (
-                            <span className="text-[#786b53]/40 text-xs">—</span>
+                            <span className="text-zinc-300 text-xs">—</span>
                           )}
                         </div>
                       </td>

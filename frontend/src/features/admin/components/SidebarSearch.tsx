@@ -6,9 +6,9 @@ import { motion } from 'framer-motion';
 import { cn } from '@/shared/utils/cn';
 
 export interface SidebarSearchProps {
-  isCollapsed: boolean;
-  onOpenCommandPalette: () => void;
-  className?: string;
+  readonly isCollapsed: boolean;
+  readonly onOpenCommandPalette: () => void;
+  readonly className?: string;
 }
 
 /**
@@ -19,7 +19,7 @@ export function SidebarSearch({
   isCollapsed,
   onOpenCommandPalette,
   className,
-}: SidebarSearchProps) {
+}: Readonly<SidebarSearchProps>) {
   if (isCollapsed) {
     return (
       <div className={cn('relative flex justify-center w-full px-2 py-1', className)}>
@@ -32,8 +32,8 @@ export function SidebarSearch({
           aria-label="Pencarian (⌘K)"
           className={cn(
             'group relative flex h-9 w-9 items-center justify-center rounded-lg',
-            'border border-zinc-800/80 bg-zinc-900/60 hover:bg-zinc-800/80 hover:border-amber-500/40',
-            'text-zinc-400 hover:text-amber-400 transition-all cursor-pointer shadow-xs focus:outline-none focus:ring-1 focus:ring-amber-500/50'
+            'border border-zinc-800/80 bg-zinc-900/60 hover:bg-zinc-800/80 hover:border-zinc-700',
+            'text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-xs focus:outline-none focus:ring-1 focus:ring-zinc-600/50'
           )}
         >
           <Search className="h-4 w-4 transition-colors" />
@@ -48,7 +48,7 @@ export function SidebarSearch({
   }
 
   return (
-    <div className={cn('w-full px-3 py-1.5', className)}>
+    <div className={cn('w-full px-3 py-1', className)}>
       <motion.button
         type="button"
         onClick={onOpenCommandPalette}
@@ -56,19 +56,19 @@ export function SidebarSearch({
         aria-label="Cari menu atau fitur (⌘K / Ctrl+K)"
         className={cn(
           'group w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left',
-          'bg-zinc-900/70 hover:bg-zinc-800/90 border border-zinc-800/80 hover:border-amber-500/40',
+          'bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-800/70 hover:border-zinc-700',
           'text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-xs',
-          'focus:outline-none focus:ring-1 focus:ring-amber-500/50'
+          'focus:outline-none focus:ring-1 focus:ring-zinc-600/50'
         )}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <Search className="h-3.5 w-3.5 text-zinc-400 group-hover:text-amber-400 transition-colors shrink-0" />
-          <span className="text-xs text-zinc-400 group-hover:text-zinc-300 font-normal truncate">
+          <Search className="h-3.5 w-3.5 text-zinc-400 group-hover:text-zinc-200 transition-colors shrink-0" />
+          <span className="text-xs text-zinc-400 group-hover:text-zinc-200 font-normal truncate">
             Cari menu atau fitur...
           </span>
         </div>
 
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-zinc-700/80 bg-zinc-800/90 px-1.5 py-0.5 text-[10px] font-mono font-medium text-zinc-400 shadow-xs shrink-0 group-hover:text-zinc-300 group-hover:border-zinc-600">
+        <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-zinc-700/60 bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono font-medium text-zinc-300 shadow-xs shrink-0 group-hover:text-zinc-200 group-hover:border-zinc-600">
           <span>⌘K</span>
         </kbd>
       </motion.button>

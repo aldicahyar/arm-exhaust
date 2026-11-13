@@ -249,7 +249,7 @@ export function UserManagementTable() {
     const roleKey = role.toLowerCase();
     if (roleKey === 'admin') {
       return (
-        <span className="inline-flex items-center rounded-full border border-[#1e1501]/20 bg-[#1e1501]/5 px-3 py-1 text-xs font-bold text-[#1e1501]">
+        <span className="inline-flex items-center rounded-full border border-zinc-950/20 bg-zinc-950/5 px-3 py-1 text-xs font-bold text-zinc-950">
           Admin Sistem
         </span>
       );
@@ -257,7 +257,7 @@ export function UserManagementTable() {
     if (roleKey === 'distributor') {
       const disc = details?.discount_percent ?? 35;
       return (
-        <span className="inline-flex items-center rounded-full border border-[#d6fa47] bg-[#d6fa47]/30 px-3 py-1 text-xs font-bold text-[#1e1501]">
+        <span className="inline-flex items-center rounded-full border border-zinc-900 bg-zinc-900 px-3 py-1 text-xs font-semibold text-white">
           Distributor · {disc}%
         </span>
       );
@@ -265,13 +265,13 @@ export function UserManagementTable() {
     if (roleKey === 'reseller') {
       const disc = details?.discount_percent ?? 20;
       return (
-        <span className="inline-flex items-center rounded-full border border-[#f8a712]/40 bg-[#f7fb7e]/50 px-3 py-1 text-xs font-bold text-[#1e1501]">
+        <span className="inline-flex items-center rounded-full border border-zinc-300 bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-900">
           Reseller · {disc}%
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center rounded-full border border-[#eedec5] bg-[#fffbf5] px-3 py-1 text-xs font-medium text-[#786b53]">
+      <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-500">
         Customer Ritel
       </span>
     );
@@ -299,17 +299,17 @@ export function UserManagementTable() {
       />
 
       {/* 3. Modern Spacious Data Card Table */}
-      <div className="overflow-hidden rounded-xl border border-[#eedec5] bg-white shadow-xs">
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 z-10 border-b border-[#eedec5] bg-[#fffbf5] text-xs font-semibold text-[#786b53]">
+            <thead className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-500">
               <tr>
                 <th className="w-12 px-5 py-3.5 text-center">
                   <input
                     type="checkbox"
                     checked={users.length > 0 && selectedUserIds.length === users.length}
                     onChange={toggleSelectAll}
-                    className="rounded border-[#eedec5] bg-white text-[#f8a712] focus:ring-0 focus:ring-offset-0 cursor-pointer h-4 w-4 accent-[#f8a712]"
+                    className="rounded border-zinc-300 bg-white text-zinc-900 focus:ring-0 focus:ring-offset-0 cursor-pointer h-4 w-4 accent-zinc-900"
                   />
                 </th>
                 <th className="px-5 py-3.5 font-medium">Mitra / Pelanggan</th>
@@ -320,19 +320,19 @@ export function UserManagementTable() {
                 <th className="px-5 py-3.5 text-right font-medium">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#eedec5]/60 text-[#1e1501]">
+            <tbody className="divide-y divide-zinc-200/70 text-zinc-950">
               {loading && users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-[#786b53]">
-                    <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#eedec5] border-t-[#f8a712]" />
-                    <p className="mt-3 text-xs text-[#786b53]">Memuat direktori mitra…</p>
+                  <td colSpan={7} className="py-16 text-center text-zinc-500">
+                    <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-950" />
+                    <p className="mt-3 text-xs text-zinc-500">Memuat direktori mitra…</p>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-[#786b53]">
-                    <p className="text-sm font-semibold text-[#1e1501]">Tidak ada mitra yang cocok dengan filter.</p>
-                    <p className="mt-1 text-xs text-[#786b53]/80">
+                  <td colSpan={7} className="py-16 text-center text-zinc-500">
+                    <p className="text-sm font-semibold text-zinc-950">Tidak ada mitra yang cocok dengan filter.</p>
+                    <p className="mt-1 text-xs text-zinc-500">
                       Sesuaikan kata kunci atau reset filter tab di atas.
                     </p>
                   </td>
@@ -351,8 +351,8 @@ export function UserManagementTable() {
                       onClick={() => openDetailDrawer(user)}
                       className={`group cursor-pointer transition-colors duration-150 ${
                         isSelected
-                          ? 'bg-[#f8a712]/10'
-                          : 'hover:bg-[#fbf5ea]/70'
+                          ? 'bg-zinc-100'
+                          : 'hover:bg-zinc-50'
                       }`}
                     >
                       {/* Checkbox */}
@@ -364,21 +364,21 @@ export function UserManagementTable() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => {}}
-                          className="rounded border-[#eedec5] bg-white text-[#f8a712] focus:ring-0 focus:ring-offset-0 cursor-pointer h-4 w-4 accent-[#f8a712]"
+                          className="rounded border-zinc-300 bg-white text-zinc-900 focus:ring-0 focus:ring-offset-0 cursor-pointer h-4 w-4 accent-zinc-900"
                         />
                       </td>
 
                       {/* Customer (Avatar + Name + Email) */}
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#eedec5] bg-[#fbf5ea] text-xs font-semibold text-[#1e1501] shadow-xs">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-xs font-semibold text-zinc-950 shadow-xs">
                             {getInitials(user.name, user.email)}
                           </div>
                           <div className="min-w-0">
-                            <div className="truncate font-semibold text-sm text-[#1e1501] group-hover:text-[#f8a712] transition">
+                            <div className="truncate font-semibold text-sm text-zinc-950 group-hover:text-zinc-600 transition">
                               {cleanName}
                             </div>
-                            <div className="truncate text-xs text-[#786b53] mt-0.5">
+                            <div className="truncate text-xs text-zinc-500 mt-0.5">
                               {user.email}
                             </div>
                           </div>
@@ -410,18 +410,18 @@ export function UserManagementTable() {
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#eedec5] bg-[#fffbf5] px-3 py-1.5 text-xs font-mono text-[#1e1501] hover:border-[#f8a712] hover:bg-[#fbf5ea] transition shadow-xs"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-mono text-zinc-950 hover:border-zinc-900 hover:bg-zinc-100 transition shadow-xs"
                             title="Buka WhatsApp langsung"
                           >
                             <span>+{cleanPhone}</span>
                           </a>
                         ) : (
-                          <span className="text-[#786b53]/40">—</span>
+                          <span className="text-zinc-300">—</span>
                         )}
                       </td>
 
                       {/* Registered Date */}
-                      <td className="px-5 py-3.5 text-xs text-[#786b53] whitespace-nowrap">
+                      <td className="px-5 py-3.5 text-xs text-zinc-500 whitespace-nowrap">
                         {new Date(user.created_at).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
@@ -437,7 +437,7 @@ export function UserManagementTable() {
                         <button
                           type="button"
                           onClick={() => openDetailDrawer(user)}
-                          className="inline-flex items-center justify-center rounded-lg border border-[#eedec5] bg-[#fffbf5] px-3.5 py-1.5 text-xs font-semibold text-[#1e1501] hover:bg-[#f8a712] hover:border-[#f8a712] transition shadow-xs"
+                          className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-[#141416] hover:border-[#141416] hover:text-white transition shadow-xs"
                         >
                           Detail
                         </button>
@@ -451,22 +451,22 @@ export function UserManagementTable() {
         </div>
 
         {/* Table Footer: Rows Per Page & Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#eedec5] bg-[#fffbf5] px-5 py-3.5 text-xs text-[#786b53]">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-zinc-200 bg-zinc-50 px-5 py-3.5 text-xs text-zinc-500">
           <div className="flex items-center gap-3">
             <span>
-              Menampilkan <span className="font-semibold text-[#1e1501] tabular-nums">{users.length}</span> dari{' '}
-              <span className="font-semibold text-[#1e1501] tabular-nums">{totalCount}</span> total mitra
+              Menampilkan <span className="font-semibold text-zinc-950 tabular-nums">{users.length}</span> dari{' '}
+              <span className="font-semibold text-zinc-950 tabular-nums">{totalCount}</span> total mitra
             </span>
             <div className="hidden sm:flex items-center gap-1.5 text-xs">
-              <span className="text-[#eedec5]">|</span>
-              <span className="text-[#786b53]">Baris:</span>
+              <span className="text-zinc-200">|</span>
+              <span className="text-zinc-500">Baris:</span>
               <select
                 value={limit}
                 onChange={(e) => {
                   setLimit(Number(e.target.value));
                   setPage(1);
                 }}
-                className="rounded-lg border border-[#eedec5] bg-white px-2 py-1 text-xs text-[#1e1501] focus:outline-none shadow-xs"
+                className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none shadow-xs"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -477,14 +477,14 @@ export function UserManagementTable() {
 
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#786b53] tabular-nums">
+              <span className="text-xs text-zinc-500 tabular-nums">
                 Hal {page} dari {totalPages}
               </span>
               <button
                 type="button"
                 disabled={page <= 1 || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="rounded-lg border border-[#eedec5] bg-white px-3 py-1.5 text-xs font-semibold text-[#786b53] hover:bg-[#fbf5ea] hover:text-[#1e1501] disabled:opacity-30 disabled:cursor-not-allowed transition shadow-xs"
+                className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-xs"
               >
                 Sebelumnya
               </button>
@@ -492,7 +492,7 @@ export function UserManagementTable() {
                 type="button"
                 disabled={page >= totalPages || loading}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="rounded-lg border border-[#eedec5] bg-white px-3 py-1.5 text-xs font-semibold text-[#786b53] hover:bg-[#fbf5ea] hover:text-[#1e1501] disabled:opacity-30 disabled:cursor-not-allowed transition shadow-xs"
+                className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-xs"
               >
                 Selanjutnya
               </button>
@@ -503,10 +503,10 @@ export function UserManagementTable() {
 
       {/* Floating Multi-Select Bulk Actions Bar */}
       {selectedUserIds.length > 0 && (
-        <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-lg border border-[#eedec5] bg-white/95 px-4 py-2.5 text-xs shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150 max-w-xl mx-auto w-full">
+        <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white/95 px-4 py-2.5 text-xs shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150 max-w-xl mx-auto w-full">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-[#1e1501]">
-              <span className="tabular-nums text-[#f8a712] font-bold">{selectedUserIds.length}</span> mitra dipilih
+            <span className="font-semibold text-zinc-950">
+              <span className="tabular-nums text-zinc-950 font-bold">{selectedUserIds.length}</span> mitra dipilih
             </span>
           </div>
 
@@ -514,7 +514,7 @@ export function UserManagementTable() {
             <button
               type="button"
               onClick={handleExportSelectedCsv}
-              className="rounded-md border border-[#eedec5] bg-[#fbf5ea] px-3 py-1 text-xs font-semibold text-[#1e1501] hover:bg-[#f8a712] transition shadow-xs"
+              className="rounded-md border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-950 hover:bg-[#141416] hover:border-[#141416] hover:text-white transition shadow-xs"
             >
               Ekspor Pilihan
             </button>

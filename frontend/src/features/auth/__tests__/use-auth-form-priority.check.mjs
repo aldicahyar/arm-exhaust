@@ -41,4 +41,16 @@ assert.ok(
   'resendOtp must call /api/auth/resend-otp endpoint'
 );
 
+// 6. Ref-guarded lifecycle initialization check
+assert.ok(
+  content.includes('hasInitializedRef') || content.includes('isInitializedRef') || content.includes('initializedRef'),
+  'Must use ref guard to prevent React Strict Mode dual-mount from re-running initialization'
+);
+
+// 7. Strict guard on localStorage arm_remember_email
+assert.ok(
+  content.includes("step === 'form'") || content.includes('!rawEmailParam') || content.includes("step !== 'otp'"),
+  'Must ensure remember-me email is not loaded during OTP verification'
+);
+
 console.log('✅ [CHECK PASSED] useAuthForm priority and injection defense verified!');

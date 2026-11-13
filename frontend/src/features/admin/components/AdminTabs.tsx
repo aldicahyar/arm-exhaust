@@ -24,7 +24,7 @@ export function AdminTabs() {
       badge: 'Mitra',
       icon: (active) => (
         <svg
-          className={`h-4 w-4 transition-colors ${active ? 'text-[#1e1501]' : 'text-[#786b53]'}`}
+          className={`h-4 w-4 transition-colors ${active ? 'text-white' : 'text-zinc-500'}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -44,7 +44,7 @@ export function AdminTabs() {
       badge: 'B2B',
       icon: (active) => (
         <svg
-          className={`h-4 w-4 transition-colors ${active ? 'text-[#1e1501]' : 'text-[#786b53]'}`}
+          className={`h-4 w-4 transition-colors ${active ? 'text-white' : 'text-zinc-500'}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -64,7 +64,7 @@ export function AdminTabs() {
       badge: 'RBAC',
       icon: (active) => (
         <svg
-          className={`h-4 w-4 transition-colors ${active ? 'text-[#1e1501]' : 'text-[#786b53]'}`}
+          className={`h-4 w-4 transition-colors ${active ? 'text-white' : 'text-zinc-500'}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -84,7 +84,7 @@ export function AdminTabs() {
     <div className="mt-8 flex flex-col gap-6">
       {/* Warm Minimalist Craft Tab Bar */}
       <div className="overflow-x-auto pb-1 scrollbar-none">
-        <div className="flex items-center gap-1.5 rounded-xl border border-[#eedec5] bg-white p-1.5 shadow-xs min-w-max">
+        <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xs min-w-max">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -94,8 +94,8 @@ export function AdminTabs() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold tracking-wide transition duration-150 ease-out ${
                   isActive
-                    ? 'bg-[#f8a712] text-[#1e1501] font-bold shadow-xs'
-                    : 'text-[#786b53] hover:bg-[#fbf5ea] hover:text-[#1e1501]'
+                    ? 'bg-[#141416] text-white font-semibold shadow-xs'
+                    : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950'
                 }`}
               >
                 {tab.icon(isActive)}
@@ -104,8 +104,8 @@ export function AdminTabs() {
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] font-mono font-bold ${
                       isActive
-                        ? 'bg-[#1e1501] text-white'
-                        : 'bg-[#fffbf5] text-[#786b53] border border-[#eedec5]'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
                     }`}
                   >
                     {tab.badge}

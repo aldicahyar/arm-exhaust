@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import { RollUpText } from './RollUpText';
 
 export type NavTabKey = 'home' | 'product' | 'contact';
@@ -52,8 +53,7 @@ function renderRoleBadge(user: UserProfile) {
 
   if (isAdmin) {
     return (
-      <span className="inline-flex items-center gap-1 rounded border border-[#7F1D1D] bg-[#1C0D0F] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#E81828]">
-        <span className="h-1 w-1 rounded-full bg-[#E81828]" />
+      <span className="inline-flex items-center rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wider text-zinc-300">
         ADMIN
       </span>
     );
@@ -61,8 +61,7 @@ function renderRoleBadge(user: UserProfile) {
   if (isDistributor) {
     const disc = user.roleDetails?.discount_percent ?? user.role_details?.discount_percent ?? 35;
     return (
-      <span className="inline-flex items-center gap-1 rounded border border-[#065F46] bg-[#06281E] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#10B981]">
-        <span className="h-1 w-1 rounded-full bg-[#10B981]" />
+      <span className="inline-flex items-center rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wider text-zinc-300">
         DISTRIBUTOR {disc}%
       </span>
     );
@@ -70,8 +69,7 @@ function renderRoleBadge(user: UserProfile) {
   if (isReseller) {
     const disc = user.roleDetails?.discount_percent ?? user.role_details?.discount_percent ?? 20;
     return (
-      <span className="inline-flex items-center gap-1 rounded border border-[#B45309] bg-[#1C180A] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#F59E0B]">
-        <span className="h-1 w-1 rounded-full bg-[#F59E0B]" />
+      <span className="inline-flex items-center rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wider text-zinc-300">
         VIP RESELLER {disc}%
       </span>
     );
@@ -97,6 +95,7 @@ export function HeaderTabs({
   const [currentLang, setCurrentLang] = useState<LanguageKey>(initialLanguage);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(initialUser);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
@@ -241,6 +240,9 @@ export function HeaderTabs({
   }, []);
 
   const handleLogoutClick = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
@@ -262,9 +264,19 @@ export function HeaderTabs({
       } catch {}
     }
 
-    setCurrentUser(null);
+    // Beri jeda transisi halus sebelum menu ditutup agar feedback visual terbaca
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    // Tutup menu dengan smooth exit animation
     setIsUserMenuOpen(false);
-    onLogout?.();
+    setIsMobileMenuOpen(false);
+
+    // Tunggu animasi exit selesai (180ms) baru bersihkan user state agar tidak ada lompatan visual
+    setTimeout(() => {
+      setCurrentUser(null);
+      setIsLoggingOut(false);
+      onLogout?.();
+    }, 180);
   };
 
   return (
@@ -276,7 +288,7 @@ export function HeaderTabs({
           <Link
             href="/"
             aria-label="ARM Exhaust"
-            className="group relative flex h-14 w-36 flex-shrink-0 items-center justify-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#E81828] rounded"
+            className="group relative flex h-14 w-36 flex-shrink-0 items-center justify-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded"
           >
             <Image
               src="/assets/Logo ARM no BG.png"
@@ -320,7 +332,7 @@ export function HeaderTabs({
 
           {/* Sliding Active Underline — only for nav tabs 0-2, NOT auth tab */}
           <div
-            className="absolute bottom-0 h-[2px] bg-[#E81828] transition-all duration-300 ease-out pointer-events-none"
+            className="absolute bottom-0 h-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.35)] transition-all duration-300 ease-out pointer-events-none"
             style={activeStyle}
           />
 
@@ -358,113 +370,135 @@ export function HeaderTabs({
                 <RollUpText label="Profile" active={hoveredIndex === TABS.length} />
               </button>
 
-              {/* Profile Dropdown — centered below trigger */}
-              {isUserMenuOpen && (
-                <div
-                  role="menu"
-                  aria-orientation="vertical"
-                  className="absolute left-1/2 -translate-x-1/2 mt-3 w-56 rounded-xl border border-[#2B2B30] bg-[#141416] p-1.5 shadow-xl shadow-black/60 z-50 animate-in fade-in zoom-in-95 duration-100"
-                >
-                  <div className="px-3 py-2 border-b border-[#2B2B30]">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
-                      {renderRoleBadge(currentUser)}
+              {/* Profile Dropdown — centered below trigger with smooth enter/exit animation */}
+              <AnimatePresence>
+                {isUserMenuOpen && (
+                  <motion.div
+                    key="profile-dropdown"
+                    role="menu"
+                    aria-orientation="vertical"
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.95 }}
+                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute left-1/2 -translate-x-1/2 mt-2.5 w-60 rounded-xl border border-white/[0.08] bg-[#121214] p-1.5 shadow-2xl shadow-black/80 z-50 overflow-hidden"
+                  >
+                    <div className="px-3 py-2.5 border-b border-white/[0.06] mb-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
+                        {renderRoleBadge(currentUser)}
+                      </div>
+                      <p className="text-[11px] text-zinc-400 font-normal truncate mt-0.5">{currentUser.email}</p>
                     </div>
-                    <p className="text-[11px] text-[#9AA0A8] font-mono truncate">{currentUser.email}</p>
-                  </div>
-                  <div className="py-1">
-                    {/* Admin Dashboard */}
-                    {(currentUser.role === 'admin' || currentUser.roleDetails?.can_access_admin || currentUser.role_details?.can_access_admin) && (
+                    <div className="py-0.5 space-y-0.5">
+                      {/* Admin Dashboard */}
+                      {(currentUser.role === 'admin' || currentUser.roleDetails?.can_access_admin || currentUser.role_details?.can_access_admin) && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                          role="menuitem"
+                        >
+                          <svg className="h-4 w-4 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          Admin Dashboard
+                        </Link>
+                      )}
+
+                      {/* Reseller B2B Wholesale */}
+                      {(currentUser.role === 'reseller' || currentUser.roleDetails?.can_access_b2b || currentUser.role_details?.can_access_b2b) && (
+                        <Link
+                          href="/catalog"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="group flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                          role="menuitem"
+                        >
+                          <span className="flex items-center gap-2.5">
+                            <svg className="h-4 w-4 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            Katalog Grosir B2B
+                          </span>
+                          <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] font-medium text-zinc-400 group-hover:text-zinc-200 group-hover:border-white/20 transition-colors">
+                            20% OFF
+                          </span>
+                        </Link>
+                      )}
+
                       <Link
-                        href="/admin"
+                        href="/account"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-bold text-[#E81828] hover:bg-[#E81828]/10 transition-colors"
+                        className="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors"
                         role="menuitem"
                       >
-                        <svg className="h-4 w-4 text-[#E81828]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        <svg className="h-4 w-4 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        Admin Dashboard
+                        Account Setting
                       </Link>
-                    )}
 
-                    {/* Reseller B2B Wholesale */}
-                    {(currentUser.role === 'reseller' || currentUser.roleDetails?.can_access_b2b || currentUser.role_details?.can_access_b2b) && (
                       <Link
-                        href="/catalog"
+                        href="/favorites"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-bold text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
+                        className="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                        role="menuitem"
+                      >
+                        <svg className="h-4 w-4 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        Favorites
+                      </Link>
+
+                      <Link
+                        href="/notifications"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="group flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors"
                         role="menuitem"
                       >
                         <span className="flex items-center gap-2.5">
-                          <svg className="h-4 w-4 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          <svg className="h-4 w-4 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                           </svg>
-                          Katalog Grosir B2B
+                          Notification
                         </span>
-                        <span className="rounded bg-[#F59E0B]/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#F59E0B]">
-                          20% OFF
-                        </span>
+                        {Boolean(currentUser.unreadNotifications) && (
+                          <span className="rounded-full border border-white/10 bg-white/[0.06] text-zinc-300 px-1.5 py-0.5 font-mono text-[9px] font-medium">
+                            {currentUser.unreadNotifications}
+                          </span>
+                        )}
                       </Link>
-                    )}
+                    </div>
 
-                    <Link
-                      href="/account"
-                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-[#C7CAD1] hover:bg-[#1E1E21] hover:text-white transition-colors"
+                    <div className="my-1 border-t border-white/[0.06]" />
+
+                    <button
+                      type="button"
+                      onClick={handleLogoutClick}
+                      disabled={isLoggingOut}
+                      className={`group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-all duration-200 ${
+                        isLoggingOut
+                          ? 'opacity-70 cursor-wait bg-white/[0.04] text-zinc-400'
+                          : 'text-zinc-400 hover:text-rose-400 hover:bg-rose-500/[0.08]'
+                      }`}
                       role="menuitem"
                     >
-                      <svg className="h-4 w-4 text-[#9AA0A8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Account Setting
-                    </Link>
-
-                    <Link
-                      href="/favorites"
-                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-[#C7CAD1] hover:bg-[#1E1E21] hover:text-white transition-colors"
-                      role="menuitem"
-                    >
-                      <svg className="h-4 w-4 text-[#9AA0A8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      Favorites
-                    </Link>
-
-                    <Link
-                      href="/notifications"
-                      className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs text-[#C7CAD1] hover:bg-[#1E1E21] hover:text-white transition-colors"
-                      role="menuitem"
-                    >
-                      <span className="flex items-center gap-2.5">
-                        <svg className="h-4 w-4 text-[#9AA0A8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      {isLoggingOut ? (
+                        <svg className="h-4 w-4 animate-spin text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                         </svg>
-                        Notification
-                      </span>
-                      {Boolean(currentUser.unreadNotifications) && (
-                        <span className="rounded-full bg-[#E81828]/20 text-[#E81828] px-1.5 py-0.2 font-mono text-[10px] font-bold">
-                          {currentUser.unreadNotifications}
-                        </span>
+                      ) : (
+                        <svg className="h-4 w-4 text-zinc-400 group-hover:text-rose-400 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
                       )}
-                    </Link>
-                  </div>
-
-                  <div className="my-1 border-t border-[#2B2B30]" />
-
-                  <button
-                    type="button"
-                    onClick={handleLogoutClick}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-[#E81828] hover:bg-[#E81828]/10 transition-colors"
-                    role="menuitem"
-                  >
-                    <svg className="h-4 w-4 text-[#E81828]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </button>
-                </div>
-              )}
+                      <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <Link
@@ -488,8 +522,8 @@ export function HeaderTabs({
           {/* Utility: Expandable Search Bar with 21st.dev Lucide Animated Icon */}
           <div ref={searchContainerRef} className="relative flex items-center">
             {isSearchExpanded ? (
-              <div className="flex items-center rounded-lg border border-[#E81828] bg-[#141416] px-2.5 py-1 shadow-sm transition-all animate-in fade-in duration-200">
-                <svg className="h-3.5 w-3.5 text-[#E81828] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="flex items-center rounded-lg border border-zinc-700 bg-[#141416] px-2.5 py-1 shadow-sm transition-all animate-in fade-in duration-200">
+                <svg className="h-3.5 w-3.5 text-zinc-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -523,7 +557,7 @@ export function HeaderTabs({
                 className="flex items-center rounded-lg px-2.5 py-1.5 text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-all"
               >
                 <svg
-                  className={`h-4 w-4 transition-transform duration-300 ${isSearchHovered ? '-translate-y-0.5 -translate-x-0.5 text-[#E81828]' : ''}`}
+                  className={`h-4 w-4 transition-transform duration-300 ${isSearchHovered ? '-translate-y-0.5 -translate-x-0.5 text-white' : ''}`}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
                   strokeLinecap="round" strokeLinejoin="round"
                 >
@@ -545,7 +579,7 @@ export function HeaderTabs({
             <div className="relative">
               {/* Animated Cart Icon from 21st.dev 5a2718f0 */}
               <svg
-                className={`h-4 w-4 transition-transform duration-300 ${isCartHovered ? 'scale-110 -translate-y-0.5 text-[#E81828]' : ''}`}
+                className={`h-4 w-4 transition-transform duration-300 ${isCartHovered ? 'scale-110 -translate-y-0.5 text-white' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -556,7 +590,7 @@ export function HeaderTabs({
                 <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" />
               </svg>
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#E81828] px-1 text-[9px] font-bold text-white">
+                <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-white px-1 text-[9px] font-bold font-mono text-zinc-950 shadow-xs">
                   {cartCount}
                 </span>
               )}
@@ -582,33 +616,42 @@ export function HeaderTabs({
               </svg>
             </button>
 
-            {isLangMenuOpen && (
-              <div className="absolute right-0 mt-1 w-32 rounded-xl border border-[#2B2B30] bg-[#141416] p-1 shadow-lg shadow-black/60 z-50 animate-in fade-in zoom-in-95 duration-100">
-                <button
-                  type="button"
-                  onClick={() => handleLanguageSelect('ID')}
-                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
-                    currentLang === 'ID' ? 'bg-[#E81828]/15 text-[#E81828] font-semibold' : 'text-[#C7CAD1] hover:bg-[#1E1E21] hover:text-white'
-                  }`}
+            <AnimatePresence>
+              {isLangMenuOpen && (
+                <motion.div
+                  key="lang-dropdown"
+                  initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                  transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute right-0 mt-1 w-32 rounded-xl border border-white/[0.08] bg-[#121214] p-1 shadow-2xl shadow-black/80 z-50 overflow-hidden"
                 >
-                  <span className="flex items-center">
-                    Indonesia
-                  </span>
-                  {currentLang === 'ID' && <span>✓</span>}
-                </button>
-                <button
-                  type="button"
-                  disabled
-                  title="Segera tersedia"
-                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-[#8A8F98] cursor-not-allowed"
-                >
-                  <span className="flex items-center">
-                    English
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-wider">soon</span>
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => handleLanguageSelect('ID')}
+                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                      currentLang === 'ID' ? 'bg-white/[0.08] text-white font-medium' : 'text-zinc-400 hover:bg-white/[0.04] hover:text-white'
+                    }`}
+                  >
+                    <span className="flex items-center">
+                      Indonesia
+                    </span>
+                    {currentLang === 'ID' && <span>✓</span>}
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    title="Segera tersedia"
+                    className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-zinc-500 cursor-not-allowed"
+                  >
+                    <span className="flex items-center">
+                      English
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-zinc-600">soon</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -636,7 +679,7 @@ export function HeaderTabs({
             {currentUser ? (
               <>
                 <div className="flex items-center gap-2">
-                  <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-[#E81828]/15 text-[#E81828] font-bold text-xs border border-[#E81828]/40">
+                  <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.08] text-white font-semibold text-xs border border-white/10">
                     {currentUser.name.charAt(0)}
                   </div>
                   <div className="flex flex-col leading-tight">
@@ -644,22 +687,33 @@ export function HeaderTabs({
                       <span className="text-xs font-semibold text-white">{currentUser.name}</span>
                       {renderRoleBadge(currentUser)}
                     </div>
-                    <span className="text-[10px] font-mono text-[#9AA0A8]">{currentUser.email}</span>
+                    <span className="text-[10px] font-mono text-zinc-400">{currentUser.email}</span>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleLogoutClick}
-                  className="rounded-lg border border-[#E81828]/50 px-2.5 py-1 text-[11px] font-semibold text-[#E81828] hover:bg-[#E81828]/10 transition-colors"
+                  disabled={isLoggingOut}
+                  className={`rounded-lg border border-white/10 px-2.5 py-1 text-[11px] font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                    isLoggingOut
+                      ? 'opacity-70 cursor-wait bg-white/[0.04] text-zinc-400'
+                      : 'text-zinc-400 hover:text-rose-400 hover:border-rose-500/20 hover:bg-rose-500/[0.08]'
+                  }`}
                 >
-                  Logout
+                  {isLoggingOut && (
+                    <svg className="h-3 w-3 animate-spin text-zinc-400" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                  )}
+                  <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
                 </button>
               </>
             ) : (
               <Link
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full rounded-lg bg-[#E81828] px-3 py-2 text-center text-xs font-semibold text-white hover:bg-[#FF2B3C] transition-colors"
+                className="w-full rounded-lg bg-white text-black px-3 py-2 text-center text-xs font-semibold hover:bg-zinc-200 transition-colors"
               >
                 Login / Register
               </Link>
@@ -672,15 +726,15 @@ export function HeaderTabs({
               <Link
                 href="/admin"
                 onClick={handleTabClick}
-                className="flex items-center justify-between py-2 text-xs font-bold text-[#E81828] border-b border-[#2B2B30]/50"
+                className="flex items-center justify-between py-2 text-xs font-medium text-zinc-300 hover:text-white border-b border-white/[0.06]"
               >
                 <span className="flex items-center gap-2">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                   Admin Dashboard
                 </span>
-                <span className="rounded bg-[#E81828]/20 px-1.5 py-0.5 font-mono text-[9px] text-[#E81828]">ADMIN</span>
+                <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] text-zinc-400">ADMIN</span>
               </Link>
             )}
 
@@ -689,15 +743,15 @@ export function HeaderTabs({
               <Link
                 href="/catalog"
                 onClick={handleTabClick}
-                className="flex items-center justify-between py-2 text-xs font-bold text-[#F59E0B] border-b border-[#2B2B30]/50"
+                className="flex items-center justify-between py-2 text-xs font-medium text-zinc-300 hover:text-white border-b border-white/[0.06]"
               >
                 <span className="flex items-center gap-2">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
                   Katalog Grosir B2B
                 </span>
-                <span className="rounded bg-[#F59E0B]/20 px-1.5 py-0.5 font-mono text-[9px] text-[#F59E0B]">20% OFF</span>
+                <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] text-zinc-400">20% OFF</span>
               </Link>
             )}
 
@@ -708,12 +762,12 @@ export function HeaderTabs({
               onClick={handleTabClick}
               aria-label={tab.label}
               aria-current={activeTab === tab.id ? 'page' : undefined}
-              className={`flex items-center justify-between py-2 text-xs font-semibold ${
-                activeTab === tab.id ? 'text-[#E81828]' : 'text-[#9AA0A8] hover:text-white'
+              className={`flex items-center justify-between py-2 px-2.5 rounded-lg text-xs font-semibold transition-colors ${
+                activeTab === tab.id ? 'text-white bg-white/[0.08]' : 'text-[#9AA0A8] hover:text-white'
               }`}
             >
               <RollUpText label={tab.label} />
-              {activeTab === tab.id && <span className="text-[10px] bg-[#E81828]/20 px-1.5 py-0.5 rounded text-[#E81828]">Active</span>}
+              {activeTab === tab.id && <span className="text-[10px] bg-zinc-800 border border-zinc-700/60 px-1.5 py-0.5 rounded font-mono text-zinc-200">Active</span>}
             </Link>
             ))}
           </div>
@@ -724,7 +778,7 @@ export function HeaderTabs({
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex items-center gap-2 text-xs text-white"
             >
-              <svg className="h-4 w-4 text-[#E81828]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3" />
               </svg>
               <span>Shopping Cart ({cartCount})</span>
@@ -734,8 +788,8 @@ export function HeaderTabs({
               <button
                 type="button"
                 onClick={() => handleLanguageSelect('ID')}
-                className={`px-2 py-0.5 rounded text-[11px] font-mono ${
-                  currentLang === 'ID' ? 'bg-[#E81828] text-white' : 'text-[#9AA0A8]'
+                className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
+                  currentLang === 'ID' ? 'bg-white text-zinc-950' : 'text-[#9AA0A8]'
                 }`}
               >
                 ID

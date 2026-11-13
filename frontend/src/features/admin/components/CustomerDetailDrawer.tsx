@@ -148,16 +148,16 @@ export function CustomerDetailDrawer({
       />
 
       {/* Slide-over Sheet (Clean Inspector Drawer) */}
-      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-[#eedec5] bg-[#fffbf5] p-5 sm:p-6 overflow-y-auto animate-in slide-in-from-right duration-200 shadow-2xl">
+      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-zinc-200 bg-[#FAFAFA] p-5 sm:p-6 overflow-y-auto animate-in slide-in-from-right duration-200 shadow-2xl">
         {/* Drawer Header */}
-        <div className="flex items-center justify-between border-b border-[#eedec5] pb-3">
-          <h2 className="text-sm font-bold text-[#1e1501]">
+        <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+          <h2 className="text-sm font-bold text-zinc-950">
             Detail Informasi Mitra
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-[#786b53] hover:bg-[#fbf5ea] hover:text-[#1e1501] transition"
+            className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 transition"
             title="Tutup (Esc)"
           >
             <X className="h-4 w-4" />
@@ -165,23 +165,23 @@ export function CustomerDetailDrawer({
         </div>
 
         {/* Customer Identity Banner */}
-        <div className="mt-4 rounded-lg border border-[#eedec5] bg-white p-4 shadow-xs">
+        <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-4 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[#eedec5] bg-[#fbf5ea] text-sm font-semibold text-[#1e1501]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-zinc-100 text-sm font-semibold text-zinc-950">
               {getInitials(user.name, user.email)}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="truncate text-sm font-bold text-[#1e1501]">{cleanName}</h3>
-              <div className="truncate text-xs text-[#786b53] mt-0.5">{user.email}</div>
+              <h3 className="truncate text-sm font-bold text-zinc-950">{cleanName}</h3>
+              <div className="truncate text-xs text-zinc-500 mt-0.5">{user.email}</div>
             </div>
           </div>
 
-          <div className="mt-3 pt-2.5 border-t border-[#eedec5] flex items-center justify-between text-xs text-[#786b53]">
+          <div className="mt-3 pt-2.5 border-t border-zinc-200 flex items-center justify-between text-xs text-zinc-500">
             <span>UUID Akun:</span>
             <button
               type="button"
               onClick={handleCopyId}
-              className="flex items-center gap-1.5 text-[#1e1501] hover:text-[#f8a712] transition font-mono font-medium"
+              className="flex items-center gap-1.5 text-zinc-950 hover:text-zinc-600 transition font-mono font-medium"
               title="Salin ID Lengkap"
             >
               <span>#{user.id.slice(0, 12)}…</span>
@@ -191,27 +191,27 @@ export function CustomerDetailDrawer({
         </div>
 
         {/* Current Commercial Status Strip */}
-        <div className="mt-3.5 rounded-lg border border-[#eedec5] bg-white p-3.5 space-y-2 shadow-xs">
+        <div className="mt-3.5 rounded-lg border border-zinc-200 bg-white p-3.5 space-y-2 shadow-xs">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-[#786b53]">
+            <span className="text-zinc-500">
               Margin Katalog Aktif
             </span>
-            <span className="font-bold text-[#f8a712] tabular-nums">
+            <span className="font-bold text-zinc-950 tabular-nums">
               {currentDiscount}% Margin
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-xs pt-1.5 border-t border-[#eedec5]">
-            <span className="text-[#786b53]">Akses Grosir B2B:</span>
-            <span className={currentDiscount > 0 ? 'text-[#1e1501] font-bold' : 'text-[#786b53]/60'}>
+          <div className="flex items-center justify-between text-xs pt-1.5 border-t border-zinc-200">
+            <span className="text-zinc-500">Akses Grosir B2B:</span>
+            <span className={currentDiscount > 0 ? 'text-zinc-950 font-bold' : 'text-zinc-400'}>
               {currentDiscount > 0 ? 'Diotorisasi' : 'Akses Ritel Reguler'}
             </span>
           </div>
         </div>
 
         {/* Role Switcher */}
-        <div className="mt-3.5 rounded-lg border border-[#eedec5] bg-white p-4 shadow-xs">
-          <label className="block text-xs font-semibold text-[#786b53] mb-2.5">
+        <div className="mt-3.5 rounded-lg border border-zinc-200 bg-white p-4 shadow-xs">
+          <label className="block text-xs font-semibold text-zinc-600 mb-2.5">
             Pilih Hak Akses &amp; Peran Akun
           </label>
           <div className="space-y-1.5">
@@ -227,22 +227,22 @@ export function CustomerDetailDrawer({
                   onClick={() => setSelectedRole(r.id)}
                   className={`w-full text-left p-3 rounded-md border transition ${
                     isSelected
-                      ? 'border-[#f8a712] bg-[#fbf5ea] text-[#1e1501] font-semibold shadow-xs'
-                      : 'border-[#eedec5] bg-[#fffbf5] text-[#786b53] hover:bg-white hover:text-[#1e1501]'
+                      ? 'border-zinc-900 bg-zinc-100 text-zinc-950 font-semibold shadow-xs'
+                      : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-white hover:text-zinc-950'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs">{r.name}</span>
                     <div className="flex items-center gap-1.5 text-xs">
                       {disc > 0 && (
-                        <span className="text-[#f8a712] font-bold">{disc}% Diskon</span>
+                        <span className="text-zinc-950 font-bold">{disc}% Diskon</span>
                       )}
                       {isCurrent && (
-                        <span className="text-[#786b53]/60 text-[11px]">(Aktif)</span>
+                        <span className="text-zinc-400 text-[11px]">(Aktif)</span>
                       )}
                     </div>
                   </div>
-                  <p className="mt-1 text-[11px] text-[#786b53] truncate">{r.description}</p>
+                  <p className="mt-1 text-[11px] text-zinc-500 truncate">{r.description}</p>
                 </button>
               );
             })}
@@ -252,11 +252,11 @@ export function CustomerDetailDrawer({
             type="button"
             disabled={selectedRole === user.role || isUpdating}
             onClick={handleSaveRole}
-            className="mt-3.5 w-full rounded-md bg-[#f8a712] hover:bg-[#e09207] text-[#1e1501] font-bold py-2 px-3 text-xs transition disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-xs"
+            className="mt-3.5 w-full rounded-md bg-[#141416] hover:bg-zinc-800 text-white font-semibold py-2 px-3 text-xs transition disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-xs"
           >
             {isUpdating ? (
               <>
-                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#1e1501] border-t-transparent" />
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 <span>Menyimpan Perubahan…</span>
               </>
             ) : (
@@ -266,8 +266,8 @@ export function CustomerDetailDrawer({
         </div>
 
         {/* WhatsApp Communication */}
-        <div className="mt-3.5 rounded-lg border border-[#eedec5] bg-white p-4 shadow-xs">
-          <label className="block text-xs font-semibold text-[#786b53] mb-2">
+        <div className="mt-3.5 rounded-lg border border-zinc-200 bg-white p-4 shadow-xs">
+          <label className="block text-xs font-semibold text-zinc-600 mb-2">
             Nomor Kontak WhatsApp
           </label>
           <div className="flex items-center gap-2">
@@ -276,13 +276,13 @@ export function CustomerDetailDrawer({
               value={whatsappPhone}
               onChange={(e) => setWhatsappPhone(e.target.value)}
               placeholder="08123456789"
-              className="flex-1 rounded-md border border-[#eedec5] bg-[#fffbf5] px-3 py-1.5 font-mono text-xs text-[#1e1501] placeholder-[#786b53]/60 focus:border-[#f8a712] focus:outline-none"
+              className="flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 font-mono text-xs text-zinc-950 placeholder-zinc-400 focus:border-zinc-900 focus:bg-white focus:outline-none"
             />
             <a
               href={waShareUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[#eedec5] bg-[#fffbf5] px-3 py-1.5 text-xs font-semibold text-[#1e1501] hover:bg-[#fbf5ea] transition shrink-0 shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-100 transition shrink-0 shadow-xs"
             >
               <span>Hubungi WA</span>
             </a>
@@ -290,13 +290,13 @@ export function CustomerDetailDrawer({
         </div>
 
         {/* Account Metadata */}
-        <div className="mt-3.5 rounded-lg border border-[#eedec5] bg-white p-4 text-xs space-y-2 shadow-xs">
-          <span className="text-xs font-semibold text-[#786b53] block pb-1 border-b border-[#eedec5]">
+        <div className="mt-3.5 rounded-lg border border-zinc-200 bg-white p-4 text-xs space-y-2 shadow-xs">
+          <span className="text-xs font-semibold text-zinc-600 block pb-1 border-b border-zinc-200">
             Riwayat Akun
           </span>
           <div className="flex items-center justify-between">
-            <span className="text-[#786b53]">Tanggal Terdaftar:</span>
-            <span className="text-[#1e1501] font-medium">
+            <span className="text-zinc-500">Tanggal Terdaftar:</span>
+            <span className="text-zinc-950 font-medium">
               {new Date(user.created_at).toLocaleDateString('id-ID', {
                 day: 'numeric',
                 month: 'short',
@@ -305,8 +305,8 @@ export function CustomerDetailDrawer({
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[#786b53]">Metode Verifikasi:</span>
-            <span className="text-[#1e1501] font-medium">OTP Email / OAuth</span>
+            <span className="text-zinc-500">Metode Verifikasi:</span>
+            <span className="text-zinc-950 font-medium">OTP Email / OAuth</span>
           </div>
         </div>
       </div>

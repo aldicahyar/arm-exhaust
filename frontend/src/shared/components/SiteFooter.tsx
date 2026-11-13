@@ -63,7 +63,7 @@ function AnimatedNavLink({ label, href }: { label: string; href: string }) {
     <Link
       href={href}
       aria-label={label}
-      className="text-sm text-[#9AA0A8] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#2E6BFF] rounded"
+      className="text-sm text-[#9AA0A8] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded"
     >
       <RollUpText label={label} />
     </Link>
@@ -96,7 +96,7 @@ export function SiteFooter() {
             type="button"
             onClick={scrollToTop}
             aria-label="Back to top"
-            className="flex h-14 w-36 cursor-pointer items-center justify-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#2E6BFF] rounded"
+            className="flex h-14 w-36 cursor-pointer items-center justify-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded"
           >
             <Image
               src="/assets/Logo ARM no BG.png"
@@ -122,7 +122,7 @@ export function SiteFooter() {
               key={s.label}
               href={s.href}
               aria-label={s.label}
-              className="text-[#9AA0A8] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#2E6BFF] rounded"
+              className="text-[#9AA0A8] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded"
             >
               {s.icon}
             </a>

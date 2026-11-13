@@ -11,6 +11,8 @@ import {
   Receipt,
   ShieldCheck,
   UserPlus,
+  Sliders,
+  Calendar,
   ExternalLink,
   LogOut,
   CornerDownLeft,
@@ -20,11 +22,11 @@ import {
 import { cn } from '@/shared/utils/cn';
 
 export interface CommandPaletteModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelectTab: (tabId: string) => void;
-  userRole?: string;
-  onOpen?: () => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onSelectTab: (tabId: string) => void;
+  readonly userRole?: string;
+  readonly onOpen?: () => void;
 }
 
 interface CommandItem {
@@ -48,7 +50,7 @@ export function CommandPaletteModal({
   onSelectTab,
   userRole,
   onOpen,
-}: CommandPaletteModalProps) {
+}: Readonly<CommandPaletteModalProps>) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -125,6 +127,31 @@ export function CommandPaletteModal({
         keywords: ['undangan', 'vip', 'invite', 'token', 'registrasi', 'b2b', 'klaim', 'link'],
         action: () => {
           onSelectTab('invites');
+          onClose();
+        },
+      },
+      // Web Content Tabs
+      {
+        id: 'nav-hero',
+        label: 'Hero Carousel',
+        description: 'Kelola banner visual utama beranda, urutan slide, judul, dan status tayang',
+        category: 'Navigasi Menu',
+        icon: Sliders,
+        keywords: ['hero', 'carousel', 'banner', 'slide', 'promo', 'konten', 'beranda', 'gambar'],
+        action: () => {
+          onSelectTab('hero');
+          onClose();
+        },
+      },
+      {
+        id: 'nav-events',
+        label: 'Event & Komunitas',
+        description: 'Publikasi agenda track day, gathering komunitas, sirkuit, dan registrasi',
+        category: 'Navigasi Menu',
+        icon: Calendar,
+        keywords: ['event', 'acara', 'komunitas', 'track day', 'kopdar', 'sirkuit', 'workshop', 'agenda'],
+        action: () => {
+          onSelectTab('events');
           onClose();
         },
       },
@@ -294,7 +321,7 @@ export function CommandPaletteModal({
           >
             {/* Input Header */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800/80 bg-zinc-900/50">
-              <Search className="h-4 w-4 text-amber-500 shrink-0" />
+              <Search className="h-4 w-4 text-zinc-400 shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
@@ -345,15 +372,16 @@ export function CommandPaletteModal({
                     const Icon = cmd.icon;
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={cmd.id}
                         data-command-index={idx}
                         onClick={() => cmd.action()}
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={cn(
-                          'flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm cursor-pointer transition-all',
+                          'w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm text-left cursor-pointer transition-all',
                           isSelected
-                            ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 shadow-xs'
+                            ? 'bg-white/[0.08] text-white border border-white/[0.12] shadow-xs'
                             : 'text-zinc-300 hover:bg-zinc-900/80 border border-transparent'
                         )}
                       >
@@ -362,7 +390,7 @@ export function CommandPaletteModal({
                             className={cn(
                               'flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors',
                               isSelected
-                                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                ? 'bg-zinc-800 text-white border-zinc-700'
                                 : 'bg-zinc-900 text-zinc-400 border-zinc-800'
                             )}
                           >
@@ -374,7 +402,7 @@ export function CommandPaletteModal({
                                 {cmd.label}
                               </span>
                               {cmd.superadminOnly && (
-                                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase">
+                                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 uppercase">
                                   Superadmin
                                 </span>
                               )}
@@ -386,12 +414,12 @@ export function CommandPaletteModal({
                         </div>
 
                         {isSelected && (
-                          <div className="flex items-center gap-1 text-[11px] font-mono text-amber-400/80 shrink-0">
+                          <div className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 shrink-0">
                             <CornerDownLeft className="h-3 w-3" />
                             <span className="hidden sm:inline">Pilih</span>
                           </div>
                         )}
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -416,7 +444,7 @@ export function CommandPaletteModal({
                 </span>
               </div>
 
-              <span className="font-mono text-[10px] text-amber-500/70">
+              <span className="font-mono text-[10px] text-zinc-500">
                 ARM Command Console
               </span>
             </div>

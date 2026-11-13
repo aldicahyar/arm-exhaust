@@ -8,3 +8,6 @@ export * from './ScrollRevealImage';
 export * from './SiteFooter';
 export * from './SmoothScroll';
 export * from './notice';
+export * from './modal/ConfirmContext';
+export * from './modal/ConfirmDialog';
+export * from './modal/types';

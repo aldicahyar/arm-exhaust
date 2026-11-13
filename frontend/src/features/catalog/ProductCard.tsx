@@ -6,7 +6,7 @@ export function ProductCard({ item }: { item: Product }) {
   return (
     <Link
       href={`/products/${item.id}`}
-      className="group flex flex-col bg-[#141416] border border-[#2B2B30] rounded-lg overflow-hidden transition-colors hover:border-[#3A3A42] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#2E6BFF]"
+      className="group flex flex-col bg-[#141416] border border-[#2B2B30] rounded-lg overflow-hidden transition-colors hover:border-[#3A3A42] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
     >
       {/* Foto 4:3 — canvas variant grid 800x600, presisi tanpa terpotong */}
       <div className="relative aspect-[4/3] bg-[#1E1E21] overflow-hidden">
