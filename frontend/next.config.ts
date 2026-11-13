@@ -8,7 +8,10 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   async rewrites() {
-    return [{ source: '/api/:path*', destination: `${BACKEND_URL}/api/:path*` }];
+    return [
+      { source: '/api/:path*', destination: `${BACKEND_URL}/api/:path*` },
+      { source: '/uploads/:path*', destination: `${BACKEND_URL}/uploads/:path*` },
+    ];
   },
   // Permanent redirect HTTP 301 path lama (bahasa Indonesia) → path standar Inggris.
   // Didefinisikan di level config (bukan page) agar berlaku sebelum routing & konsisten di dev/staging/production.

@@ -196,9 +196,9 @@ export function SecurityConfigPanel() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-[#eedec5] bg-white p-12 text-center shadow-xs">
-        <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#eedec5] border-t-[#f8a712]" />
-        <p className="mt-3 text-xs text-[#786b53]">Sinkronisasi parameter keamanan runtime…</p>
+      <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center shadow-xs">
+        <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-950" />
+        <p className="mt-3 text-xs text-zinc-500">Sinkronisasi parameter keamanan runtime…</p>
       </div>
     );
   }
@@ -206,7 +206,7 @@ export function SecurityConfigPanel() {
   const renderParameterTable = (sectionItems: ConfigItem[]) => (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-xs">
-        <thead className="border-b border-[#eedec5] bg-[#fffbf5] text-xs font-medium text-[#786b53]">
+        <thead className="border-b border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-500">
           <tr>
             <th className="px-4 py-3 font-medium">Parameter &amp; Deskripsi</th>
             <th className="px-4 py-3 font-medium">Rentang Aman</th>
@@ -215,7 +215,7 @@ export function SecurityConfigPanel() {
             <th className="w-16 px-4 py-3 text-right font-medium">Reset</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#eedec5]/60 text-[#1e1501]">
+        <tbody className="divide-y divide-zinc-200/70 text-zinc-950">
           {sectionItems.map((item) => {
             const meta = PARAM_META[item.key] || {
               shortName: item.label,
@@ -227,27 +227,27 @@ export function SecurityConfigPanel() {
             const hasErr = validationErrors[item.key];
 
             return (
-              <tr key={item.key} className="hover:bg-[#fbf5ea]/70 transition">
+              <tr key={item.key} className="hover:bg-zinc-50 transition">
                 {/* Name & Key */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[#1e1501]">{meta.shortName}</span>
-                    <code className="text-xs font-mono text-[#786b53] border border-[#eedec5] bg-[#fffbf5] px-1.5 py-0.5 rounded">
+                    <span className="font-semibold text-zinc-950">{meta.shortName}</span>
+                    <code className="text-xs font-mono text-zinc-500 border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 rounded">
                       {item.key}
                     </code>
                   </div>
-                  <p className="mt-0.5 text-xs text-[#786b53] leading-relaxed max-w-lg">
+                  <p className="mt-0.5 text-xs text-zinc-500 leading-relaxed max-w-lg">
                     {meta.description}
                   </p>
                 </td>
 
                 {/* Safe Range */}
-                <td className="px-4 py-3 text-xs text-[#786b53] whitespace-nowrap tabular-nums">
+                <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap tabular-nums">
                   {item.min} – {item.max} {meta.unit}
                 </td>
 
                 {/* Default */}
-                <td className="px-4 py-3 text-xs text-[#786b53] whitespace-nowrap tabular-nums">
+                <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap tabular-nums">
                   {item.default} {meta.unit}
                 </td>
 
@@ -262,16 +262,16 @@ export function SecurityConfigPanel() {
                         value={isNaN(currentVal) ? '' : currentVal}
                         onChange={(e) => handleChange(item.key, e.target.value)}
                         disabled={saving}
-                        className={`w-full rounded-md border bg-[#fffbf5] px-2.5 py-1.5 text-right font-mono text-xs text-[#1e1501] focus:outline-none transition tabular-nums ${
+                        className={`w-full rounded-md border bg-zinc-50 px-2.5 py-1.5 text-right font-mono text-xs text-zinc-950 focus:outline-none transition tabular-nums ${
                           hasErr
                             ? 'border-red-500 focus:border-red-500'
                             : isChanged
-                            ? 'border-[#f8a712] bg-[#fbf5ea] text-[#1e1501] font-semibold'
-                            : 'border-[#eedec5] focus:border-[#f8a712] focus:ring-1 focus:ring-[#f8a712]'
+                            ? 'border-zinc-900 bg-zinc-100 text-zinc-950 font-semibold'
+                            : 'border-zinc-200 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900'
                         }`}
                       />
                     </div>
-                    <span className="text-xs text-[#786b53] w-10 text-left">
+                    <span className="text-xs text-zinc-500 w-10 text-left">
                       {meta.unit}
                     </span>
                   </div>
@@ -289,7 +289,7 @@ export function SecurityConfigPanel() {
                     onClick={() => handleResetToDefault(item)}
                     disabled={saving || currentVal === item.default}
                     title="Kembalikan ke baseline default pabrik"
-                    className="p-1 rounded-md text-[#786b53] hover:text-[#1e1501] hover:bg-[#fbf5ea] transition disabled:opacity-20 disabled:cursor-not-allowed"
+                    className="p-1 rounded-md text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 transition disabled:opacity-20 disabled:cursor-not-allowed"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                   </button>
@@ -305,13 +305,13 @@ export function SecurityConfigPanel() {
   return (
     <div className="space-y-4">
       {/* 1. Header Overview & Control */}
-      <div className="rounded-xl border border-[#eedec5] bg-white p-4 sm:p-5 shadow-xs">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <h2 className="text-base font-semibold tracking-tight text-[#1e1501]">
+            <h2 className="text-base font-semibold tracking-tight text-zinc-950">
               Konfigurasi Keamanan &amp; Pertahanan OTP
             </h2>
-            <p className="text-xs text-[#786b53]">
+            <p className="text-xs text-zinc-500">
               Parameter dinamis untuk mitigasi serangan brute force, pencurian token, dan perlindungan endpoint OTP ARM Exhaust.
             </p>
           </div>
@@ -321,14 +321,14 @@ export function SecurityConfigPanel() {
               type="button"
               onClick={handleResetAllToDefaults}
               disabled={saving}
-              className="rounded-md border border-[#eedec5] bg-[#fffbf5] px-3 py-1.5 text-xs font-medium text-[#786b53] hover:text-[#1e1501] hover:bg-[#fbf5ea] transition"
+              className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition"
             >
               Reset ke Default
             </button>
             <button
               type="button"
               onClick={fetchConfig}
-              className="rounded-md border border-[#eedec5] bg-[#fffbf5] p-1.5 text-[#786b53] hover:text-[#1e1501] hover:bg-[#fbf5ea] transition"
+              className="rounded-md border border-zinc-200 bg-zinc-50 p-1.5 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition"
               title="Muat ulang dari server"
             >
               <RotateCw className="h-3.5 w-3.5" />
@@ -341,7 +341,7 @@ export function SecurityConfigPanel() {
           <div
             className={`mt-3.5 rounded-md border px-3 py-2 text-xs flex items-center gap-2 ${
               status.type === 'success'
-                ? 'border-[#d6fa47] bg-[#d6fa47]/20 text-[#1e1501] font-medium'
+                ? 'border-zinc-900 bg-zinc-900 text-white font-medium'
                 : 'border-red-200 bg-red-50 text-red-700 font-medium'
             }`}
           >
@@ -352,9 +352,9 @@ export function SecurityConfigPanel() {
 
       <form onSubmit={handleSave} className="space-y-4">
         {/* 2. Group 1: OTP Parameters */}
-        <div className="overflow-hidden rounded-xl border border-[#eedec5] bg-white shadow-xs">
-          <div className="px-4 py-3 border-b border-[#eedec5] bg-[#fffbf5]">
-            <h3 className="text-xs font-semibold text-[#1e1501]">
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs">
+          <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
+            <h3 className="text-xs font-semibold text-zinc-950">
               1. Parameter Kebijakan Kode OTP
             </h3>
           </div>
@@ -362,9 +362,9 @@ export function SecurityConfigPanel() {
         </div>
 
         {/* 3. Group 2: Rate Limiting & Anti-Brute Force */}
-        <div className="overflow-hidden rounded-xl border border-[#eedec5] bg-white shadow-xs">
-          <div className="px-4 py-3 border-b border-[#eedec5] bg-[#fffbf5]">
-            <h3 className="text-xs font-semibold text-[#1e1501]">
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs">
+          <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
+            <h3 className="text-xs font-semibold text-zinc-950">
               2. Parameter Batas Akses IP (Rate Limiter)
             </h3>
           </div>
@@ -373,10 +373,10 @@ export function SecurityConfigPanel() {
 
         {/* 4. Floating Action Bar for Unsaved Changes */}
         {isDirty && (
-          <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-xl border border-[#eedec5] bg-white/95 px-5 py-3 text-xs shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150 max-w-xl mx-auto w-full">
+          <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white/95 px-5 py-3 text-xs shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150 max-w-xl mx-auto w-full">
             <div className="flex items-center gap-2">
-              <span className="text-[#1e1501]">
-                <strong className="text-[#f8a712] tabular-nums font-mono font-bold">{dirtyCount}</strong> parameter dimodifikasi.
+              <span className="text-zinc-950">
+                <strong className="text-zinc-950 tabular-nums font-mono font-bold">{dirtyCount}</strong> parameter dimodifikasi.
               </span>
             </div>
 
@@ -385,14 +385,14 @@ export function SecurityConfigPanel() {
                 type="button"
                 onClick={handleResetAllChanges}
                 disabled={saving}
-                className="rounded-md border border-[#eedec5] bg-[#fffbf5] px-3 py-1.5 text-xs text-[#786b53] hover:bg-[#fbf5ea] hover:text-[#1e1501] transition"
+                className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 transition"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={saving || hasErrors}
-                className="rounded-md bg-[#f8a712] hover:bg-[#e09207] px-4 py-1.5 text-xs font-bold text-[#1e1501] transition disabled:opacity-40 shadow-xs"
+                className="rounded-md bg-[#141416] hover:bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-white transition disabled:opacity-40 shadow-xs"
               >
                 {saving ? 'Menyimpan…' : 'Simpan Perubahan'}
               </button>

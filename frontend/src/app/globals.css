@@ -42,12 +42,14 @@ html {
   background: transparent;
   position: relative;
   width: 100%;
+  isolation: isolate;
 }
 .lbi-ring {
   pointer-events: none;
   position: absolute;
   inset: 0;
   overflow: visible;
+  z-index: 2;
 }
 .lbi-ring path {
   fill: none;
@@ -60,8 +62,9 @@ html {
   stroke: #FFFFFF;
   stroke-width: 1.5px;
 }
-.lbi[data-error="true"] .lbi-ring path {
-  stroke: #EF4444 !important;
+.lbi[data-error="true"] .lbi-ring path,
+.lbi[data-error="true"][data-focus="true"] .lbi-ring path {
+  stroke: #EF4444;
   stroke-width: 1.5px;
 }
 .lbi-gap {
@@ -89,6 +92,7 @@ html {
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
+  z-index: 3;
 }
 .lbi[data-up="true"] .lbi-label,
 .lbi:has(.lbi-field:-webkit-autofill) .lbi-label,
@@ -129,16 +133,17 @@ html {
   position: absolute;
   inset: 0;
   color-scheme: dark;
+  z-index: 1;
 }
-.lbi-field:-webkit-autofill,
-.lbi-field:-webkit-autofill:hover,
-.lbi-field:-webkit-autofill:focus,
-.lbi-field:-webkit-autofill:active,
-.lbi-field:autofill {
-  -webkit-box-shadow: 0 0 0 1000px #0F0F11 inset !important;
-  box-shadow: 0 0 0 1000px #0F0F11 inset !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  caret-color: #FFFFFF !important;
+.lbi .lbi-field:-webkit-autofill,
+.lbi .lbi-field:-webkit-autofill:hover,
+.lbi .lbi-field:-webkit-autofill:focus,
+.lbi .lbi-field:-webkit-autofill:active,
+.lbi .lbi-field:autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0F0F11 inset;
+  box-shadow: 0 0 0 1000px #0F0F11 inset;
+  -webkit-text-fill-color: #FFFFFF;
+  caret-color: #FFFFFF;
   color-scheme: dark;
   transition: background-color 5000s ease-in-out 0s;
 }
@@ -170,6 +175,7 @@ html {
   position: absolute;
   top: 50%;
   right: 10px;
+  z-index: 4;
 }
 .lbi-eye:hover {
   color: #FFFFFF;
@@ -194,10 +200,19 @@ html {
 }
 @media (prefers-reduced-motion: reduce) {
   .lbi-ring path, .lbi-gap, .lbi-label {
-    transition-duration: 0.16s;
+    transition-duration: 0.01ms;
   }
   .lbi[data-focus="true"] .lbi-label span, .lbi-field {
     animation: none;
+  }
+  .lbi-eye,
+  .lbi-eye:active,
+  .lbi-eye svg,
+  .lbi-eye svg:last-child,
+  .lbi-eye[data-show="true"] svg:first-child,
+  .lbi-eye[data-show="true"] svg:last-child {
+    transition: none;
+    transform: none;
   }
 }
 

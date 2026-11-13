@@ -127,8 +127,39 @@ export type AdminShellTab =
   | 'orders'
   | 'customers'
   | 'invites'
+  | 'hero'
+  | 'events'
   | 'tax'
   | 'policies'
   | 'security';
+
+export interface HeroSlide {
+  id: string;
+  category: string;
+  tag: string;
+  title: string;
+  strip_title: string;
+  href: string;
+  image_url: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CommunityEvent {
+  id: string;
+  category: string;
+  tag: string;
+  event_date: string;
+  title: string;
+  description: string;
+  image_url: string;
+  href?: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
 
 

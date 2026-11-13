@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { HeaderTabs, SiteFooter, SmoothScroll, AppChrome, NoticeProvider, DynamicIslandNotice } from '@/shared/components';
+import { HeaderTabs, SiteFooter, SmoothScroll, AppChrome, NoticeProvider, DynamicIslandNotice, ConfirmProvider } from '@/shared/components';
 
 export const metadata: Metadata = {
   title: 'ARM Exhaust',
@@ -20,15 +20,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-[#0A0A0B] text-white antialiased">
         <NoticeProvider>
-          <DynamicIslandNotice />
-          <SmoothScroll />
-          <AppChrome>
-            <HeaderTabs />
-          </AppChrome>
-          {children}
-          <AppChrome>
-            <SiteFooter />
-          </AppChrome>
+          <ConfirmProvider>
+            <DynamicIslandNotice />
+            <SmoothScroll />
+            <AppChrome>
+              <HeaderTabs />
+            </AppChrome>
+            {children}
+            <AppChrome>
+              <SiteFooter />
+            </AppChrome>
+          </ConfirmProvider>
         </NoticeProvider>
       </body>
     </html>

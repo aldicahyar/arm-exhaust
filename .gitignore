@@ -37,6 +37,7 @@ next-env.d.ts
 .superpowers/
 AGENTS.md
 frontend/AGENTS.md
+backend/public/uploads/
 
 # 1. Dokumentasi & Skrip Uji
 docs/
