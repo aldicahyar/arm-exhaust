@@ -904,26 +904,34 @@ export function EventManagementPanel() {
                     </button>
                   </div>
 
-                  {/* Actions */}
+                  {/* Actions (Monochrome Expanding Pill 800ms Gentle Luxury) */}
                   <div className="flex items-center gap-1.5">
+                    {/* Edit Button - Subtle Zinc Expansion */}
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(eventItem)}
-                      className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-2xs"
+                      className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-500 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:border-zinc-950 focus-visible:bg-zinc-100 focus-visible:text-zinc-950 focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
                       title="Edit event"
                       aria-label={`Edit event ${eventItem.title}`}
                     >
-                      <Pencil className="h-3.5 w-3.5" />
+                      <Pencil className="h-3.5 w-3.5 shrink-0" />
+                      <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[40px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[40px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
+                        Edit
+                      </span>
                     </button>
 
+                    {/* Delete Button - Dark Inversion Monochrome Expansion */}
                     <button
                       type="button"
                       onClick={() => void handleDelete(eventItem)}
-                      className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition shadow-2xs"
+                      className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-400 hover:border-zinc-900 hover:bg-zinc-950 hover:text-white focus-visible:border-zinc-900 focus-visible:bg-zinc-950 focus-visible:text-white focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
                       title="Hapus event"
                       aria-label={`Hapus event ${eventItem.title}`}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                      <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[45px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[45px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
+                        Hapus
+                      </span>
                     </button>
                   </div>
                 </div>
