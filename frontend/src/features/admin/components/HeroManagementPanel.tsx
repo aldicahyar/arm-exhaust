@@ -218,31 +218,31 @@ function HeroSortableRow({
       {/* Minimalist Action Rail (Switch + Text Buttons, Zero Icon Soup) */}
       <div className="flex items-center justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
         <div className="flex items-center gap-1.5">
-          {/* Edit Button - Subtle Zinc Expansion */}
+          {/* Edit Button - Subtle Zinc Expansion (Gentle Luxury 800ms) */}
           <button
             type="button"
             onClick={() => onEdit(slide)}
             aria-label={`Edit slide ${slide.title}`}
             title="Edit slide"
-            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-500 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:border-zinc-950 focus-visible:bg-zinc-100 focus-visible:text-zinc-950 focus-visible:outline-none transition-all duration-200 ease-out"
+            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-500 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:border-zinc-950 focus-visible:bg-zinc-100 focus-visible:text-zinc-950 focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
           >
             <Pencil className="h-3.5 w-3.5 shrink-0" />
-            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[40px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[40px] group-focus-visible/btn:opacity-100 transition-all duration-200 ease-out">
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[40px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[40px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
               Edit
             </span>
           </button>
 
-          {/* Delete Button - Dark Inversion Monochrome Expansion */}
+          {/* Delete Button - Dark Inversion Monochrome Expansion (Gentle Luxury 800ms) */}
           <button
             type="button"
             onClick={() => onDelete(slide)}
             disabled={isDeleting}
             aria-label={`Hapus slide ${slide.title}`}
             title="Hapus slide"
-            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-400 hover:border-zinc-900 hover:bg-zinc-950 hover:text-white focus-visible:border-zinc-900 focus-visible:bg-zinc-950 focus-visible:text-white focus-visible:outline-none transition-all duration-200 ease-out disabled:opacity-40"
+            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-400 hover:border-zinc-900 hover:bg-zinc-950 hover:text-white focus-visible:border-zinc-900 focus-visible:bg-zinc-950 focus-visible:text-white focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none disabled:opacity-40"
           >
             <Trash2 className="h-3.5 w-3.5 shrink-0" />
-            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[45px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[45px] group-focus-visible/btn:opacity-100 transition-all duration-200 ease-out">
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[45px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[45px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
               Hapus
             </span>
           </button>
@@ -1300,10 +1300,10 @@ export function HeroManagementPanel() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left: Sortable List (Dynamic 7 cols vs 12 cols) */}
+          {/* Left: Sortable List (Dynamic 7 cols vs 12 cols, Gentle Luxury 800ms) */}
           <motion.div
             layout
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className={cn(isPreviewVisible ? 'lg:col-span-7' : 'lg:col-span-12')}
           >
             <Reorder.Group
@@ -1334,14 +1334,14 @@ export function HeroManagementPanel() {
             </Reorder.Group>
           </motion.div>
 
-          {/* Right: Eye-Catching Live Storefront Mirror (Collapsible with AnimatePresence) */}
+          {/* Right: Eye-Catching Live Storefront Mirror (Collapsible with AnimatePresence, Gentle Luxury 800ms) */}
           <AnimatePresence>
             {isPreviewVisible && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
+                initial={{ opacity: 0, x: 24, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 24, scale: 0.98 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="lg:col-span-5 lg:sticky lg:top-20"
               >
                 <HeroLivePreview
