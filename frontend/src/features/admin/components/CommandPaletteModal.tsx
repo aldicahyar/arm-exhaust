@@ -13,6 +13,8 @@ import {
   UserPlus,
   Sliders,
   Calendar,
+  Layers,
+  ShoppingBag,
   ExternalLink,
   LogOut,
   CornerDownLeft,
@@ -140,6 +142,30 @@ export function CommandPaletteModal({
         keywords: ['hero', 'carousel', 'banner', 'slide', 'promo', 'konten', 'beranda', 'gambar'],
         action: () => {
           onSelectTab('hero');
+          onClose();
+        },
+      },
+      {
+        id: 'nav-value-props',
+        label: 'Pilar Keunggulan',
+        description: 'Kelola pilar keunggulan Why ARM Exhaust, urutan, material, dan garansi',
+        category: 'Navigasi Menu',
+        icon: Layers,
+        keywords: ['pilar', 'keunggulan', 'value', 'props', 'why', 'arm', 'material', 'garansi', 'beranda'],
+        action: () => {
+          onSelectTab('value-props');
+          onClose();
+        },
+      },
+      {
+        id: 'nav-new-arrivals',
+        label: 'Produk Beranda',
+        description: 'Pilih dan atur showcase 4 produk rilisan terbaru beranda dari katalog resmi',
+        category: 'Navigasi Menu',
+        icon: ShoppingBag,
+        keywords: ['produk', 'beranda', 'new', 'arrival', 'katalog', 'showcase', 'rilisan', 'terbaru'],
+        action: () => {
+          onSelectTab('new-arrivals');
           onClose();
         },
       },

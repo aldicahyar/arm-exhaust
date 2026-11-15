@@ -9,8 +9,12 @@ import {
   X,
   Image as ImageIcon,
   RefreshCw,
+  Pencil,
+  Trash2,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
-import { useNotice, useConfirm } from '@/shared/components';
+import { useNotice, useDoubleSafetyAction, ACTION_PRESETS } from '@/shared/components';
 import { cn } from '@/shared/utils/cn';
 import type { HeroSlide } from '../types';
 import {
@@ -67,6 +71,8 @@ interface HeroSortableRowProps {
   readonly isFocused: boolean;
   readonly isDeleting: boolean;
   readonly reordering: boolean;
+  readonly isSelected: boolean;
+  readonly onSelect: (id: string) => void;
   readonly onFocusSlide: (id: string) => void;
   readonly onDragEnd: () => void;
   readonly onKeyboardMove: (index: number, direction: 'up' | 'down') => void;
@@ -82,6 +88,8 @@ function HeroSortableRow({
   isFocused,
   isDeleting,
   reordering,
+  isSelected,
+  onSelect,
   onFocusSlide,
   onDragEnd,
   onKeyboardMove,
@@ -103,9 +111,9 @@ function HeroSortableRow({
 
   const containerClass = cn(
     'group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border p-3 transition-colors duration-150 select-none',
-    isFocused
-      ? 'border-zinc-900 bg-white shadow-xs'
-      : 'border-zinc-200 bg-white hover:border-zinc-300',
+    isSelected && 'ring-1 ring-zinc-900 bg-zinc-50/70 border-zinc-900',
+    isFocused && !isSelected && 'border-zinc-900 bg-white shadow-xs',
+    !isFocused && !isSelected && 'border-zinc-200 bg-white hover:border-zinc-300',
     !slide.is_active && 'bg-zinc-50 opacity-65'
   );
 
@@ -124,8 +132,19 @@ function HeroSortableRow({
       onMouseEnter={() => onFocusSlide(slide.id)}
       className={containerClass}
     >
-      {/* Left + Center: Grip, Index, Thumbnail & Typography */}
+      {/* Left + Center: Checkbox, Grip, Index, Thumbnail & Typography */}
       <div className="flex items-center gap-3 min-w-0 flex-1">
+        {/* Row Selection Checkbox */}
+        <div className="flex items-center pl-0.5 shrink-0">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onSelect(slide.id)}
+            className="h-4 w-4 rounded border-zinc-300 text-zinc-950 accent-zinc-950 focus:ring-zinc-950/20 cursor-pointer"
+            aria-label={`Pilih slide ${slide.title}`}
+          />
+        </div>
+
         {/* Drag Grip + Order Index */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
@@ -198,23 +217,34 @@ function HeroSortableRow({
 
       {/* Minimalist Action Rail (Switch + Text Buttons, Zero Icon Soup) */}
       <div className="flex items-center justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Edit Button - Subtle Zinc Expansion (Gentle Luxury 800ms) */}
           <button
             type="button"
             onClick={() => onEdit(slide)}
-            className="rounded-md px-2 py-1 text-[11px] font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 transition-colors"
             aria-label={`Edit slide ${slide.title}`}
+            title="Edit slide"
+            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-500 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:border-zinc-950 focus-visible:bg-zinc-100 focus-visible:text-zinc-950 focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
           >
-            Edit
+            <Pencil className="h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[40px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[40px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
+              Edit
+            </span>
           </button>
+
+          {/* Delete Button - Dark Inversion Monochrome Expansion (Gentle Luxury 800ms) */}
           <button
             type="button"
             onClick={() => onDelete(slide)}
             disabled={isDeleting}
-            className="rounded-md px-2 py-1 text-[11px] font-medium text-zinc-500 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-40"
             aria-label={`Hapus slide ${slide.title}`}
+            title="Hapus slide"
+            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-400 hover:border-zinc-900 hover:bg-zinc-950 hover:text-white focus-visible:border-zinc-900 focus-visible:bg-zinc-950 focus-visible:text-white focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none disabled:opacity-40"
           >
-            Hapus
+            <Trash2 className="h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[45px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[45px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
+              Hapus
+            </span>
           </button>
         </div>
 
@@ -655,7 +685,6 @@ function HeroSlideModal({
 
 export function HeroManagementPanel() {
   const { notify } = useNotice();
-  const confirm = useConfirm();
 
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [focusedSlideId, setFocusedSlideId] = useState<string | null>(null);
@@ -668,20 +697,58 @@ export function HeroManagementPanel() {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<boolean>(false);
+  const [isPreviewVisible, setIsPreviewVisible] = useState<boolean>(true);
+
+  // Initialize from localStorage after mounting to avoid Next.js SSR hydration mismatch
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('arm_admin_hero_preview_visible');
+      if (saved !== null) {
+        setIsPreviewVisible(saved === 'true');
+      }
+    } catch {
+      // Safe fallback for restricted storage environments
+    }
+  }, []);
+
+  const handleTogglePreview = () => {
+    setIsPreviewVisible((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('arm_admin_hero_preview_visible', String(next));
+      } catch {
+        // Safe fallback
+      }
+      return next;
+    });
+  };
+
+  const [selectedSlideIds, setSelectedSlideIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState<boolean>(false);
+
+  const handleSelectSlide = (id: string) => {
+    setSelectedSlideIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSlideIds.size === slides.length) {
+      setSelectedSlideIds(new Set());
+    } else {
+      setSelectedSlideIds(new Set(slides.map((s) => s.id)));
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastCommittedRef = useRef<HeroSlide[]>([]);
   const latestOrderRef = useRef<HeroSlide[]>([]);
-  const pendingDeletesRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
-
-  // Cleanup pending delete timers on unmount
-  useEffect(() => {
-    const pending = pendingDeletesRef.current;
-    return () => {
-      pending.forEach((timer) => clearTimeout(timer));
-      pending.clear();
-    };
-  }, []);
 
   const fetchSlides = useCallback(async () => {
     setLoading(true);
@@ -1023,91 +1090,124 @@ export function HeroManagementPanel() {
     void persistOrder(swapped, fallback);
   };
 
-  const handleDelete = async (slide: HeroSlide) => {
-    const confirmed = await confirm({
-      title: 'Hapus Slide Hero?',
-      description: 'Slide ini akan dihapus dari banner beranda storefront.',
-      itemPreview: slide.title,
-      confirmText: 'Hapus Slide',
-      variant: 'danger',
-    });
-    if (!confirmed) return;
-
-    // 1. Optimistic removal from state
-    const previousSlides = slides;
-    const removedIndex = slides.findIndex((s) => s.id === slide.id);
-    setSlides((prev) => {
-      const next = prev.filter((s) => s.id !== slide.id);
-      lastCommittedRef.current = next;
-      latestOrderRef.current = next;
-      if (focusedSlideId === slide.id) {
-        setFocusedSlideId(next[0]?.id ?? null);
+  const { executeAction: executeDeleteSlide } = useDoubleSafetyAction<HeroSlide>({
+    preset: ACTION_PRESETS.HERO_SLIDE_DELETE,
+    noticeSource: HERO_NOTICE_SOURCE,
+    getItemPreview: (slide) => slide.title,
+    onOptimisticExecute: (slide) => {
+      setSlides((prev) => {
+        const next = prev.filter((s) => s.id !== slide.id);
+        lastCommittedRef.current = next;
+        latestOrderRef.current = next;
+        if (focusedSlideId === slide.id) {
+          setFocusedSlideId(next[0]?.id ?? null);
+        }
+        return next;
+      });
+    },
+    onRestore: (slide, originalIndex) => {
+      setSlides((prev) => {
+        if (prev.some((s) => s.id === slide.id)) return prev;
+        const next = [...prev];
+        const insertIdx =
+          typeof originalIndex === 'number' && originalIndex >= 0 && originalIndex <= next.length
+            ? originalIndex
+            : next.length;
+        next.splice(insertIdx, 0, slide);
+        lastCommittedRef.current = next;
+        latestOrderRef.current = next;
+        return next;
+      });
+    },
+    onCommit: async (slide) => {
+      const res = await fetch(`/api/admin/hero-slides/${slide.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        throw new Error('Gagal menghapus slide dari server.');
       }
-      return next;
-    });
+    },
+  });
 
-    // 2. Schedule commit with 6-second delay
+  const handleDelete = (slide: HeroSlide) => {
+    const index = slides.findIndex((s) => s.id === slide.id);
+    void executeDeleteSlide(slide, index);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSlideIds.size === 0 || isBulkDeleting) return;
+
+    const count = selectedSlideIds.size;
+    const slidesToDelete = slides.filter((s) => selectedSlideIds.has(s.id));
+    const activeSlides = slides.filter((s) => s.is_active);
+    const deletingActiveCount = slidesToDelete.filter((s) => s.is_active).length;
+    const willEmptyStorefront = activeSlides.length > 0 && deletingActiveCount === activeSlides.length;
+
+    if (willEmptyStorefront) {
+      notify?.info(
+        'Perhatian Storefront',
+        'Tindakan ini menghapus seluruh slide aktif. Pastikan menambahkan slide baru agar beranda tidak kosong.',
+        { source: HERO_NOTICE_SOURCE, action: 'bulk-delete-guard' }
+      );
+    }
+
+    setIsBulkDeleting(true);
+    const previousSlides = [...slides];
+
+    // Optimistically remove
+    setSlides((prev) => prev.filter((s) => !selectedSlideIds.has(s.id)));
+    setSelectedSlideIds(new Set());
+
     let isUndone = false;
     const timeoutId = setTimeout(async () => {
-      pendingDeletesRef.current.delete(slide.id);
       if (isUndone) return;
-
       try {
-        const res = await fetch(`/api/admin/hero-slides/${slide.id}`, {
-          method: 'DELETE',
-        });
-        if (!res.ok) {
-          throw new Error('Gagal menghapus slide dari server.');
-        }
+        await Promise.all(
+          slidesToDelete.map(async (slide) => {
+            const res = await fetch(`/api/admin/hero-slides/${slide.id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error(`Gagal menghapus slide "${slide.title}".`);
+          })
+        );
+        notify?.success(
+          'Slide Dihapus Massal',
+          `${count} slide berhasil dihapus secara permanen.`,
+          { source: HERO_NOTICE_SOURCE, action: 'bulk-delete' }
+        );
       } catch (err: unknown) {
-        // Rollback on server error
         setSlides(previousSlides);
         lastCommittedRef.current = previousSlides;
         latestOrderRef.current = previousSlides;
-        const msg = err instanceof Error ? err.message : 'Gagal menghapus slide.';
-        notify?.error('Gagal Menghapus', `${msg} Data slide dipulihkan.`, {
-          source: HERO_NOTICE_SOURCE,
-          action: 'delete',
-          detail: msg,
-        });
+        const msg = err instanceof Error ? err.message : 'Gagal menghapus slide massal di server.';
+        notify?.error('Gagal Hapus Massal', msg, { source: HERO_NOTICE_SOURCE, action: 'bulk-delete' });
+      } finally {
+        setIsBulkDeleting(false);
       }
-    }, 6000);
+    }, 5000);
 
-    pendingDeletesRef.current.set(slide.id, timeoutId);
-
-    // 3. Show DynamicIslandNotice with Undo button
-    notify?.info('Slide Dihapus', `Slide "${slide.title}" disembunyikan.`, {
-      duration: 6000,
-      source: HERO_NOTICE_SOURCE,
-      action: 'delete',
-      detail: `ID: ${slide.id}`,
-      actionButton: {
-        label: 'Urungkan',
-        onClick: () => {
-          isUndone = true;
-          const timer = pendingDeletesRef.current.get(slide.id);
-          if (timer) {
-            clearTimeout(timer);
-            pendingDeletesRef.current.delete(slide.id);
-          }
-          setSlides((prev) => {
-            const exists = prev.some((s) => s.id === slide.id);
-            if (exists) return prev;
-            const next = [...prev];
-            const insertIdx =
-              removedIndex >= 0 && removedIndex <= next.length ? removedIndex : next.length;
-            next.splice(insertIdx, 0, slide);
-            lastCommittedRef.current = next;
-            latestOrderRef.current = next;
-            return next;
-          });
-          notify?.success('Pemulihan Berhasil', `Slide "${slide.title}" telah dipulihkan.`, {
-            source: HERO_NOTICE_SOURCE,
-            action: 'undo',
-          });
+    notify?.info(
+      `${count} Slide Dihapus`,
+      `${count} slide telah dihapus dari daftar hero.`,
+      {
+        duration: 5000,
+        source: HERO_NOTICE_SOURCE,
+        action: 'bulk-delete',
+        actionButton: {
+          label: 'Urungkan',
+          onClick: () => {
+            isUndone = true;
+            clearTimeout(timeoutId);
+            setSlides(previousSlides);
+            lastCommittedRef.current = previousSlides;
+            latestOrderRef.current = previousSlides;
+            setIsBulkDeleting(false);
+            notify?.success('Pemulihan Berhasil', `${count} slide telah dikembalikan ke daftar.`, {
+              source: HERO_NOTICE_SOURCE,
+              action: 'undo-bulk-delete',
+            });
+          },
         },
-      },
-    });
+      }
+    );
   };
 
   const activeCount = slides.filter((s) => s.is_active).length;
@@ -1118,6 +1218,22 @@ export function HeroManagementPanel() {
       {/* Minimalist Toolbar (No Duplicate Title Card) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 text-xs text-zinc-500">
+          {/* Select All Checkbox */}
+          {slides.length > 0 && (
+            <label className="flex items-center gap-2 cursor-pointer select-none py-1">
+              <input
+                type="checkbox"
+                checked={selectedSlideIds.size === slides.length && slides.length > 0}
+                onChange={handleSelectAll}
+                className="h-4 w-4 rounded border-zinc-300 text-zinc-950 accent-zinc-950 focus:ring-zinc-950/20 cursor-pointer"
+                aria-label="Pilih semua slide"
+              />
+              <span className="text-[11px] font-medium text-zinc-700">Pilih Semua</span>
+            </label>
+          )}
+
+          {slides.length > 0 && <span className="hidden sm:inline text-zinc-300">·</span>}
+
           <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-zinc-950">
             <span className="h-1.5 w-1.5 rounded-full bg-zinc-950" aria-hidden="true" />
             {`${activeCount} Tayang / ${slides.length} Slide`}
@@ -1128,14 +1244,37 @@ export function HeroManagementPanel() {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#141416] hover:bg-zinc-800 px-3.5 py-2 text-xs font-semibold text-white transition shadow-xs active:scale-[0.98]"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>Tambah Slide</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Collapsible Preview Toggle */}
+          <button
+            type="button"
+            onClick={handleTogglePreview}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-100 hover:border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 transition shadow-xs active:scale-[0.98]"
+            title={isPreviewVisible ? 'Sembunyikan Pratinjau Storefront' : 'Tampilkan Pratinjau Storefront'}
+            aria-label={isPreviewVisible ? 'Sembunyikan Pratinjau Storefront' : 'Tampilkan Pratinjau Storefront'}
+          >
+            {isPreviewVisible ? (
+              <>
+                <PanelRightClose className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Sembunyikan Pratinjau</span>
+              </>
+            ) : (
+              <>
+                <PanelRightOpen className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Tampilkan Pratinjau</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#141416] hover:bg-zinc-800 px-3.5 py-2 text-xs font-semibold text-white transition shadow-xs active:scale-[0.98]"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Tambah Slide</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -1161,8 +1300,12 @@ export function HeroManagementPanel() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left: Sortable List */}
-          <div className="lg:col-span-7">
+          {/* Left: Sortable List (Dynamic 7 cols vs 12 cols, Gentle Luxury 800ms) */}
+          <motion.div
+            layout
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className={cn(isPreviewVisible ? 'lg:col-span-7' : 'lg:col-span-12')}
+          >
             <Reorder.Group
               axis="y"
               values={slides}
@@ -1178,6 +1321,8 @@ export function HeroManagementPanel() {
                   isFocused={focusedSlide?.id === slide.id}
                   isDeleting={deletingId === slide.id}
                   reordering={reordering}
+                  isSelected={selectedSlideIds.has(slide.id)}
+                  onSelect={handleSelectSlide}
                   onFocusSlide={setFocusedSlideId}
                   onDragEnd={handleDragEnd}
                   onKeyboardMove={handleKeyboardMove}
@@ -1187,16 +1332,26 @@ export function HeroManagementPanel() {
                 />
               ))}
             </Reorder.Group>
-          </div>
+          </motion.div>
 
-          {/* Right: Eye-Catching Live Storefront Mirror */}
-          <div className="lg:col-span-5 lg:sticky lg:top-20">
-            <HeroLivePreview
-              slides={slides}
-              focusedSlide={focusedSlide}
-              onSelectSlide={setFocusedSlideId}
-            />
-          </div>
+          {/* Right: Eye-Catching Live Storefront Mirror (Collapsible with AnimatePresence, Gentle Luxury 800ms) */}
+          <AnimatePresence>
+            {isPreviewVisible && (
+              <motion.div
+                initial={{ opacity: 0, x: 24, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 24, scale: 0.98 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="lg:col-span-5 lg:sticky lg:top-20"
+              >
+                <HeroLivePreview
+                  slides={slides}
+                  focusedSlide={focusedSlide}
+                  onSelectSlide={setFocusedSlideId}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
@@ -1216,6 +1371,43 @@ export function HeroManagementPanel() {
         onDrop={handleDrop}
         onFileChange={handleFileChange}
       />
+      {/* Floating Action Bar (Monochrome Dock for Multi-Select Bulk Delete) */}
+      <AnimatePresence>
+        {selectedSlideIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3.5 rounded-full border border-zinc-800 bg-[#141416] px-5 py-2.5 text-white shadow-2xl backdrop-blur-md"
+          >
+            <div className="flex items-center gap-2 pr-3 border-r border-zinc-800 text-xs font-medium">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-zinc-950 tabular-nums">
+                {selectedSlideIds.size}
+              </span>
+              <span>Slide Terpilih</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedSlideIds(new Set())}
+              className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              Batalkan
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleBulkDelete()}
+              disabled={isBulkDeleting}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1 text-xs font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors shadow-xs active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Hapus ({selectedSlideIds.size})</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

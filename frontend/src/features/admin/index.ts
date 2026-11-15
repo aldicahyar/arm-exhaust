@@ -15,6 +15,8 @@ export * from './components/SidebarNotification';
 export * from './components/OrdersTable';
 export * from './components/TaxConfigPanel';
 export * from './components/HeroManagementPanel';
+export * from './components/ValuePropsManagementPanel';
+export * from './components/NewArrivalManagementPanel';
 export * from './components/EventManagementPanel';
 export * from './components/AdminModalSubmit';
 

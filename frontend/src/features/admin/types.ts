@@ -128,6 +128,8 @@ export type AdminShellTab =
   | 'customers'
   | 'invites'
   | 'hero'
+  | 'value-props'
+  | 'new-arrivals'
   | 'events'
   | 'tax'
   | 'policies'
@@ -161,5 +163,46 @@ export interface CommunityEvent {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface HomeValuePropItem {
+  id: string;
+  step_number: string;
+  title: string;
+  description: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface HomeNewArrivalItem {
+  id: string;
+  product_id: string;
+  badge_text: string;
+  name: string;
+  category_label: string;
+  inlet?: string | null;
+  material?: string | null;
+  price_display: string;
+  image_url: string;
+  href: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface HomeSectionHeader {
+  tag?: string;
+  title?: string;
+  linkLabel?: string;
+  linkHref?: string;
+}
+
+export interface HomeHeadersData {
+  section2: HomeSectionHeader;
+  section3: HomeSectionHeader;
+}
+
 
 
