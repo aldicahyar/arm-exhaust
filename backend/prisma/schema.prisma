@@ -201,3 +201,40 @@ model CommunityEvent {
   @@map("t_mtr_community_events")
   @@schema("master")
 }
+
+model HomeValueProp {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  step_number String   @map("step_number") @db.VarChar(10)
+  title       String   @db.VarChar(100)
+  description String   @db.Text
+  sort_order  Int      @default(0) @map("sort_order")
+  is_active   Boolean  @default(true) @map("is_active")
+  created_at  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updated_at  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([is_active, sort_order])
+  @@map("t_mtr_home_value_props")
+  @@schema("master")
+}
+
+model HomeNewArrival {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_id     String   @map("product_id") @db.VarChar(50)
+  badge_text     String?  @map("badge_text") @db.VarChar(50)
+  name           String   @db.VarChar(100)
+  category_label String   @map("category_label") @db.VarChar(50)
+  inlet          String?  @db.VarChar(30)
+  material       String?  @db.VarChar(50)
+  price_display  String   @map("price_display") @db.VarChar(50)
+  image_url      String   @map("image_url") @db.VarChar(255)
+  href           String   @db.VarChar(255)
+  sort_order     Int      @default(0) @map("sort_order")
+  is_active      Boolean  @default(true) @map("is_active")
+  created_at     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updated_at     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([is_active, sort_order])
+  @@map("t_mtr_home_new_arrivals")
+  @@schema("master")
+}
+
