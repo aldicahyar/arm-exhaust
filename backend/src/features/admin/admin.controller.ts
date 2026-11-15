@@ -35,6 +35,15 @@ import {
   CreateCommunityEventDto,
   UpdateCommunityEventDto,
 } from './dto/community-event.dto';
+import {
+  CreateHomeValuePropDto,
+  UpdateHomeValuePropDto,
+} from './dto/home-value-prop.dto';
+import {
+  CreateHomeNewArrivalDto,
+  UpdateHomeNewArrivalDto,
+} from './dto/home-new-arrival.dto';
+import { UpdateHomeHeadersDto } from './dto/home-header.dto';
 
 const CONFIG_LABELS: Record<string, string> = {
   'otp.ttl_minutes': 'Masa Berlaku OTP (Menit)',
@@ -314,5 +323,116 @@ export class AdminController {
   @Roles('admin', 'superadmin')
   async deleteCommunityEvent(@Param('id') id: string) {
     return this.contentManagementService.deleteCommunityEvent(id);
+  }
+
+  // ==========================================
+  // Homepage Section 2: Value Props Endpoints
+  // ==========================================
+  @Get('home/value-props')
+  @Roles('admin', 'superadmin')
+  async getValueProps() {
+    return this.contentManagementService.getAllValueProps();
+  }
+
+  @Post('home/value-props')
+  @Roles('admin', 'superadmin')
+  @HttpCode(HttpStatus.CREATED)
+  async createValueProp(@Body() dto: CreateHomeValuePropDto) {
+    return this.contentManagementService.createValueProp(dto);
+  }
+
+  @Patch('home/value-props/reorder')
+  @Roles('admin', 'superadmin')
+  async reorderValueProps(
+    @Body() body: ReorderContentDto | { orderedIds: string[] } | string[],
+  ) {
+    const ids = Array.isArray(body)
+      ? body
+      : (body as any)?.orderedIds ?? (body as any)?.ordered_ids;
+    return this.contentManagementService.reorderValueProps(ids);
+  }
+
+  @Put('home/value-props/:id')
+  @Roles('admin', 'superadmin')
+  async updateValueProp(
+    @Param('id') id: string,
+    @Body() dto: UpdateHomeValuePropDto,
+  ) {
+    return this.contentManagementService.updateValueProp(id, dto);
+  }
+
+  @Patch('home/value-props/:id/toggle')
+  @Roles('admin', 'superadmin')
+  async toggleValuePropStatus(@Param('id') id: string) {
+    return this.contentManagementService.toggleValuePropStatus(id);
+  }
+
+  @Delete('home/value-props/:id')
+  @Roles('admin', 'superadmin')
+  async deleteValueProp(@Param('id') id: string) {
+    return this.contentManagementService.deleteValueProp(id);
+  }
+
+  // ==========================================
+  // Homepage Section 3: New Arrivals Endpoints
+  // ==========================================
+  @Get('home/new-arrivals')
+  @Roles('admin', 'superadmin')
+  async getNewArrivals() {
+    return this.contentManagementService.getAllNewArrivals();
+  }
+
+  @Post('home/new-arrivals')
+  @Roles('admin', 'superadmin')
+  @HttpCode(HttpStatus.CREATED)
+  async createNewArrival(@Body() dto: CreateHomeNewArrivalDto) {
+    return this.contentManagementService.createNewArrival(dto);
+  }
+
+  @Patch('home/new-arrivals/reorder')
+  @Roles('admin', 'superadmin')
+  async reorderNewArrivals(
+    @Body() body: ReorderContentDto | { orderedIds: string[] } | string[],
+  ) {
+    const ids = Array.isArray(body)
+      ? body
+      : (body as any)?.orderedIds ?? (body as any)?.ordered_ids;
+    return this.contentManagementService.reorderNewArrivals(ids);
+  }
+
+  @Put('home/new-arrivals/:id')
+  @Roles('admin', 'superadmin')
+  async updateNewArrival(
+    @Param('id') id: string,
+    @Body() dto: UpdateHomeNewArrivalDto,
+  ) {
+    return this.contentManagementService.updateNewArrival(id, dto);
+  }
+
+  @Patch('home/new-arrivals/:id/toggle')
+  @Roles('admin', 'superadmin')
+  async toggleNewArrivalStatus(@Param('id') id: string) {
+    return this.contentManagementService.toggleNewArrivalStatus(id);
+  }
+
+  @Delete('home/new-arrivals/:id')
+  @Roles('admin', 'superadmin')
+  async deleteNewArrival(@Param('id') id: string) {
+    return this.contentManagementService.deleteNewArrival(id);
+  }
+
+  // ==========================================
+  // Homepage Headers (Section 2 & 3)
+  // ==========================================
+  @Get('home/headers')
+  @Roles('admin', 'superadmin')
+  async getHomeHeaders() {
+    return this.contentManagementService.getHomeHeaders();
+  }
+
+  @Put('home/headers')
+  @Roles('admin', 'superadmin')
+  async updateHomeHeaders(@Body() dto: UpdateHomeHeadersDto) {
+    return this.contentManagementService.updateHomeHeaders(dto);
   }
 }

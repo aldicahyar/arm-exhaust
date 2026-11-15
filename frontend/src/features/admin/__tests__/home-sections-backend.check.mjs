@@ -49,4 +49,15 @@ assert(serviceContent.includes('validateNewArrivalActiveCap'), 'New arrival must
 
 console.log('✅ Task 2 service assertions passed');
 
+const adminCtrlPath = 'backend/src/features/admin/admin.controller.ts';
+const publicCtrlPath = 'backend/src/features/admin/public-content.controller.ts';
+const adminContent = fs.readFileSync(adminCtrlPath, 'utf-8');
+const publicContent = fs.readFileSync(publicCtrlPath, 'utf-8');
+
+assert(publicContent.includes('home-content'), 'PublicContentController must have home-content endpoint');
+assert(adminContent.includes('home/value-props'), 'AdminController must have home/value-props endpoints');
+assert(adminContent.includes('home/new-arrivals'), 'AdminController must have home/new-arrivals endpoints');
+assert(adminContent.includes('home/headers'), 'AdminController must have home/headers endpoints');
+console.log('✅ Task 3 controller assertions passed');
+
 
