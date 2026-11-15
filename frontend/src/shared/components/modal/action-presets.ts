@@ -31,6 +31,24 @@ export const ACTION_PRESETS = {
     successNoticeTitle: 'Event Dihapus',
     undoNoticeTitle: 'Event Dipulihkan',
   },
+  VALUE_PROP_DELETE: {
+    title: 'Hapus Pilar Keunggulan?',
+    description: 'Pilar keunggulan akan dihapus dari seksi Why ARM Exhaust di beranda.',
+    confirmText: 'Hapus Pilar',
+    variant: 'danger',
+    mode: 'confirm_and_undo',
+    successNoticeTitle: 'Pilar Dihapus',
+    undoNoticeTitle: 'Pilar Dipulihkan',
+  },
+  NEW_ARRIVAL_DELETE: {
+    title: 'Hapus Produk Beranda?',
+    description: 'Produk akan dihapus dari showcase New Arrival di beranda.',
+    confirmText: 'Hapus Produk',
+    variant: 'danger',
+    mode: 'confirm_and_undo',
+    successNoticeTitle: 'Produk Dihapus',
+    undoNoticeTitle: 'Produk Dipulihkan',
+  },
 
   // --- Kategori REVOKE ---
   VIP_INVITE_REVOKE: {

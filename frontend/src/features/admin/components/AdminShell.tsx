@@ -52,6 +52,8 @@ import { CommandPaletteModal } from './CommandPaletteModal';
 import { OrdersTable } from './OrdersTable';
 import { TaxConfigPanel } from './TaxConfigPanel';
 import { HeroManagementPanel } from './HeroManagementPanel';
+import { ValuePropsManagementPanel } from './ValuePropsManagementPanel';
+import { NewArrivalManagementPanel } from './NewArrivalManagementPanel';
 import { EventManagementPanel } from './EventManagementPanel';
 import type { AdminShellTab } from '../types';
 
@@ -62,6 +64,8 @@ const TAB_INFERENCE_RULES: readonly {
   readonly keywords: readonly string[];
 }[] = [
   { tab: 'hero', keywords: ['hero', 'slide', 'carousel', 'banner'] },
+  { tab: 'value-props', keywords: ['value-props', 'value-prop', 'pilar', 'keunggulan', 'why arm'] },
+  { tab: 'new-arrivals', keywords: ['new-arrivals', 'new-arrival', 'produk beranda', 'arrival', 'katalog beranda'] },
   { tab: 'events', keywords: ['event', 'komunitas', 'community'] },
   { tab: 'security', keywords: ['security', 'keamanan', 'otp', 'rbac', 'brute'] },
   { tab: 'invites', keywords: ['invite', 'undangan', 'vip', 'token'] },
@@ -135,7 +139,10 @@ export function AdminShell({ user }: Readonly<AdminShellProps>) {
   const [open, setOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminShellTab>('orders');
   const [isContentMenuOpen, setIsContentMenuOpen] = useState<boolean>(
-    activeTab === 'hero' || activeTab === 'events'
+    activeTab === 'hero' ||
+      activeTab === 'value-props' ||
+      activeTab === 'new-arrivals' ||
+      activeTab === 'events'
   );
   const [isConfigMenuOpen, setIsConfigMenuOpen] = useState<boolean>(
     activeTab === 'tax' || activeTab === 'policies' || activeTab === 'security'
@@ -162,7 +169,12 @@ export function AdminShell({ user }: Readonly<AdminShellProps>) {
 
   // Auto-expand menus when their child tabs are active
   useEffect(() => {
-    if (activeTab === 'hero' || activeTab === 'events') {
+    if (
+      activeTab === 'hero' ||
+      activeTab === 'value-props' ||
+      activeTab === 'new-arrivals' ||
+      activeTab === 'events'
+    ) {
       setIsContentMenuOpen(true);
     }
   }, [activeTab]);
@@ -225,6 +237,16 @@ export function AdminShell({ user }: Readonly<AdminShellProps>) {
     hero: {
       title: 'Manajemen Hero Carousel',
       subtitle: 'Kelola banner visual utama storefront, urutan slide, headline, CTA, dan status tayang.',
+      category: 'Konten Web',
+    },
+    'value-props': {
+      title: 'Manajemen Pilar Keunggulan',
+      subtitle: 'Kelola pilar keunggulan Why ARM Exhaust, urutan langkah, deskripsi material, dan judul seksi beranda.',
+      category: 'Konten Web',
+    },
+    'new-arrivals': {
+      title: 'Manajemen Produk Beranda',
+      subtitle: 'Pilih dan atur showcase 4 produk rilisan terbaru beranda dari katalog resmi ARM Exhaust.',
       category: 'Konten Web',
     },
     events: {
@@ -349,6 +371,22 @@ export function AdminShell({ user }: Readonly<AdminShellProps>) {
                           onSelect={() => setActiveTab('hero')}
                         >
                           Hero Carousel
+                        </AnimatedSidebarMenuSubButton>
+                      </AnimatedSidebarMenuSubItem>
+                      <AnimatedSidebarMenuSubItem>
+                        <AnimatedSidebarMenuSubButton
+                          isActive={activeTab === 'value-props'}
+                          onSelect={() => setActiveTab('value-props')}
+                        >
+                          Pilar Keunggulan
+                        </AnimatedSidebarMenuSubButton>
+                      </AnimatedSidebarMenuSubItem>
+                      <AnimatedSidebarMenuSubItem>
+                        <AnimatedSidebarMenuSubButton
+                          isActive={activeTab === 'new-arrivals'}
+                          onSelect={() => setActiveTab('new-arrivals')}
+                        >
+                          Produk Beranda
                         </AnimatedSidebarMenuSubButton>
                       </AnimatedSidebarMenuSubItem>
                       <AnimatedSidebarMenuSubItem>
@@ -532,6 +570,16 @@ export function AdminShell({ user }: Readonly<AdminShellProps>) {
               {activeTab === 'hero' && (
                 <div data-testid="panel-hero">
                   <HeroManagementPanel />
+                </div>
+              )}
+              {activeTab === 'value-props' && (
+                <div data-testid="panel-value-props">
+                  <ValuePropsManagementPanel />
+                </div>
+              )}
+              {activeTab === 'new-arrivals' && (
+                <div data-testid="panel-new-arrivals">
+                  <NewArrivalManagementPanel />
                 </div>
               )}
               {activeTab === 'events' && (
