@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import {
   Plus,
-  ArrowUp,
-  ArrowDown,
   Pencil,
   Trash2,
   Upload,
@@ -14,6 +12,7 @@ import {
   Calendar,
   RefreshCw,
   Image as ImageIcon,
+  GripVertical,
 } from 'lucide-react';
 import { useNotice, useDoubleSafetyAction, ACTION_PRESETS } from '@/shared/components';
 import { cn } from '@/shared/utils/cn';
@@ -370,6 +369,195 @@ function EventFormModal({
   );
 }
 
+interface EventSortableRowProps {
+  readonly eventItem: CommunityEvent;
+  readonly index: number;
+  readonly total: number;
+  readonly reordering: boolean;
+  readonly onKeyboardMove: (index: number, direction: 'up' | 'down') => void;
+  readonly onToggle: (id: string) => void;
+  readonly onEdit: (eventItem: CommunityEvent) => void;
+  readonly onDelete: (eventItem: CommunityEvent) => void;
+  readonly onDragEnd: () => void;
+}
+
+function EventSortableRow({
+  eventItem,
+  index,
+  total,
+  reordering,
+  onKeyboardMove,
+  onToggle,
+  onEdit,
+  onDelete,
+  onDragEnd,
+}: Readonly<EventSortableRowProps>) {
+  const dragControls = useDragControls();
+
+  const handleGripKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'ArrowUp' && index > 0 && !reordering) {
+      e.preventDefault();
+      onKeyboardMove(index, 'up');
+    } else if (e.key === 'ArrowDown' && index < total - 1 && !reordering) {
+      e.preventDefault();
+      onKeyboardMove(index, 'down');
+    }
+  };
+
+  const containerClass = cn(
+    'group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border p-3 sm:px-4 sm:py-3 transition-colors duration-150 select-none',
+    eventItem.is_active
+      ? 'border-zinc-200 bg-white hover:border-zinc-300'
+      : 'border-zinc-200 bg-zinc-50/70 opacity-75'
+  );
+
+  return (
+    <Reorder.Item
+      value={eventItem}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragEnd={onDragEnd}
+      whileDrag={{
+        scale: 1.01,
+        boxShadow: '0 14px 28px -8px rgba(9, 9, 11, 0.14)',
+        zIndex: 30,
+      }}
+      transition={{ layout: { type: 'spring', stiffness: 420, damping: 32 } }}
+      className={containerClass}
+    >
+      {/* Left Section: Drag Grip, Number, Compact Image (Standardized to Hero Carousel) */}
+      <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              dragControls.start(e);
+            }}
+            onKeyDown={handleGripKeyDown}
+            disabled={reordering}
+            className="cursor-grab active:cursor-grabbing rounded-md p-1 text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 touch-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 transition-colors"
+            title="Tahan dan seret untuk memindahkan urutan (atau gunakan panah keyboard)"
+            aria-label={`Seret atau gunakan panah atas/bawah untuk memindahkan event ${eventItem.title}`}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+
+          <span className="w-5 font-mono text-[11px] font-semibold text-zinc-500 tabular-nums">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+        </div>
+
+        {/* Compact Thumbnail (w-20 h-14) */}
+        <div className="relative aspect-[4/3] w-20 h-14 shrink-0 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-900 shadow-2xs">
+          {eventItem.image_url ? (
+            <img
+              src={eventItem.image_url}
+              alt={eventItem.title}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-zinc-500">
+              <ImageIcon className="h-4 w-4" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Center Section: Event Title, Date & Description */}
+      <div className="min-w-0 flex-1 space-y-0.5 sm:px-2">
+        <div className="flex items-center gap-1.5 text-xs text-zinc-500 flex-wrap">
+          <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-zinc-800 uppercase">
+            {eventItem.category}
+          </span>
+          <Calendar className="h-3 w-3 shrink-0 ml-0.5 text-zinc-400" />
+          <span className="font-mono font-semibold text-[11px] text-zinc-950">
+            {eventItem.event_date}
+          </span>
+          <span className="text-zinc-300">•</span>
+          <span className="font-mono text-[10px] uppercase text-zinc-400 truncate">
+            {eventItem.tag}
+          </span>
+        </div>
+
+        <h3 className="text-sm font-semibold text-zinc-950 truncate" title={eventItem.title}>
+          {eventItem.title}
+        </h3>
+
+        <p className="text-xs text-zinc-500 line-clamp-1 leading-relaxed">
+          {eventItem.description}
+        </p>
+
+        {eventItem.href && (
+          <div className="flex items-center gap-1 text-[11px] text-zinc-400 pt-0.5">
+            <LinkIcon className="h-3 w-3 shrink-0" />
+            <span className="truncate max-w-[170px] font-mono text-[10px]">
+              {eventItem.href}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Right Section: Status Toggle Switch & Actions */}
+      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-medium text-zinc-500 min-w-[42px] text-right">
+            {eventItem.is_active ? 'Tayang' : 'Draft'}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={eventItem.is_active}
+            onClick={() => onToggle(eventItem.id)}
+            className={cn(
+              'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
+              eventItem.is_active ? 'bg-zinc-900' : 'bg-zinc-300'
+            )}
+            aria-label={`Ubah status aktif event ${eventItem.title}`}
+          >
+            <span
+              className={cn(
+                'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out',
+                eventItem.is_active ? 'translate-x-4' : 'translate-x-0'
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Actions Divider & Buttons */}
+        <div className="flex items-center gap-1 border-l border-zinc-200 pl-2 sm:pl-3">
+          <button
+            type="button"
+            onClick={() => onEdit(eventItem)}
+            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-500 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:border-zinc-950 focus-visible:bg-zinc-100 focus-visible:text-zinc-950 focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+            title="Edit event"
+            aria-label={`Edit event ${eventItem.title}`}
+          >
+            <Pencil className="h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[40px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[40px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
+              Edit
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onDelete(eventItem)}
+            className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-400 hover:border-zinc-900 hover:bg-zinc-950 hover:text-white focus-visible:border-zinc-900 focus-visible:bg-zinc-950 focus-visible:text-white focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+            title="Hapus event"
+            aria-label={`Hapus event ${eventItem.title}`}
+          >
+            <Trash2 className="h-3.5 w-3.5 shrink-0" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[45px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[45px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
+              Hapus
+            </span>
+          </button>
+        </div>
+      </div>
+    </Reorder.Item>
+  );
+}
+
 export function EventManagementPanel() {
   const { notify } = useNotice();
 
@@ -384,6 +572,8 @@ export function EventManagementPanel() {
   const [previewError, setPreviewError] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const latestOrderRef = useRef<CommunityEvent[]>(events);
+  const lastCommittedRef = useRef<CommunityEvent[]>(events);
 
   // Fetch all community events
   const fetchEvents = useCallback(async () => {
@@ -397,7 +587,10 @@ export function EventManagementPanel() {
         throw new Error(`Gagal memuat event komunitas (HTTP ${res.status}).`);
       }
       const data: CommunityEvent[] = await res.json();
-      setEvents(data.sort((a, b) => a.sort_order - b.sort_order));
+      const sorted = [...data].sort((a, b) => a.sort_order - b.sort_order);
+      setEvents(sorted);
+      latestOrderRef.current = sorted;
+      lastCommittedRef.current = sorted;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi kegagalan jaringan.';
       notify?.error('Gagal Memuat Data', msg, {
@@ -568,7 +761,12 @@ export function EventManagementPanel() {
         }
 
         const updated = await res.json();
-        setEvents((prev) => prev.map((ev) => (ev.id === updated.id ? updated : ev)));
+        setEvents((prev) => {
+          const next = prev.map((ev) => (ev.id === updated.id ? updated : ev));
+          latestOrderRef.current = next;
+          lastCommittedRef.current = next;
+          return next;
+        });
         notify?.success('Event Diperbarui', `Event "${updated.title}" berhasil disimpan.`, {
           source: EVENT_NOTICE_SOURCE,
           action: 'update',
@@ -588,7 +786,12 @@ export function EventManagementPanel() {
         }
 
         const created = await res.json();
-        setEvents((prev) => [...prev, created].sort((a, b) => a.sort_order - b.sort_order));
+        setEvents((prev) => {
+          const next = [...prev, created].sort((a, b) => a.sort_order - b.sort_order);
+          latestOrderRef.current = next;
+          lastCommittedRef.current = next;
+          return next;
+        });
         notify?.success('Event Ditambahkan', `Event "${created.title}" berhasil dibuat.`, {
           source: EVENT_NOTICE_SOURCE,
           action: 'create',
@@ -631,7 +834,12 @@ export function EventManagementPanel() {
       }
 
       const updated = await res.json();
-      setEvents((prev) => prev.map((ev) => (ev.id === eventId ? updated : ev)));
+      setEvents((prev) => {
+        const next = prev.map((ev) => (ev.id === eventId ? updated : ev));
+        latestOrderRef.current = next;
+        lastCommittedRef.current = next;
+        return next;
+      });
       const statusText = nextStatus ? 'diaktifkan' : 'dinonaktifkan';
       notify?.success('Status Berubah', `Event "${targetEvent.title}" telah ${statusText}.`, {
         source: EVENT_NOTICE_SOURCE,
@@ -652,49 +860,70 @@ export function EventManagementPanel() {
     }
   };
 
-  // Reorder Events (Move Up / Move Down)
-  const handleMove = async (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= events.length) return;
+  // Standardized persistOrder Pipeline
+  const persistOrder = useCallback(
+    async (orderedEvents: CommunityEvent[], fallbackSnapshot: CommunityEvent[]) => {
+      const normalized = orderedEvents.map((ev, idx) => ({ ...ev, sort_order: idx + 1 }));
+      setEvents(normalized);
+      latestOrderRef.current = normalized;
+      setReordering(true);
+      try {
+        const res = await fetch('/api/admin/community-events/reorder', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderedIds: normalized.map((ev) => ev.id) }),
+        });
 
-    const newEvents = [...events];
-    const temp = newEvents[index];
-    newEvents[index] = newEvents[targetIndex];
-    newEvents[targetIndex] = temp;
+        if (!res.ok) {
+          throw new Error('Gagal memperbarui urutan event di server.');
+        }
 
-    // Optimistically update positions
-    const reindexed = newEvents.map((ev, idx) => ({ ...ev, sort_order: idx + 1 }));
-    setEvents(reindexed);
-    setReordering(true);
-
-    try {
-      const res = await fetch('/api/admin/community-events/reorder', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderedIds: reindexed.map((ev) => ev.id) }),
-      });
-
-      if (!res.ok) {
-        throw new Error('Gagal memperbarui urutan event di server.');
+        lastCommittedRef.current = normalized;
+        notify?.success('Urutan Diperbarui', 'Urutan event komunitas berhasil disimpan.', {
+          source: EVENT_NOTICE_SOURCE,
+          action: 'reorder',
+          detail: `Total event: ${normalized.length}`,
+        });
+      } catch (err: unknown) {
+        setEvents(fallbackSnapshot);
+        latestOrderRef.current = fallbackSnapshot;
+        const msg = err instanceof Error ? err.message : 'Gagal memperbarui urutan.';
+        notify?.error('Gagal Mengubah Urutan', msg, {
+          source: EVENT_NOTICE_SOURCE,
+          action: 'reorder',
+          detail: msg,
+        });
+      } finally {
+        setReordering(false);
       }
+    },
+    [notify]
+  );
 
-      notify?.success('Urutan Diperbarui', 'Urutan event komunitas berhasil disimpan.', {
-        source: EVENT_NOTICE_SOURCE,
-        action: 'reorder',
-        detail: `Total event: ${reindexed.length}`,
-      });
-    } catch (err: unknown) {
-      // Rollback to previous order
-      setEvents(events);
-      const msg = err instanceof Error ? err.message : 'Gagal memperbarui urutan.';
-      notify?.error('Gagal Mengubah Urutan', msg, {
-        source: EVENT_NOTICE_SOURCE,
-        action: 'reorder',
-        detail: msg,
-      });
-    } finally {
-      setReordering(false);
+  const handleDragReorder = (nextOrder: CommunityEvent[]) => {
+    latestOrderRef.current = nextOrder;
+    setEvents(nextOrder);
+  };
+
+  const handleDragEnd = () => {
+    const nextIds = latestOrderRef.current.map((ev) => ev.id).join(',');
+    const prevIds = lastCommittedRef.current.map((ev) => ev.id).join(',');
+    if (nextIds !== prevIds && !reordering) {
+      void persistOrder(latestOrderRef.current, lastCommittedRef.current);
     }
+  };
+
+  const handleKeyboardMove = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= events.length || reordering) return;
+
+    const fallback = [...events];
+    const swapped = [...events];
+    const temp = swapped[index];
+    swapped[index] = swapped[targetIndex];
+    swapped[targetIndex] = temp;
+
+    void persistOrder(swapped, fallback);
   };
 
   // Delete Event via Universal Double-Safety Engine
@@ -703,7 +932,11 @@ export function EventManagementPanel() {
     noticeSource: EVENT_NOTICE_SOURCE,
     getItemPreview: (item) => item.title,
     onOptimisticExecute: (item) => {
-      setEvents((prev) => prev.filter((ev) => ev.id !== item.id));
+      setEvents((prev) => {
+        const next = prev.filter((ev) => ev.id !== item.id);
+        latestOrderRef.current = next;
+        return next;
+      });
     },
     onRestore: (item, originalIndex) => {
       setEvents((prev) => {
@@ -714,6 +947,8 @@ export function EventManagementPanel() {
             ? originalIndex
             : next.length;
         next.splice(insertIdx, 0, item);
+        latestOrderRef.current = next;
+        lastCommittedRef.current = next;
         return next;
       });
     },
@@ -724,6 +959,8 @@ export function EventManagementPanel() {
       if (!res.ok) {
         throw new Error('Gagal menghapus event dari server.');
       }
+      latestOrderRef.current = latestOrderRef.current.filter((ev) => ev.id !== item.id);
+      lastCommittedRef.current = latestOrderRef.current;
     },
   });
 
@@ -745,7 +982,7 @@ export function EventManagementPanel() {
           </span>
           <span className="hidden sm:inline text-zinc-300">·</span>
           <span className="hidden sm:inline text-[11px]">
-            Gunakan kontrol urutan untuk mengatur prioritas agenda
+            Tahan dan geser item untuk mengatur prioritas agenda di beranda
           </span>
         </div>
 
@@ -782,163 +1019,27 @@ export function EventManagementPanel() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {events.map((eventItem, index) => {
-            const isFirst = index === 0;
-            const isLast = index === events.length - 1;
-
-            return (
-              <div
-                key={eventItem.id}
-                className={cn(
-                  'flex flex-col justify-between rounded-xl border p-4 sm:p-5 transition-all duration-200',
-                  eventItem.is_active
-                    ? 'border-zinc-200 bg-white shadow-xs'
-                    : 'border-zinc-200 bg-zinc-50/70 opacity-75'
-                )}
-              >
-                {/* Top Section: Reorder, 4:3 Image Thumbnail, Details */}
-                <div className="flex gap-4">
-                  {/* Reorder Buttons & Index */}
-                  <div className="flex flex-col items-center justify-start gap-1 shrink-0 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => void handleMove(index, 'up')}
-                      disabled={isFirst || reordering}
-                      className="p-1 rounded text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 disabled:opacity-20 transition"
-                      aria-label={`Pindahkan event ${eventItem.title} ke atas`}
-                    >
-                      <ArrowUp className="h-3.5 w-3.5" />
-                    </button>
-                    <span className="font-mono text-[11px] font-bold text-zinc-500 tabular-nums">
-                      {index + 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => void handleMove(index, 'down')}
-                      disabled={isLast || reordering}
-                      className="p-1 rounded text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 disabled:opacity-20 transition"
-                      aria-label={`Pindahkan event ${eventItem.title} ke bawah`}
-                    >
-                      <ArrowDown className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-
-                  {/* 4:3 Image Thumbnail Preview */}
-                  <div className="relative aspect-[4/3] w-28 sm:w-36 shrink-0 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-900 shadow-2xs">
-                    {eventItem.image_url ? (
-                      <img
-                        src={eventItem.image_url}
-                        alt={eventItem.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-zinc-500">
-                        <ImageIcon className="h-5 w-5" />
-                      </div>
-                    )}
-                    <div className="absolute top-1.5 left-1.5">
-                      <span className="rounded bg-[#0A0A0B]/80 px-1.5 py-0.5 text-[9px] font-mono font-bold tracking-wider text-zinc-200 backdrop-blur-xs border border-white/10 uppercase">
-                        {eventItem.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Event Meta & Titles */}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                      <Calendar className="h-3 w-3 shrink-0" />
-                      <span className="font-mono font-semibold text-[11px] text-zinc-950">
-                        {eventItem.event_date}
-                      </span>
-                      <span className="text-zinc-300">•</span>
-                      <span className="font-mono text-[10px] uppercase text-zinc-400 truncate">
-                        {eventItem.tag}
-                      </span>
-                    </div>
-
-                    <h3 className="text-sm font-bold text-zinc-950 line-clamp-1" title={eventItem.title}>
-                      {eventItem.title}
-                    </h3>
-
-                    <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
-                      {eventItem.description}
-                    </p>
-
-                    {eventItem.href && (
-                      <div className="flex items-center gap-1 text-[11px] text-zinc-500 pt-0.5">
-                        <LinkIcon className="h-3 w-3 shrink-0" />
-                        <span className="truncate max-w-[180px] font-mono">
-                          {eventItem.href}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Bottom Section: Active Toggle & Edit/Delete */}
-                <div className="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-zinc-100">
-                  {/* Status Toggle Switch */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-medium text-zinc-500">
-                      {eventItem.is_active ? 'Tayang' : 'Disimpan'}
-                    </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={eventItem.is_active}
-                      onClick={() => void handleToggle(eventItem.id)}
-                      className={cn(
-                        'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                        eventItem.is_active ? 'bg-zinc-900' : 'bg-zinc-300'
-                      )}
-                      aria-label={`Ubah status aktif event ${eventItem.title}`}
-                    >
-                      <span
-                        className={cn(
-                          'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out',
-                          eventItem.is_active ? 'translate-x-4' : 'translate-x-0'
-                        )}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Actions (Monochrome Expanding Pill 800ms Gentle Luxury) */}
-                  <div className="flex items-center gap-1.5">
-                    {/* Edit Button - Subtle Zinc Expansion */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEdit(eventItem)}
-                      className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-500 hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:border-zinc-950 focus-visible:bg-zinc-100 focus-visible:text-zinc-950 focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-                      title="Edit event"
-                      aria-label={`Edit event ${eventItem.title}`}
-                    >
-                      <Pencil className="h-3.5 w-3.5 shrink-0" />
-                      <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[40px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[40px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
-                        Edit
-                      </span>
-                    </button>
-
-                    {/* Delete Button - Dark Inversion Monochrome Expansion */}
-                    <button
-                      type="button"
-                      onClick={() => void handleDelete(eventItem)}
-                      className="group/btn inline-flex items-center gap-1.5 h-7 px-2 rounded-lg border border-transparent text-zinc-400 hover:border-zinc-900 hover:bg-zinc-950 hover:text-white focus-visible:border-zinc-900 focus-visible:bg-zinc-950 focus-visible:text-white focus-visible:outline-none transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-                      title="Hapus event"
-                      aria-label={`Hapus event ${eventItem.title}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                      <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] font-medium opacity-0 group-hover/btn:max-w-[45px] group-hover/btn:opacity-100 group-focus-visible/btn:max-w-[45px] group-focus-visible/btn:opacity-100 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none">
-                        Hapus
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <Reorder.Group
+          axis="y"
+          values={events}
+          onReorder={handleDragReorder}
+          className="flex flex-col gap-2.5"
+        >
+          {events.map((eventItem, index) => (
+            <EventSortableRow
+              key={eventItem.id}
+              eventItem={eventItem}
+              index={index}
+              total={events.length}
+              reordering={reordering}
+              onKeyboardMove={handleKeyboardMove}
+              onToggle={(id) => void handleToggle(id)}
+              onEdit={handleOpenEdit}
+              onDelete={(e) => void handleDelete(e)}
+              onDragEnd={handleDragEnd}
+            />
+          ))}
+        </Reorder.Group>
       )}
 
       {/* 3. Modal Form (Create / Edit) */}

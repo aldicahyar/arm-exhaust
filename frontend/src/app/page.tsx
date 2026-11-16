@@ -228,6 +228,7 @@ export default function LandingPage() {
     let isMounted = true;
 
     void fetch('/api/public/home-content', {
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
     })
       .then((res) => {
@@ -252,6 +253,7 @@ export default function LandingPage() {
     let isMounted = true;
 
     void fetch('/api/public/community-events', {
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
     })
       .then((res) => {
@@ -300,9 +302,9 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[#1E1E21] border border-[#1E1E21] mt-8">
             {valueProps.map((v, idx) => {
-              const stepNumber = v.stepNumber ?? v.step_number ?? String(idx + 1).padStart(2, '0');
+              const stepNumber = String(idx + 1).padStart(2, '0');
               return (
-                <div key={v.id ?? stepNumber} className="bg-[#0A0A0B] p-6">
+                <div key={v.id ?? `val-prop-${stepNumber}`} className="bg-[#0A0A0B] p-6">
                   <span className="font-mono text-xs text-white/25">{stepNumber}</span>
                   <h3
                     className="text-white mt-3 leading-none"

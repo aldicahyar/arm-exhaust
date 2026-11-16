@@ -538,8 +538,8 @@ export function AdminShell({ user }: Readonly<AdminShellProps>) {
               <nav className="flex items-center gap-2 text-xs text-zinc-500 min-w-0">
                 <span className="text-zinc-500 shrink-0">ARM</span>
                 <span className="text-zinc-300 shrink-0">/</span>
-                <span className="text-zinc-500 shrink-0 hidden xs:inline">{currentMeta.category}</span>
-                <span className="text-zinc-300 shrink-0 hidden xs:inline">/</span>
+                <span className="text-zinc-500 shrink-0 hidden sm:inline">{currentMeta.category}</span>
+                <span className="text-zinc-300 shrink-0 hidden sm:inline">/</span>
                 <span className="text-zinc-950 font-semibold truncate max-w-[130px] sm:max-w-none">{currentMeta.title}</span>
               </nav>
             </div>
@@ -548,14 +548,16 @@ export function AdminShell({ user }: Readonly<AdminShellProps>) {
           {/* Content Body Canvas */}
           <main className="flex-1 p-5 sm:p-7 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
             {/* Clean Contextual Section Header */}
-            <div className="pb-4 border-b border-zinc-200">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950">
-                {currentMeta.title}
-              </h1>
-              <p className="mt-1 text-xs text-zinc-500">
-                {currentMeta.subtitle}
-              </p>
-            </div>
+            {activeTab !== 'orders' && (
+              <div className="pb-4 border-b border-zinc-200">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950">
+                  {currentMeta.title}
+                </h1>
+                <p className="mt-1 text-xs text-zinc-500">
+                  {currentMeta.subtitle}
+                </p>
+              </div>
+            )}
 
             {/* Active Tab Panel */}
             <motion.div
