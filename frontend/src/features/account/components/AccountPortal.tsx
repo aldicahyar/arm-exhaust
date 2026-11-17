@@ -84,15 +84,6 @@ export function AccountPortal({
     }
   };
 
-  const handleEditLanguage = () => {
-    const nextLang = accountData.location.language === 'English' ? 'Bahasa Indonesia' : 'English';
-    setAccountData((prev) => ({
-      ...prev,
-      location: { ...prev.location, language: nextLang },
-    }));
-    setNoticeMessage(`Language preference set to ${nextLang}.`);
-  };
-
   return (
     <div className="w-full bg-[#0A0A0B] text-white min-h-screen font-sans antialiased scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <div className="max-w-[1160px] mx-auto px-4 md:px-8 py-12 md:py-20">
@@ -197,23 +188,18 @@ export function AccountPortal({
                             {/* QUADRANT 1: SIGN-IN AND SECURITY */}
                             <AccountSecuritySection
                               data={accountData.security}
-                              onChangeEmail={() => setDrawerMode('change-email')}
                               onChangePassword={() => setDrawerMode('change-password')}
                             />
 
                             {/* QUADRANT 2: PERSONAL INFORMATION */}
                             <AccountPersonalInfoSection
                               data={accountData.personal}
-                              onEditName={() => setDrawerMode('edit-profile')}
-                              onEditPhone={() => setDrawerMode('edit-profile')}
-                              onEditAddress={() => setDrawerMode('edit-profile')}
-                              onEditDateOfBirth={() => setDrawerMode('edit-profile')}
+                              onEdit={() => setDrawerMode('edit-profile')}
                             />
 
                             {/* QUADRANT 3: LOCATION / REGIONAL PREFERENCES */}
                             <AccountLocationSection
                               data={accountData.location}
-                              onEditLanguage={handleEditLanguage}
                             />
 
                             {/* QUADRANT 4: ADVANCED / ACCOUNT MANAGEMENT */}

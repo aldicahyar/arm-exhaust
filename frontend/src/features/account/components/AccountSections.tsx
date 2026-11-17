@@ -26,18 +26,18 @@ function TooltipIcon({ label }: Readonly<TooltipIconProps>) {
 
 /* ==========================================================================
    QUADRANT 1: Sign-in and security
-   Streamlined to focus purely on active authentication credentials (Email, Password)
+   Streamlined to focus purely on active authentication credentials.
+   Email is the read-only primary identity (no pseudo-change button).
+   Password retains fully functional session-revoking Change action.
    ========================================================================== */
 interface SecuritySectionProps {
   readonly data: AccountSecurityInfo;
-  readonly onChangeEmail?: () => void;
   readonly onChangePassword?: () => void;
   readonly onResetPassword?: () => void;
 }
 
 export function AccountSecuritySection({
   data,
-  onChangeEmail,
   onChangePassword,
   onResetPassword,
 }: Readonly<SecuritySectionProps>) {
@@ -51,24 +51,17 @@ export function AccountSecuritySection({
           Sign-in and security
         </h2>
 
-        <div className="flex flex-col gap-7">
-          {/* Email */}
+        <div className="flex flex-col gap-6">
+          {/* Email (Primary SSO Identity) */}
           <div>
             <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
               <span>Email</span>
-              <TooltipIcon label="Primary sign-in email address" />
+              <TooltipIcon label="Primary sign-in email address (locked to single sign-on identity)" />
             </div>
             <div className="text-[15px] font-medium text-white mt-1">{data.email}</div>
-            <button
-              type="button"
-              onClick={onChangeEmail}
-              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              Change
-            </button>
           </div>
 
-          {/* Password */}
+          {/* Password (Functional change flow) */}
           <div>
             <div className="text-[13px] text-[#8A8F98]">Password</div>
             <div className="text-[15px] font-medium text-white tracking-widest mt-1">••••••••</div>
@@ -88,22 +81,17 @@ export function AccountSecuritySection({
 
 /* ==========================================================================
    QUADRANT 2: Personal information
-   Contains Name, Phone, Delivery Address, and Date of Birth (anti-abuse protected)
+   Consolidates multiple inline edit links into a single clean header-level Edit action.
+   Includes Name, Phone, Delivery Address, and Date of birth (with Steam-style CS fallback).
    ========================================================================== */
 interface PersonalInfoSectionProps {
   readonly data: AccountPersonalInfo;
-  readonly onEditName?: () => void;
-  readonly onEditPhone?: () => void;
-  readonly onEditAddress?: () => void;
-  readonly onEditDateOfBirth?: () => void;
+  readonly onEdit?: () => void;
 }
 
 export function AccountPersonalInfoSection({
   data,
-  onEditName,
-  onEditPhone,
-  onEditAddress,
-  onEditDateOfBirth,
+  onEdit,
 }: Readonly<PersonalInfoSectionProps>) {
   const hasAddress = Boolean(data.address && data.address !== '-');
   const hasDob = Boolean(data.dateOfBirth && data.dateOfBirth !== '-');
@@ -114,35 +102,31 @@ export function AccountPersonalInfoSection({
       className="border-t border-[#1E1E21] pt-6 flex flex-col justify-between"
     >
       <div>
-        <h2 id="heading-personal" className="text-[16px] font-normal text-white tracking-tight mb-7">
-          Personal information
-        </h2>
+        {/* Header with single unified Edit action */}
+        <div className="flex items-center justify-between mb-7">
+          <h2 id="heading-personal" className="text-[16px] font-normal text-white tracking-tight">
+            Personal information
+          </h2>
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-[13px] text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors"
+          >
+            Edit
+          </button>
+        </div>
 
-        <div className="flex flex-col gap-7">
+        <div className="flex flex-col gap-6">
           {/* Name */}
           <div>
             <div className="text-[13px] text-[#8A8F98]">Name</div>
             <div className="text-[15px] font-medium text-white mt-1">{data.name}</div>
-            <button
-              type="button"
-              onClick={onEditName}
-              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              Edit
-            </button>
           </div>
 
           {/* Phone number */}
           <div>
             <div className="text-[13px] text-[#8A8F98]">Phone number</div>
             <div className="text-[15px] font-medium text-white mt-1">{data.phoneNumber}</div>
-            <button
-              type="button"
-              onClick={onEditPhone}
-              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              Edit
-            </button>
           </div>
 
           {/* Delivery Address */}
@@ -151,31 +135,36 @@ export function AccountPersonalInfoSection({
             <div className="text-[15px] font-medium text-white mt-1 leading-relaxed">
               {hasAddress ? data.address : '-'}
             </div>
-            <button
-              type="button"
-              onClick={onEditAddress}
-              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              {hasAddress ? 'Edit' : 'Add'}
-            </button>
           </div>
 
-          {/* Date of birth (Protected for loyalty & birthday reward integrity) */}
+          {/* Date of birth (Protected for loyalty & promotion integrity) */}
           <div>
             <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
               <span>Date of birth</span>
               <TooltipIcon label="Used for annual birthday rewards and member promotions. Locked against frequent changes to prevent reward abuse." />
             </div>
-            <div className="text-[15px] font-medium text-white mt-1">
-              {hasDob ? data.dateOfBirth : '-'}
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[15px] font-medium text-white">
+                {hasDob ? data.dateOfBirth : '-'}
+              </span>
+              {hasDob && (
+                <span className="text-[11px] font-mono uppercase tracking-wider text-white bg-[#1E1E21] px-1.5 py-0.5 select-none">
+                  Locked
+                </span>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={onEditDateOfBirth}
-              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              {hasDob ? 'Edit' : 'Add'}
-            </button>
+            {hasDob && (
+              <div className="mt-1">
+                <a
+                  href="https://wa.me/6281234567890?text=Halo%20ARM%20Support%2C%20saya%20ingin%20mengajukan%20koreksi%20tanggal%20lahir"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[12px] text-[#8A8F98] underline underline-offset-2 hover:text-white transition-colors"
+                >
+                  Need to correct a typo? Contact ARM Support →
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -185,15 +174,14 @@ export function AccountPersonalInfoSection({
 
 /* ==========================================================================
    QUADRANT 3: Location / Regional preferences
+   Displays country and global language without non-functional pseudo-toggle buttons.
    ========================================================================== */
 interface LocationSectionProps {
   readonly data: AccountLocationInfo;
-  readonly onEditLanguage?: () => void;
 }
 
 export function AccountLocationSection({
   data,
-  onEditLanguage,
 }: Readonly<LocationSectionProps>) {
   return (
     <section
@@ -205,24 +193,17 @@ export function AccountLocationSection({
           Location
         </h2>
 
-        <div className="flex flex-col gap-7">
+        <div className="flex flex-col gap-6">
           {/* Country */}
           <div>
             <div className="text-[13px] text-[#8A8F98]">Country</div>
             <div className="text-[15px] font-medium text-white mt-1">{data.country}</div>
           </div>
 
-          {/* Language */}
+          {/* Language (Global English) */}
           <div>
             <div className="text-[13px] text-[#8A8F98]">Language</div>
-            <div className="text-[15px] font-medium text-white mt-1">{data.language}</div>
-            <button
-              type="button"
-              onClick={onEditLanguage}
-              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              Edit
-            </button>
+            <div className="text-[15px] font-medium text-white mt-1">{data.language} (Global)</div>
           </div>
         </div>
       </div>
@@ -262,7 +243,7 @@ export function AccountAdvancedSection({
           Advanced
         </h2>
 
-        <div className="flex flex-col gap-7">
+        <div className="flex flex-col gap-6">
           {/* Account identifier */}
           <div>
             <div className="text-[13px] text-[#8A8F98]">Account identifier</div>

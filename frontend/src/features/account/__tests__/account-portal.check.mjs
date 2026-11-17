@@ -134,6 +134,23 @@ assert.ok(
 );
 console.log('✓ Form redundancy elimination, Date of birth retention, and Copy ID micro-interaction verified in AccountSections');
 
+assert.ok(
+  !sectionsCode.includes('onChangeEmail'),
+  'AccountSections must eliminate dead-end Change button on Email'
+);
+assert.ok(
+  !sectionsCode.includes('onEditLanguage'),
+  'AccountSections must eliminate pseudo-toggle Edit button on Language'
+);
+assert.ok(
+  sectionsCode.includes('onEdit') &&
+    !sectionsCode.includes('onEditName') &&
+    !sectionsCode.includes('onEditPhone') &&
+    !sectionsCode.includes('onEditAddress'),
+  'AccountSections must consolidate personal info edit actions into single header onEdit button'
+);
+console.log('✓ Header-level edit consolidation and pseudo-action elimination verified in AccountSections');
+
 // 5. Audit Navigation Rail
 const navRailCode = fs.readFileSync(
   path.join(frontendDir, 'src/features/account/components/AccountNavRail.tsx'),
