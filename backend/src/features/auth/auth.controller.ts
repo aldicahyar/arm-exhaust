@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Query,
   Body,
   Req,
   Res,
@@ -16,6 +17,8 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { TurnstileGuard } from '../../shared/guards/turnstile.guard';
 import { RateLimitGuard } from '../../shared/guards/rate-limit.guard';
 import { RateLimit } from '../../shared/decorators/rate-limit.decorator';
@@ -98,5 +101,31 @@ export class AuthController {
   @Get('me')
   async me(@Req() req: Request) {
     return this.authService.me(req);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(TurnstileGuard, RateLimitGuard)
+  @RateLimit('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto, @Req() req: Request) {
+    const ip = getClientIp(req);
+    return this.authService.forgotPassword(dto, ip);
+  }
+
+  @Get('verify-reset-token')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RateLimitGuard)
+  @RateLimit('verify-reset-token')
+  async verifyResetToken(@Query('token') token: string) {
+    return this.authService.verifyResetToken(token);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(TurnstileGuard, RateLimitGuard)
+  @RateLimit('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto, @Req() req: Request) {
+    const ip = getClientIp(req);
+    return this.authService.resetPassword(dto, ip);
   }
 }
