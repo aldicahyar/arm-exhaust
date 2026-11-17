@@ -41,6 +41,7 @@ export function AccountDrawer({
   const [profileName, setProfileName] = useState(accountData.personal.name);
   const [profilePhone, setProfilePhone] = useState(accountData.personal.phoneNumber);
   const [profileAddress, setProfileAddress] = useState(accountData.personal.address);
+  const [profileDob, setProfileDob] = useState(accountData.personal.dateOfBirth ?? '');
 
   // UI status state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -57,6 +58,7 @@ export function AccountDrawer({
       setProfileName(accountData.personal.name);
       setProfilePhone(accountData.personal.phoneNumber);
       setProfileAddress(accountData.personal.address);
+      setProfileDob(accountData.personal.dateOfBirth ?? '');
       setErrorMessage(null);
       setIsSubmitting(false);
       setIsSuccess(false);
@@ -136,6 +138,7 @@ export function AccountDrawer({
       name: profileName,
       phoneNumber: profilePhone,
       address: profileAddress,
+      dateOfBirth: profileDob,
     };
 
     const res = await updateAccountProfile(payload);
@@ -153,6 +156,7 @@ export function AccountDrawer({
           name: profileName,
           phoneNumber: profilePhone,
           address: profileAddress,
+          dateOfBirth: profileDob || accountData.personal.dateOfBirth,
         },
       },
       'Personal information updated successfully.'
@@ -357,6 +361,22 @@ export function AccountDrawer({
                         corner={0}
                         disabled={isSubmitting}
                       />
+                    </div>
+
+                    {/* Date of birth (Protected for loyalty & promotion integrity) */}
+                    <div>
+                      <LabelInput
+                        label="Date of birth (e.g. 14 October 1998)"
+                        type="text"
+                        name="dateOfBirth"
+                        value={profileDob}
+                        onChange={(e) => setProfileDob(e.target.value)}
+                        corner={0}
+                        disabled={isSubmitting}
+                      />
+                      <p className="text-[11px] text-[#8A8F98] mt-1.5 leading-normal">
+                        🔒 Note: Date of birth can only be updated once per year to protect birthday promotion integrity.
+                      </p>
                     </div>
 
                     {/* Address */}

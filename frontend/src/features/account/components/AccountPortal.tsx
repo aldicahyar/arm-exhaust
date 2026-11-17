@@ -20,7 +20,7 @@ import { AccountDrawer } from './AccountDrawer';
 import { fetchCurrentAccountData } from '../services/account.api';
 
 // Bencho official transition curve
-const BENCHO_EASE = [0.22, 1, 0.36, 1];
+const BENCHO_EASE = [0.22, 1, 0.36, 1] as const;
 
 interface AccountPortalProps {
   readonly initialData?: CustomerAccountData;
@@ -91,12 +91,6 @@ export function AccountPortal({
       location: { ...prev.location, language: nextLang },
     }));
     setNoticeMessage(`Language preference set to ${nextLang}.`);
-  };
-
-  const handleDeleteAccount = () => {
-    if (window.confirm('Are you sure you want to permanently delete your account?')) {
-      alert('Account deletion request has been submitted to ARM support.');
-    }
   };
 
   return (
@@ -213,6 +207,7 @@ export function AccountPortal({
                               onEditName={() => setDrawerMode('edit-profile')}
                               onEditPhone={() => setDrawerMode('edit-profile')}
                               onEditAddress={() => setDrawerMode('edit-profile')}
+                              onEditDateOfBirth={() => setDrawerMode('edit-profile')}
                             />
 
                             {/* QUADRANT 3: LOCATION / REGIONAL PREFERENCES */}
@@ -224,7 +219,6 @@ export function AccountPortal({
                             {/* QUADRANT 4: ADVANCED / ACCOUNT MANAGEMENT */}
                             <AccountAdvancedSection
                               data={accountData.advanced}
-                              onDeleteAccount={handleDeleteAccount}
                             />
                           </div>
                         )}

@@ -26,7 +26,7 @@ export interface AccountPersonalInfo {
   readonly name: string;
   readonly phoneNumber: string;
   readonly address: string;
-  readonly dateOfBirth?: string;
+  readonly dateOfBirth: string;
 }
 
 export interface AccountLocationInfo {
@@ -56,6 +56,7 @@ export interface UpdateProfilePayload {
   readonly name?: string;
   readonly phoneNumber?: string;
   readonly address?: string;
+  readonly dateOfBirth?: string;
 }
 
 export interface AccountApiResponse<T = unknown> {
@@ -74,6 +75,7 @@ export const DEFAULT_CUSTOMER_ACCOUNT: CustomerAccountData = {
     name: 'Arkan Pasiva',
     phoneNumber: '+18837721',
     address: 'Jl. Soekarno Hatta No. 428, Bandung, Jawa Barat 40254',
+    dateOfBirth: '14 October 1998',
   },
   location: {
     country: 'Indonesia',

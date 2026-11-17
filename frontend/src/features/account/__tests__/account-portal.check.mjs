@@ -117,8 +117,12 @@ assert.ok(
   'AccountSections must eliminate redundant Recovery phone number'
 );
 assert.ok(
-  !sectionsCode.includes('Date of birth'),
-  'AccountSections must eliminate non-essential Date of birth field'
+  sectionsCode.includes('Date of birth'),
+  'AccountSections must retain Date of birth for user info and promotions'
+);
+assert.ok(
+  !sectionsCode.includes('Delete account'),
+  'AccountSections must eliminate Delete account action as requested'
 );
 assert.ok(
   !sectionsCode.includes('Two-factor authentication'),
@@ -128,7 +132,7 @@ assert.ok(
   sectionsCode.includes('Copy ID'),
   'AccountSections must include interactive 1-click Copy ID button in Advanced section'
 );
-console.log('✓ Form redundancy elimination and Copy ID micro-interaction verified in AccountSections');
+console.log('✓ Form redundancy elimination, Date of birth retention, and Copy ID micro-interaction verified in AccountSections');
 
 // 5. Audit Navigation Rail
 const navRailCode = fs.readFileSync(

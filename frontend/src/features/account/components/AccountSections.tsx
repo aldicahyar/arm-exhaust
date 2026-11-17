@@ -86,13 +86,14 @@ export function AccountSecuritySection({
 
 /* ==========================================================================
    QUADRANT 2: Personal information
-   Streamlined to essential high-performance delivery info (Name, Phone, Address)
+   Contains Name, Phone, Delivery Address, and Date of Birth (anti-abuse protected)
    ========================================================================== */
 interface PersonalInfoSectionProps {
   readonly data: AccountPersonalInfo;
   readonly onEditName?: () => void;
   readonly onEditPhone?: () => void;
   readonly onEditAddress?: () => void;
+  readonly onEditDateOfBirth?: () => void;
 }
 
 export function AccountPersonalInfoSection({
@@ -100,8 +101,10 @@ export function AccountPersonalInfoSection({
   onEditName,
   onEditPhone,
   onEditAddress,
+  onEditDateOfBirth,
 }: Readonly<PersonalInfoSectionProps>) {
   const hasAddress = Boolean(data.address && data.address !== '-');
+  const hasDob = Boolean(data.dateOfBirth && data.dateOfBirth !== '-');
 
   return (
     <section
@@ -152,6 +155,24 @@ export function AccountPersonalInfoSection({
               className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
             >
               {hasAddress ? 'Edit' : 'Add'}
+            </button>
+          </div>
+
+          {/* Date of birth (Protected for loyalty & birthday reward integrity) */}
+          <div>
+            <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
+              <span>Date of birth</span>
+              <TooltipIcon label="Used for annual birthday rewards and member promotions. Locked against frequent changes to prevent reward abuse." />
+            </div>
+            <div className="text-[15px] font-medium text-white mt-1">
+              {hasDob ? data.dateOfBirth : '-'}
+            </div>
+            <button
+              type="button"
+              onClick={onEditDateOfBirth}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              {hasDob ? 'Edit' : 'Add'}
             </button>
           </div>
         </div>
@@ -209,16 +230,14 @@ export function AccountLocationSection({
 
 /* ==========================================================================
    QUADRANT 4: Advanced / Account management
-   Includes interactive 1-click 'Copy ID' for fast customer support reference
+   Includes interactive 1-click 'Copy ID' for fast customer support reference.
    ========================================================================== */
 interface AdvancedSectionProps {
   readonly data: AccountAdvancedInfo;
-  readonly onDeleteAccount?: () => void;
 }
 
 export function AccountAdvancedSection({
   data,
-  onDeleteAccount,
 }: Readonly<AdvancedSectionProps>) {
   const [copied, setCopied] = useState(false);
 
@@ -267,15 +286,13 @@ export function AccountAdvancedSection({
             </a>
           </div>
 
-          {/* Delete account */}
+          {/* Membership Status Badge */}
           <div>
-            <button
-              type="button"
-              onClick={onDeleteAccount}
-              className="text-[14px] text-[#8A8F98] underline underline-offset-4 hover:text-white transition-colors"
-            >
-              Delete account
-            </button>
+            <div className="text-[13px] text-[#8A8F98]">Membership status</div>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-white select-none" />
+              <span className="text-[14px] font-medium text-white">Verified Customer</span>
+            </div>
           </div>
         </div>
       </div>
