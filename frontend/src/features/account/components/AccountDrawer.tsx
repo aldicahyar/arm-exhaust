@@ -302,7 +302,7 @@ export function AccountDrawer({
                     /* Hybrid Bencho Form with Pinned Footer */
                     <form onSubmit={handlePasswordSubmit} className="flex flex-col flex-1 min-h-0 justify-between">
                       {/* Scrollable Form Body */}
-                      <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                      <div className="flex-1 overflow-y-auto px-6 md:px-8 py-5 flex flex-col gap-3.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         <p className="text-[13px] text-[#8A8F98] leading-relaxed mb-1">
                           Enter your current password and choose a secure new password.
                         </p>
@@ -356,14 +356,17 @@ export function AccountDrawer({
                             error={Boolean(confirmPassword && confirmPassword !== newPassword)}
                           />
                         </div>
+
+                        {/* Bottom Clearance Spacer */}
+                        <div className="h-8 shrink-0" aria-hidden="true" />
                       </div>
 
                       {/* Pinned Action Footer (Always 100% visible, never cut off) */}
-                      <div className="p-6 md:p-8 pt-4 pb-6 md:pb-8 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
+                      <div className="px-6 md:px-8 py-4 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
                         <button
                           type="submit"
                           disabled={isSubmitting}
-                          className="w-full py-3.5 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                          className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
                         >
                           {isSubmitting ? 'Updating password...' : 'Update password'}
                         </button>
@@ -379,8 +382,8 @@ export function AccountDrawer({
               {mode === 'edit-profile' && (
                 <form onSubmit={handleProfileSubmit} className="flex flex-col flex-1 min-h-0 justify-between">
                   {/* Scrollable Form Body */}
-                  <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    <p className="text-[13px] text-[#8A8F98] leading-relaxed mb-1">
+                  <div className="flex-1 overflow-y-auto px-6 md:px-8 py-5 flex flex-col gap-3.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    <p className="text-[13px] text-[#8A8F98] leading-relaxed mb-0.5">
                       Update your contact details and default cargo delivery address.
                     </p>
 
@@ -421,7 +424,7 @@ export function AccountDrawer({
                             disabled
                             corner={0}
                           />
-                          <p className="text-[12px] text-[#8A8F98] mt-2 leading-relaxed">
+                          <p className="text-[11px] text-[#8A8F98] mt-1.5 leading-relaxed">
                             Date of birth is permanently locked for promotional integrity.{' '}
                             <a
                               href={`https://wa.me/6281234567890?text=${encodeURIComponent(
@@ -479,20 +482,23 @@ export function AccountDrawer({
                       </label>
                       <textarea
                         id="profile-address-input"
-                        rows={3}
+                        rows={2}
                         value={profileAddress}
                         onChange={(e) => setProfileAddress(e.target.value)}
-                        className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none resize-none scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                        className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none resize-none scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden min-h-[64px]"
                       />
                     </div>
+
+                    {/* Generous Bottom Clearance Spacer so textarea is NEVER touched/overlapped by footer */}
+                    <div className="h-10 shrink-0" aria-hidden="true" />
                   </div>
 
-                  {/* Pinned Action Footer (Always 100% visible, never cut off) */}
-                  <div className="p-6 md:p-8 pt-4 pb-6 md:pb-8 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
+                  {/* Pinned Action Footer (Clean padding with zero overlap) */}
+                  <div className="px-6 md:px-8 py-4 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3.5 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                      className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
                     >
                       {isSubmitting ? 'Saving changes...' : 'Save changes'}
                     </button>
@@ -505,7 +511,7 @@ export function AccountDrawer({
                   ================================================================== */}
               {mode === 'change-email' && (
                 <div className="flex flex-col flex-1 min-h-0 justify-between">
-                  <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex-1 overflow-y-auto px-6 md:px-8 py-5 flex flex-col gap-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <p className="text-[13px] text-[#8A8F98] leading-relaxed">
                       Your primary sign-in email is currently locked to your single sign-on identity:
                     </p>
@@ -515,12 +521,13 @@ export function AccountDrawer({
                     <p className="text-[12px] text-[#8A8F98]">
                       To request an email address update for enterprise or reseller accounts, please contact ARM support directly.
                     </p>
+                    <div className="h-8 shrink-0" aria-hidden="true" />
                   </div>
-                  <div className="p-6 md:p-8 pt-4 pb-6 md:pb-8 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
+                  <div className="px-6 md:px-8 py-4 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="w-full py-3.5 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] transition-colors rounded-none text-center"
+                      className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] transition-colors rounded-none text-center"
                     >
                       Close
                     </button>

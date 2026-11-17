@@ -143,15 +143,8 @@ export function AccountPersonalInfoSection({
               <span>Date of birth</span>
               <TooltipIcon label="Used for annual birthday rewards and member promotions. Locked against frequent changes to prevent reward abuse." />
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[15px] font-medium text-white">
-                {hasDob ? data.dateOfBirth : '-'}
-              </span>
-              {hasDob && (
-                <span className="text-[11px] font-mono uppercase tracking-wider text-white bg-[#1E1E21] px-1.5 py-0.5 select-none">
-                  Locked
-                </span>
-              )}
+            <div className="text-[15px] font-medium text-white mt-1">
+              {hasDob ? data.dateOfBirth : '-'}
             </div>
             {hasDob && (
               <div className="mt-1">
