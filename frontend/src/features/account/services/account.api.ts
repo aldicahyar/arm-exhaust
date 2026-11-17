@@ -29,6 +29,7 @@ export async function changeAccountPassword(
     return {
       success: true,
       message: data?.message ?? 'Password successfully updated.',
+      requiresReauth: Boolean(data?.requiresReauth),
     };
   } catch {
     return {

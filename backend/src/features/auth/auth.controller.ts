@@ -139,8 +139,9 @@ export class AuthController {
   async changePassword(
     @Req() req: Request & { user: { id: string } },
     @Body() dto: ChangePasswordDto,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.changePassword(req.user.id, dto);
+    return this.authService.changePassword(req.user.id, dto, res);
   }
 
   @Patch('profile')

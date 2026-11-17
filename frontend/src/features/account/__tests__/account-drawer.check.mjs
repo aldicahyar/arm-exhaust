@@ -33,7 +33,33 @@ assert.ok(
 );
 console.log('✓ Strict 0px geometry and monochrome palette verified');
 
-// 2. Motion & Smooth Bencho Transitions
+// 2. Hybrid Bencho Design Integration
+assert.ok(
+  code.includes('LabelInput'),
+  'AccountDrawer must integrate LabelInput for login-page design harmony'
+);
+assert.ok(
+  code.includes('corner={0}'),
+  'AccountDrawer must configure LabelInput with corner={0} for hybrid sharp stealth'
+);
+assert.ok(
+  code.includes('PasswordStrength'),
+  'AccountDrawer must integrate PasswordStrength component'
+);
+console.log('✓ Hybrid Bencho LabelInput & PasswordStrength verified');
+
+// 3. Security Revocation & Auto Sign Out Flow
+assert.ok(
+  code.includes('/login?status=password_changed'),
+  'AccountDrawer must redirect to /login upon password change for session revocation'
+);
+assert.ok(
+  code.toLowerCase().includes('all active sessions across all devices have been signed out'),
+  'AccountDrawer must inform user that all sessions across all devices were revoked'
+);
+console.log('✓ Security session revocation and sign-in redirect verified');
+
+// 4. Motion & Smooth Bencho Transitions
 assert.ok(code.includes('motion.div'), 'AccountDrawer must use motion.div for fluid slide animation');
 assert.ok(code.includes('AnimatePresence'), 'AccountDrawer must use AnimatePresence for exit animations');
 assert.ok(
@@ -42,7 +68,7 @@ assert.ok(
 );
 console.log('✓ Fluid Framer Motion / Bencho slide animation verified');
 
-// 3. Accessibility
+// 5. Accessibility
 assert.ok(code.includes('role="dialog"'), 'AccountDrawer must include role="dialog"');
 assert.ok(code.includes('aria-modal="true"'), 'AccountDrawer must include aria-modal="true"');
 assert.ok(
@@ -52,7 +78,7 @@ assert.ok(
 assert.ok(code.includes('Escape'), 'AccountDrawer must handle Escape key dismiss');
 console.log('✓ Accessibility and keyboard navigation verified');
 
-// 4. English copy
+// 6. English copy
 assert.ok(code.includes('Change password'), 'Must contain English header Change password');
 assert.ok(code.includes('Current password'), 'Must contain English label Current password');
 assert.ok(code.includes('New password'), 'Must contain English label New password');
@@ -63,7 +89,7 @@ assert.ok(
 );
 console.log('✓ 100% English copy and /forgot-password link verified');
 
-// 5. CSS Invariants
+// 7. CSS Invariants
 assert.ok(!code.includes('!important'), 'AccountDrawer must not use CSS !important');
 console.log('✓ CSS specificity clean (zero !important)');
 

@@ -657,12 +657,14 @@ export class AuthService {
 
   /**
    * Authenticated Password Change
-   * Validates current password, verifies policy on new password, updates hash, and preserves current session.
+   * Validates current password, verifies policy on new password, updates hash,
+   * revokes all active sessions across all devices, and clears the session cookie for maximum security.
    */
   async changePassword(
     userId: string,
     dto: ChangePasswordDto,
-  ): Promise<{ success: true; message: string }> {
+    res?: Response,
+  ): Promise<{ success: true; message: string; requiresReauth: true }> {
     const currentPassword = dto.currentPassword;
     const newPassword = dto.newPassword;
     const confirmPassword = dto.confirmPassword;
@@ -697,11 +699,23 @@ export class AuthService {
       [newHash, userId],
     );
 
-    this.logger.log(`Password changed successfully for user ID: ${userId}`);
+    // Invalidate all active sessions across all devices for security
+    await this.db.query(
+      'DELETE FROM transaction.t_trx_sessions WHERE user_id = $1',
+      [userId],
+    );
+
+    // Clear session cookie on current response
+    if (res) {
+      clearSessionCookie(res);
+    }
+
+    this.logger.log(`Password changed & all sessions revoked across all devices for user ID: ${userId}`);
 
     return {
       success: true,
-      message: 'Password successfully updated.',
+      message: 'Password successfully updated. All active sessions have been signed out for security.',
+      requiresReauth: true,
     };
   }
 

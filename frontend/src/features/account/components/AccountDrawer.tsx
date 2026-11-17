@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LabelInput } from '../../auth/LabelInput';
+import { PasswordStrength } from '../../auth/PasswordStrength';
 import type {
   AccountDrawerMode,
   CustomerAccountData,
@@ -26,13 +29,13 @@ export function AccountDrawer({
   onClose,
   onSuccess,
 }: Readonly<AccountDrawerProps>) {
+  const router = useRouter();
+
   // Password change form state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
 
   // Edit profile form state
   const [profileName, setProfileName] = useState(accountData.personal.name);
@@ -42,6 +45,7 @@ export function AccountDrawer({
   // UI status state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Reset form state whenever drawer mode or open state changes
   useEffect(() => {
@@ -49,14 +53,13 @@ export function AccountDrawer({
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setShowCurrent(false);
-      setShowNew(false);
-      setShowConfirm(false);
+      setIsNewPasswordFocused(false);
       setProfileName(accountData.personal.name);
       setProfilePhone(accountData.personal.phoneNumber);
       setProfileAddress(accountData.personal.address);
       setErrorMessage(null);
       setIsSubmitting(false);
+      setIsSuccess(false);
     }
   }, [isOpen, mode, accountData]);
 
@@ -65,7 +68,7 @@ export function AccountDrawer({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !isSuccess) {
         onClose();
       }
     };
@@ -78,7 +81,7 @@ export function AccountDrawer({
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, isSuccess, onClose]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,8 +117,14 @@ export function AccountDrawer({
       return;
     }
 
-    onSuccess(undefined, 'Password updated successfully.');
-    onClose();
+    // Success state: all devices revoked, redirect to login
+    setIsSuccess(true);
+    onSuccess(undefined, 'Password updated. All active sessions have been signed out for security.');
+
+    // Auto-redirect to sign-in after 2.5 seconds
+    setTimeout(() => {
+      router.push('/login?status=password_changed');
+    }, 2500);
   };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
@@ -167,11 +176,11 @@ export function AccountDrawer({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.24, ease: 'easeOut' }}
             className="fixed inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
-            onClick={onClose}
+            onClick={isSuccess ? undefined : onClose}
             aria-hidden="true"
           />
 
-          {/* Slide-over Panel (440px Pure Stealth with Bencho smooth spring/bezier curve) */}
+          {/* Slide-over Panel (440px Pure Stealth with Bencho smooth cubic-bezier curve) */}
           <div className="fixed inset-y-0 right-0 flex max-w-full pl-10 pointer-events-none">
             <motion.div
               initial={{ x: '100%' }}
@@ -189,14 +198,16 @@ export function AccountDrawer({
                     {mode === 'edit-profile' && 'Edit personal information'}
                     {mode === 'change-email' && 'Change email'}
                   </h2>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="text-[#8A8F98] hover:text-white transition-colors p-1"
-                    aria-label="Close drawer"
-                  >
-                    <X size={20} />
-                  </button>
+                  {!isSuccess && (
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="text-[#8A8F98] hover:text-white transition-colors p-1"
+                      aria-label="Close drawer"
+                    >
+                      <X size={20} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Error Feedback Notice */}
@@ -217,174 +228,153 @@ export function AccountDrawer({
 
                 {/* Change Password Body */}
                 {mode === 'change-password' && (
-                  <form onSubmit={handlePasswordSubmit} className="mt-6 flex flex-col gap-5">
-                    <p className="text-[13px] text-[#8A8F98] leading-relaxed">
-                      Enter your current password and choose a secure new password.
-                    </p>
-
-                    {/* Current Password Field */}
-                    <div>
-                      <label
-                        htmlFor="current-password-input"
-                        className="block text-[13px] text-[#8A8F98] mb-1.5"
+                  <div>
+                    {isSuccess ? (
+                      /* Security Revocation Success Screen */
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        className="mt-8 flex flex-col items-center text-center py-6"
                       >
-                        Current password
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="current-password-input"
-                          type={showCurrent ? 'text' : 'password'}
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          required
-                          placeholder="••••••••"
-                          className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 pr-10 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none placeholder:text-[#52525A]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrent(!showCurrent)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8F98] hover:text-white transition-colors"
-                          aria-label={showCurrent ? 'Hide password' : 'Show password'}
+                        <div className="flex h-12 w-12 items-center justify-center bg-white text-black mb-4 select-none">
+                          <Check size={26} strokeWidth={2.5} />
+                        </div>
+                        <h3 className="text-[17px] font-normal text-white mb-2 tracking-tight">
+                          Password Successfully Updated
+                        </h3>
+                        <p className="text-[13px] text-[#8A8F98] max-w-[320px] mb-6 leading-relaxed">
+                          For your security, all active sessions across all devices have been signed out. Redirecting to sign in...
+                        </p>
+                        <a
+                          href="/login?status=password_changed"
+                          className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none block text-center"
                         >
-                          {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                    </div>
+                          Sign In Now
+                        </a>
+                      </motion.div>
+                    ) : (
+                      /* Hybrid Bencho Form with corner={0} */
+                      <form onSubmit={handlePasswordSubmit} className="mt-6 flex flex-col gap-4">
+                        <p className="text-[13px] text-[#8A8F98] leading-relaxed mb-1">
+                          Enter your current password and choose a secure new password.
+                        </p>
 
-                    {/* New Password Field */}
-                    <div>
-                      <label
-                        htmlFor="new-password-input"
-                        className="block text-[13px] text-[#8A8F98] mb-1.5"
-                      >
-                        New password
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="new-password-input"
-                          type={showNew ? 'text' : 'password'}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          required
-                          minLength={8}
-                          placeholder="••••••••"
-                          className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 pr-10 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none placeholder:text-[#52525A]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNew(!showNew)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8F98] hover:text-white transition-colors"
-                          aria-label={showNew ? 'Hide password' : 'Show password'}
-                        >
-                          {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                      <span className="block text-[12px] text-[#8A8F98] mt-1.5">
-                        Must be at least 8 characters with letters and numbers.
-                      </span>
-                    </div>
+                        {/* Current Password Field with Bencho LabelInput */}
+                        <div>
+                          <LabelInput
+                            label="Current password"
+                            type="password"
+                            name="currentPassword"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                            corner={0}
+                            disabled={isSubmitting}
+                          />
+                        </div>
 
-                    {/* Confirm New Password Field */}
-                    <div>
-                      <label
-                        htmlFor="confirm-password-input"
-                        className="block text-[13px] text-[#8A8F98] mb-1.5"
-                      >
-                        Confirm new password
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="confirm-password-input"
-                          type={showConfirm ? 'text' : 'password'}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          required
-                          minLength={8}
-                          placeholder="••••••••"
-                          className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 pr-10 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none placeholder:text-[#52525A]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirm(!showConfirm)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A8F98] hover:text-white transition-colors"
-                          aria-label={showConfirm ? 'Hide password' : 'Show password'}
-                        >
-                          {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                    </div>
+                        {/* New Password Field with Bencho LabelInput & PasswordStrength */}
+                        <div>
+                          <LabelInput
+                            label="New password"
+                            type="password"
+                            name="newPassword"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            onFocus={() => setIsNewPasswordFocused(true)}
+                            onBlur={() => setIsNewPasswordFocused(false)}
+                            required
+                            minLength={8}
+                            corner={0}
+                            disabled={isSubmitting}
+                          />
+                          <div className="mt-2">
+                            <PasswordStrength password={newPassword} isFocused={isNewPasswordFocused} />
+                          </div>
+                        </div>
 
-                    {/* Submit Actions */}
-                    <div className="pt-4 flex flex-col gap-3">
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                      >
-                        {isSubmitting ? 'Updating password...' : 'Update password'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        className="w-full py-3 px-4 bg-transparent border border-[#1E1E21] text-[#8A8F98] hover:text-white hover:border-[#3E3E44] font-medium text-[14px] transition-colors rounded-none text-center"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                        {/* Confirm New Password Field with Bencho LabelInput */}
+                        <div>
+                          <LabelInput
+                            label="Confirm new password"
+                            type="password"
+                            name="confirmPassword"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            corner={0}
+                            disabled={isSubmitting}
+                            error={Boolean(confirmPassword && confirmPassword !== newPassword)}
+                          />
+                        </div>
 
-                    {/* Escape Hatch Link to /forgot-password */}
-                    <div className="pt-2 text-center text-[13px] text-[#8A8F98]">
-                      Forgot your current password?{' '}
-                      <a
-                        href="/forgot-password"
-                        className="text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors"
-                      >
-                        Recover account
-                      </a>
-                    </div>
-                  </form>
+                        {/* Submit Actions */}
+                        <div className="pt-3 flex flex-col gap-3">
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                          >
+                            {isSubmitting ? 'Updating password...' : 'Update password'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={isSubmitting}
+                            className="w-full py-3 px-4 bg-transparent border border-[#1E1E21] text-[#8A8F98] hover:text-white hover:border-[#3E3E44] font-medium text-[14px] transition-colors rounded-none text-center"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+
+                        {/* Escape Hatch Link to /forgot-password */}
+                        <div className="pt-2 text-center text-[13px] text-[#8A8F98]">
+                          Forgot your current password?{' '}
+                          <a
+                            href="/forgot-password"
+                            className="text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors"
+                          >
+                            Recover account
+                          </a>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 )}
 
-                {/* Edit Profile Body */}
+                {/* Edit Profile Body with Bencho LabelInput corner={0} */}
                 {mode === 'edit-profile' && (
-                  <form onSubmit={handleProfileSubmit} className="mt-6 flex flex-col gap-5">
-                    <p className="text-[13px] text-[#8A8F98] leading-relaxed">
+                  <form onSubmit={handleProfileSubmit} className="mt-6 flex flex-col gap-4">
+                    <p className="text-[13px] text-[#8A8F98] leading-relaxed mb-1">
                       Update your contact details and default cargo delivery address.
                     </p>
 
                     {/* Name */}
                     <div>
-                      <label
-                        htmlFor="profile-name-input"
-                        className="block text-[13px] text-[#8A8F98] mb-1.5"
-                      >
-                        Full name
-                      </label>
-                      <input
-                        id="profile-name-input"
+                      <LabelInput
+                        label="Full name"
                         type="text"
+                        name="name"
                         value={profileName}
                         onChange={(e) => setProfileName(e.target.value)}
                         required
-                        className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none"
+                        corner={0}
+                        disabled={isSubmitting}
                       />
                     </div>
 
                     {/* Phone */}
                     <div>
-                      <label
-                        htmlFor="profile-phone-input"
-                        className="block text-[13px] text-[#8A8F98] mb-1.5"
-                      >
-                        Phone / WhatsApp number
-                      </label>
-                      <input
-                        id="profile-phone-input"
-                        type="tel"
+                      <LabelInput
+                        label="Phone / WhatsApp number"
+                        type="text"
+                        name="phoneNumber"
                         value={profilePhone}
                         onChange={(e) => setProfilePhone(e.target.value)}
-                        className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none"
+                        corner={0}
+                        disabled={isSubmitting}
                       />
                     </div>
 
@@ -406,7 +396,7 @@ export function AccountDrawer({
                     </div>
 
                     {/* Submit Actions */}
-                    <div className="pt-4 flex flex-col gap-3">
+                    <div className="pt-3 flex flex-col gap-3">
                       <button
                         type="submit"
                         disabled={isSubmitting}

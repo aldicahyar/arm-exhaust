@@ -20,10 +20,18 @@ assert.ok(
   'AuthService must implement changePassword'
 );
 assert.ok(
+  serviceCode.includes('DELETE FROM transaction.t_trx_sessions WHERE user_id = $1'),
+  'changePassword must revoke all user sessions across all devices for security'
+);
+assert.ok(
+  serviceCode.includes('clearSessionCookie(res)'),
+  'changePassword must clear the session cookie for the current response'
+);
+assert.ok(
   serviceCode.includes('updateProfile('),
   'AuthService must implement updateProfile'
 );
-console.log('✓ AuthService methods verified');
+console.log('✓ AuthService methods and session revocation verified');
 
 assert.ok(
   controllerCode.includes("@Post('change-password')"),

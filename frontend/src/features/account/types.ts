@@ -61,6 +61,7 @@ export interface UpdateProfilePayload {
 export interface AccountApiResponse<T = unknown> {
   readonly success: boolean;
   readonly message?: string;
+  readonly requiresReauth?: boolean;
   readonly data?: T;
 }
 

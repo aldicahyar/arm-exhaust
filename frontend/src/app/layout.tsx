@@ -7,10 +7,38 @@ export const metadata: Metadata = {
   description: 'Custom motorcycle exhausts — locally crafted, globally trusted',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+interface RootLayoutProps {
+  readonly children: React.ReactNode;
+}
+
+export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
+        {process.env.NODE_ENV === 'development' && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  const clean = () => {
+                    document.querySelectorAll('[bis_skin_checked]').forEach((el) => el.removeAttribute('bis_skin_checked'));
+                  };
+                  clean();
+                  const observer = new MutationObserver(clean);
+                  observer.observe(document.documentElement, {
+                    attributes: true,
+                    subtree: true,
+                    attributeFilter: ['bis_skin_checked'],
+                  });
+                  window.addEventListener('DOMContentLoaded', () => {
+                    clean();
+                    setTimeout(() => observer.disconnect(), 2000);
+                  });
+                })();
+              `,
+            }}
+          />
+        )}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
