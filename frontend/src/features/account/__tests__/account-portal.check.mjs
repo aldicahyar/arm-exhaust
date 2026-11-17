@@ -54,7 +54,18 @@ assert.ok(
 );
 console.log('✓ AccountDrawer integration and removal of window.prompt verified in AccountPortal');
 
-// 2. Audit AppChrome.tsx for Header Hiding on /account
+// 2. Audit Motion and Bencho Transitions
+assert.ok(
+  portalCode.includes('motion.div') && portalCode.includes('AnimatePresence'),
+  'AccountPortal must integrate motion.div and AnimatePresence for smooth navigation transitions'
+);
+assert.ok(
+  portalCode.includes('BENCHO_EASE'),
+  'AccountPortal must use the standard Bencho easing curve for smooth motion'
+);
+console.log('✓ Bencho Framer Motion transitions verified in AccountPortal');
+
+// 3. Audit AppChrome.tsx for Header Hiding on /account
 const appChromeCode = fs.readFileSync(
   path.join(frontendDir, 'src/shared/components/AppChrome.tsx'),
   'utf-8'
@@ -66,7 +77,7 @@ assert.ok(
 );
 console.log('✓ Global header properly hidden on /account via AppChrome');
 
-// 3. Audit AccountSections.tsx
+// 4. Audit AccountSections.tsx
 const sectionsCode = fs.readFileSync(
   path.join(frontendDir, 'src/features/account/components/AccountSections.tsx'),
   'utf-8'
@@ -87,7 +98,7 @@ assert.ok(
 );
 console.log('✓ CSS specificity clean (no !important)');
 
-// 4. Audit Navigation Rail
+// 5. Audit Navigation Rail
 const navRailCode = fs.readFileSync(
   path.join(frontendDir, 'src/features/account/components/AccountNavRail.tsx'),
   'utf-8'
@@ -107,7 +118,7 @@ assert.ok(
 );
 console.log('✓ Semantic accessibility buttons, store navigation, and English copy verified in AccountNavRail');
 
-// 5. Audit types.ts for Readonly
+// 6. Audit types.ts for Readonly
 const typesCode = fs.readFileSync(
   path.join(frontendDir, 'src/features/account/types.ts'),
   'utf-8'

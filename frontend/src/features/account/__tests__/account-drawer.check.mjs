@@ -33,7 +33,16 @@ assert.ok(
 );
 console.log('✓ Strict 0px geometry and monochrome palette verified');
 
-// 2. Accessibility
+// 2. Motion & Smooth Bencho Transitions
+assert.ok(code.includes('motion.div'), 'AccountDrawer must use motion.div for fluid slide animation');
+assert.ok(code.includes('AnimatePresence'), 'AccountDrawer must use AnimatePresence for exit animations');
+assert.ok(
+  code.includes("x: '100%'") || code.includes('x: "100%"'),
+  'AccountDrawer must animate on x axis'
+);
+console.log('✓ Fluid Framer Motion / Bencho slide animation verified');
+
+// 3. Accessibility
 assert.ok(code.includes('role="dialog"'), 'AccountDrawer must include role="dialog"');
 assert.ok(code.includes('aria-modal="true"'), 'AccountDrawer must include aria-modal="true"');
 assert.ok(
@@ -43,7 +52,7 @@ assert.ok(
 assert.ok(code.includes('Escape'), 'AccountDrawer must handle Escape key dismiss');
 console.log('✓ Accessibility and keyboard navigation verified');
 
-// 3. English copy
+// 4. English copy
 assert.ok(code.includes('Change password'), 'Must contain English header Change password');
 assert.ok(code.includes('Current password'), 'Must contain English label Current password');
 assert.ok(code.includes('New password'), 'Must contain English label New password');
@@ -54,7 +63,7 @@ assert.ok(
 );
 console.log('✓ 100% English copy and /forgot-password link verified');
 
-// 4. CSS Invariants
+// 5. CSS Invariants
 assert.ok(!code.includes('!important'), 'AccountDrawer must not use CSS !important');
 console.log('✓ CSS specificity clean (zero !important)');
 
