@@ -9,6 +9,12 @@ import { usePathname } from 'next/navigation';
  */
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname?.startsWith('/login') || pathname?.startsWith('/admin')) return null;
+  if (
+    pathname?.startsWith('/login') ||
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/account')
+  ) {
+    return null;
+  }
   return <>{children}</>;
 }
