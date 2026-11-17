@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LabelInput } from '../../auth/LabelInput';
 import { PasswordStrength } from '../../auth/PasswordStrength';
 import { DateWheelPicker } from './DateWheelPicker';
+import { DateWheelPickerModal } from './DateWheelPickerModal';
 import type {
   AccountDrawerMode,
   CustomerAccountData,
@@ -443,12 +444,7 @@ export function AccountDrawer({
                             corner={0}
                             disabled={isSubmitting}
                             focused={isDobPickerOpen}
-                            onClick={() => {
-                              if (!profileDob) {
-                                setProfileDob(formatDateToString(selectedDobDate));
-                              }
-                              setIsDobPickerOpen((prev) => !prev);
-                            }}
+                            onClick={() => setIsDobPickerOpen(true)}
                             rightElement={
                               <ChevronDown
                                 size={16}
@@ -459,43 +455,16 @@ export function AccountDrawer({
                             }
                           />
 
-                          <AnimatePresence>
-                            {isDobPickerOpen && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                                className="overflow-hidden border border-t-0 border-[#1E1E21] bg-[#101012] p-4 flex flex-col gap-3"
-                              >
-                                <div className="flex items-center justify-between pb-2 border-b border-[#1E1E21]">
-                                  <span className="text-[12px] text-[#8A8F98] tracking-tight">
-                                    Scroll or drag wheels to set date
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setIsDobPickerOpen(false)}
-                                    className="text-[12px] font-medium text-white px-2.5 py-1 bg-[#1E1E21] hover:bg-[#2B2B30] transition-colors select-none rounded-none"
-                                  >
-                                    Done
-                                  </button>
-                                </div>
-
-                                <DateWheelPicker
-                                  value={selectedDobDate}
-                                  onChange={(date) => {
-                                    setSelectedDobDate(date);
-                                    setProfileDob(formatDateToString(date));
-                                  }}
-                                  disabled={isSubmitting}
-                                />
-
-                                <p className="text-[11px] text-[#8A8F98] leading-relaxed pt-1">
-                                  Note: Date of birth can only be set once to protect birthday promotions and cannot be modified later.
-                                </p>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                          {/* Dedicated Modal Overlay for Date Picker (No inline layout shift) */}
+                          <DateWheelPickerModal
+                            isOpen={isDobPickerOpen}
+                            initialDate={selectedDobDate}
+                            onClose={() => setIsDobPickerOpen(false)}
+                            onConfirm={(newDate) => {
+                              setSelectedDobDate(newDate);
+                              setProfileDob(formatDateToString(newDate));
+                            }}
+                          />
                         </div>
                       )}
                     </div>

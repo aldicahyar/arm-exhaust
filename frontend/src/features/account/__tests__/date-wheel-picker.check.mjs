@@ -75,4 +75,25 @@ assert.ok(
 );
 console.log('✓ Strict TypeScript Readonly contracts verified');
 
+// 6. DateWheelPickerModal Overlay Audit
+const modalPath = path.join(
+  frontendDir,
+  'src/features/account/components/DateWheelPickerModal.tsx'
+);
+assert.ok(fs.existsSync(modalPath), 'Missing required file: DateWheelPickerModal.tsx');
+const modalCode = fs.readFileSync(modalPath, 'utf-8');
+assert.ok(
+  modalCode.includes('role="dialog"') && modalCode.includes('aria-modal="true"'),
+  'DateWheelPickerModal must include accessible dialog attributes'
+);
+assert.ok(
+  modalCode.includes('Set Date') && modalCode.includes('Cancel'),
+  'DateWheelPickerModal must provide explicit Cancel and Set Date buttons'
+);
+assert.ok(
+  modalCode.includes('rounded-none') && !modalCode.includes('rounded-md'),
+  'DateWheelPickerModal must enforce 0px geometry'
+);
+console.log('✓ Dedicated DateWheelPickerModal overlay verified');
+
 console.log('=== ALL DATE WHEEL PICKER CHECKS PASSED SUCCESSFULLY ===');
