@@ -175,4 +175,110 @@ export class MailerService implements OnModuleInit {
       }
     }
   }
+
+  /**
+   * Sends password reset link email via SMTP or logs to console.
+   */
+  async sendPasswordResetEmail(email: string, rawToken: string): Promise<void> {
+    const from = process.env.SMTP_FROM || `"ARM Exhaust" <${process.env.SMTP_USER || 'no-reply@armexhaust.id'}>`;
+    const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
+
+    this.logger.log(`[mailer] Password reset requested for ${email}. Link: ${resetUrl}`);
+
+    if (this.transporter) {
+      try {
+        const logoPath = this.getLogoPath();
+        const attachments: nodemailer.SendMailOptions['attachments'] = [];
+
+        let headerBrandHtml: string;
+        if (logoPath) {
+          attachments.push({
+            filename: 'logo-arm.png',
+            path: logoPath,
+            cid: 'armlogo',
+          });
+          headerBrandHtml = `
+            <div style="text-align: center; margin-bottom: 22px;">
+              <img src="cid:armlogo" alt="ARM Exhaust" width="130" style="max-width: 130px; height: auto; display: inline-block; border: 0; outline: none;" />
+            </div>
+          `;
+        } else {
+          headerBrandHtml = `
+            <div style="text-align: center; margin-bottom: 22px;">
+              <h1 style="color: #E81828; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 2px;">ARM EXHAUST</h1>
+              <p style="color: #8A8F98; font-size: 11px; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px;">Racing & Performance Systems</p>
+            </div>
+          `;
+        }
+
+        await this.transporter.sendMail({
+          from,
+          to: email,
+          subject: 'Reset Your ARM Exhaust Password',
+          text: `You recently requested to reset your password for your ARM Exhaust account. Use the following link to reset your password: ${resetUrl}. This link is valid for 15 minutes. If you did not request this, please ignore this email.`,
+          attachments,
+          html: `
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0A0A0C" style="background-color: #0A0A0C; margin: 0; padding: 28px 12px; width: 100%;">
+              <tr>
+                <td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 480px; background-color: #0F0F11; border: 1px solid #26262B; border-top: 3px solid #E81828; border-radius: 10px; overflow: hidden; padding: 30px 22px;">
+                    <tr>
+                      <td align="center">
+                        ${headerBrandHtml}
+
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #141416; border: 1px solid #28282D; border-radius: 8px;">
+                          <tr>
+                            <td align="center" style="padding: 24px 20px;">
+                              <p style="margin: 0 0 14px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #9AA0A8; text-transform: uppercase; letter-spacing: 1.5px;">
+                                Password Reset Request
+                              </p>
+
+                              <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #D1D5DB; line-height: 1.6; text-align: center;">
+                                We received a request to reset the password for your ARM Exhaust account. Click the button below to choose a new password:
+                              </p>
+
+                              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto 16px auto;">
+                                <tr>
+                                  <td align="center" bgcolor="#E81828" style="border-radius: 6px;">
+                                    <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 13px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700; color: #FFFFFF; text-decoration: none; text-transform: uppercase; letter-spacing: 1.2px; border-radius: 6px; border: 1px solid #FF2B3C;">
+                                      Reset Password &rarr;
+                                    </a>
+                                  </td>
+                                </tr>
+                              </table>
+
+                              <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #71717A; text-align: center;">
+                                This link is single-use and will expire in <strong>15 minutes</strong>.
+                              </p>
+
+                              <div style="background-color: #18181C; border-radius: 6px; padding: 10px 14px; margin-top: 10px; border: 1px solid #2B2B30; word-break: break-all; text-align: left;">
+                                <p style="margin: 0 0 4px 0; font-size: 10px; color: #8A8F98; text-transform: uppercase; font-weight: 600;">Button not working? Copy this link:</p>
+                                <a href="${resetUrl}" style="color: #FF6B77; font-size: 11px; text-decoration: underline;">${resetUrl}</a>
+                              </div>
+
+                              <p style="margin: 20px 0 0 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #8A8F98; line-height: 1.5;">
+                                If you did not request a password reset, you can safely ignore this email. Your account remains completely secure.
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <p style="margin: 18px 0 0 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #52525B; text-align: center; line-height: 1.5;">
+                          &copy; ${new Date().getFullYear()} ARM Exhaust. Racing &amp; Performance Systems.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          `,
+        });
+        this.logger.log(`Password reset email sent successfully via SMTP to ${email}`);
+      } catch (err: any) {
+        this.logger.error(`Failed to send password reset email to ${email}: ${err.message}`);
+      }
+    }
+  }
 }
