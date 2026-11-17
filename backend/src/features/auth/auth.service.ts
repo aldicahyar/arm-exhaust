@@ -18,6 +18,9 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import * as crypto from 'node:crypto';
 import { validatePasswordPolicy } from '../../shared/utils/password-policy.util';
 import {
   generateSessionToken,
@@ -503,6 +506,150 @@ export class AuthService {
         roleDetails,
         role_details: roleDetails,
       },
+    };
+  }
+
+  /**
+   * Request password reset link (Magic Link).
+   * Follows User Enumeration Prevention: always returns neutral success message.
+   */
+  async forgotPassword(
+    dto: ForgotPasswordDto,
+    ip: string,
+  ): Promise<{ ok: true; message: string }> {
+    const email = dto.email.trim().toLowerCase();
+    const neutralMessage =
+      'If an account exists with this email address, password reset instructions have been sent.';
+
+    const { rows } = await this.db.query(
+      'SELECT id FROM master.t_mtr_users WHERE email = $1',
+      [email],
+    );
+    const user = rows[0];
+
+    if (!user) {
+      await this.rateLimiterService.sleepExponential(1);
+      return { ok: true, message: neutralMessage };
+    }
+
+    // Invalidate previous active reset tokens for this email
+    await this.db.query(
+      'DELETE FROM transaction.t_trx_password_resets WHERE email = $1 AND used_at IS NULL',
+      [email],
+    );
+
+    // Generate secure 32-byte (64-char hex) token
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    // Save token hash with 15-minute expiration
+    await this.db.query(
+      `INSERT INTO transaction.t_trx_password_resets (email, token_hash, expires_at, ip_address)
+       VALUES ($1, $2, now() + interval '15 minutes', $3)`,
+      [email, tokenHash, ip],
+    );
+
+    // Send email with raw token
+    await this.mailerService.sendPasswordResetEmail(email, rawToken);
+
+    return { ok: true, message: neutralMessage };
+  }
+
+  /**
+   * Verifies if a reset token is valid and unexpired without consuming it.
+   */
+  async verifyResetToken(token: string): Promise<{ valid: boolean; email?: string }> {
+    if (!token || typeof token !== 'string') {
+      return { valid: false };
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token.trim()).digest('hex');
+    const { rows } = await this.db.query(
+      `SELECT email, expires_at, used_at FROM transaction.t_trx_password_resets
+       WHERE token_hash = $1`,
+      [tokenHash],
+    );
+
+    const record = rows[0];
+    if (!record || record.used_at !== null) {
+      return { valid: false };
+    }
+
+    const isExpired = new Date(record.expires_at).getTime() < Date.now();
+    if (isExpired) {
+      return { valid: false };
+    }
+
+    return { valid: true, email: record.email };
+  }
+
+  /**
+   * Resets password using validated token, hashes with scrypt, and clears active sessions.
+   */
+  async resetPassword(
+    dto: ResetPasswordDto,
+    ip: string,
+  ): Promise<{ ok: true; message: string }> {
+    const rawToken = String(dto.token ?? '').trim();
+    if (!rawToken) {
+      throw new BadRequestException('Reset token is required.');
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const { rows } = await this.db.query(
+      `SELECT id, email, expires_at, used_at FROM transaction.t_trx_password_resets
+       WHERE token_hash = $1`,
+      [tokenHash],
+    );
+
+    const record = rows[0];
+    if (!record || record.used_at !== null) {
+      throw new BadRequestException('This password reset link is invalid or has already been used.');
+    }
+
+    const isExpired = new Date(record.expires_at).getTime() < Date.now();
+    if (isExpired) {
+      throw new BadRequestException('This password reset link has expired. Please request a new one.');
+    }
+
+    // Validate password policy
+    const passwordError = validatePasswordPolicy(dto.password);
+    if (passwordError) {
+      throw new BadRequestException(passwordError);
+    }
+
+    // Hash new password using scrypt
+    const passwordHash = await this.otpService.hashOtp(dto.password);
+
+    // Update user password and capture user id
+    const { rows: updatedUsers } = await this.db.query(
+      `UPDATE master.t_mtr_users
+       SET password_hash = $1, updated_at = now()
+       WHERE email = $2
+       RETURNING id`,
+      [passwordHash, record.email],
+    );
+
+    // Mark token as used
+    await this.db.query(
+      'UPDATE transaction.t_trx_password_resets SET used_at = now() WHERE id = $1',
+      [record.id],
+    );
+
+    // Invalidate all active user sessions for security
+    const updatedUser = updatedUsers[0];
+    if (updatedUser?.id) {
+      await this.db.query(
+        'DELETE FROM transaction.t_trx_sessions WHERE user_id = $1',
+        [updatedUser.id],
+      );
+    }
+
+    this.logger.log(`Password reset successfully executed for ${record.email} from IP: ${ip}`);
+
+    return {
+      ok: true,
+      message: 'Your password has been reset successfully. Please sign in with your new password.',
     };
   }
 }
