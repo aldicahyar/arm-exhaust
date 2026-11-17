@@ -20,6 +20,8 @@ import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as crypto from 'node:crypto';
 import { validatePasswordPolicy } from '../../shared/utils/password-policy.util';
 import {
@@ -650,6 +652,95 @@ export class AuthService {
     return {
       ok: true,
       message: 'Your password has been reset successfully. Please sign in with your new password.',
+    };
+  }
+
+  /**
+   * Authenticated Password Change
+   * Validates current password, verifies policy on new password, updates hash, and preserves current session.
+   */
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<{ success: true; message: string }> {
+    const currentPassword = dto.currentPassword;
+    const newPassword = dto.newPassword;
+    const confirmPassword = dto.confirmPassword;
+
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('New password and confirmation password do not match.');
+    }
+
+    const passwordError = validatePasswordPolicy(newPassword);
+    if (passwordError) {
+      throw new BadRequestException(passwordError);
+    }
+
+    const { rows } = await this.db.query(
+      'SELECT id, password_hash FROM master.t_mtr_users WHERE id = $1',
+      [userId],
+    );
+
+    const user = rows[0];
+    if (!user || !user.password_hash) {
+      throw new UnauthorizedException('User credentials not found or account was created with social login.');
+    }
+
+    const isCurrentValid = await this.otpService.verifyOtpHash(currentPassword, user.password_hash);
+    if (!isCurrentValid) {
+      throw new UnauthorizedException('Current password does not match.');
+    }
+
+    const newHash = await this.otpService.hashOtp(newPassword);
+    await this.db.query(
+      'UPDATE master.t_mtr_users SET password_hash = $1, updated_at = now() WHERE id = $2',
+      [newHash, userId],
+    );
+
+    this.logger.log(`Password changed successfully for user ID: ${userId}`);
+
+    return {
+      success: true,
+      message: 'Password successfully updated.',
+    };
+  }
+
+  /**
+   * Authenticated Profile Update
+   * Updates user name and profile information.
+   */
+  async updateProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ): Promise<{ success: true; user: { id: string; name: string; email: string; role: string } }> {
+    const trimmedName = dto.name?.trim();
+    if (trimmedName) {
+      await this.db.query(
+        'UPDATE master.t_mtr_users SET name = $1, updated_at = now() WHERE id = $2',
+        [trimmedName, userId],
+      );
+    }
+
+    const { rows } = await this.db.query(
+      'SELECT id, name, email, role FROM master.t_mtr_users WHERE id = $1',
+      [userId],
+    );
+
+    const updatedUser = rows[0];
+    if (!updatedUser) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    this.logger.log(`Profile updated successfully for user ID: ${userId}`);
+
+    return {
+      success: true,
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+      },
     };
   }
 }

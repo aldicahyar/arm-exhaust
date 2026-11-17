@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Query,
   Body,
   Req,
@@ -19,8 +20,11 @@ import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { TurnstileGuard } from '../../shared/guards/turnstile.guard';
 import { RateLimitGuard } from '../../shared/guards/rate-limit.guard';
+import { SessionAuthGuard } from '../../shared/guards/session-auth.guard';
 import { RateLimit } from '../../shared/decorators/rate-limit.decorator';
 import { cleanIp } from '../../core/security/rate-limiter.service';
 
@@ -127,5 +131,25 @@ export class AuthController {
   async resetPassword(@Body() dto: ResetPasswordDto, @Req() req: Request) {
     const ip = getClientIp(req);
     return this.authService.resetPassword(dto, ip);
+  }
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionAuthGuard)
+  async changePassword(
+    @Req() req: Request & { user: { id: string } },
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(req.user.id, dto);
+  }
+
+  @Patch('profile')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionAuthGuard)
+  async updateProfile(
+    @Req() req: Request & { user: { id: string } },
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(req.user.id, dto);
   }
 }
