@@ -98,6 +98,38 @@ assert.ok(
 );
 console.log('✓ CSS specificity clean (no !important)');
 
+assert.ok(
+  portalCode.includes('grid grid-cols-1 lg:grid-cols-2'),
+  'AccountPortal must organize the 4 sections in a 2x2 Symmetric Grid layout'
+);
+console.log('✓ 2x2 Symmetric Grid layout verified in AccountPortal');
+
+assert.ok(
+  portalCode.includes("classList.add('scrollbar-none')") &&
+  portalCode.includes("classList.remove('scrollbar-none')") &&
+  portalCode.includes('scrollbar-none'),
+  'AccountPortal must suppress scrollbars on root document and component container'
+);
+console.log('✓ Zero scrollbars verified across page /account');
+
+assert.ok(
+  !sectionsCode.includes('Recovery phone number'),
+  'AccountSections must eliminate redundant Recovery phone number'
+);
+assert.ok(
+  !sectionsCode.includes('Date of birth'),
+  'AccountSections must eliminate non-essential Date of birth field'
+);
+assert.ok(
+  !sectionsCode.includes('Two-factor authentication'),
+  'AccountSections must eliminate static mock Two-factor authentication row'
+);
+assert.ok(
+  sectionsCode.includes('Copy ID'),
+  'AccountSections must include interactive 1-click Copy ID button in Advanced section'
+);
+console.log('✓ Form redundancy elimination and Copy ID micro-interaction verified in AccountSections');
+
 // 5. Audit Navigation Rail
 const navRailCode = fs.readFileSync(
   path.join(frontendDir, 'src/features/account/components/AccountNavRail.tsx'),

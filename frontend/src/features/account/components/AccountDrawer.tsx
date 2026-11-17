@@ -187,7 +187,7 @@ export function AccountDrawer({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-auto w-screen max-w-[440px] bg-[#0E0E10] border-l border-[#1E1E21] flex flex-col justify-between p-6 md:p-8 text-white shadow-2xl"
+              className="pointer-events-auto w-screen max-w-[440px] bg-[#0E0E10] border-l border-[#1E1E21] flex flex-col justify-between p-6 md:p-8 text-white shadow-2xl overflow-y-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               
               {/* Header */}
@@ -310,8 +310,8 @@ export function AccountDrawer({
                           />
                         </div>
 
-                        {/* Submit Actions */}
-                        <div className="pt-3 flex flex-col gap-3">
+                        {/* Submit Action */}
+                        <div className="pt-3">
                           <button
                             type="submit"
                             disabled={isSubmitting}
@@ -319,25 +319,6 @@ export function AccountDrawer({
                           >
                             {isSubmitting ? 'Updating password...' : 'Update password'}
                           </button>
-                          <button
-                            type="button"
-                            onClick={onClose}
-                            disabled={isSubmitting}
-                            className="w-full py-3 px-4 bg-transparent border border-[#1E1E21] text-[#8A8F98] hover:text-white hover:border-[#3E3E44] font-medium text-[14px] transition-colors rounded-none text-center"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-
-                        {/* Escape Hatch Link to /forgot-password */}
-                        <div className="pt-2 text-center text-[13px] text-[#8A8F98]">
-                          Forgot your current password?{' '}
-                          <a
-                            href="/forgot-password"
-                            className="text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors"
-                          >
-                            Recover account
-                          </a>
                         </div>
                       </form>
                     )}
@@ -391,26 +372,18 @@ export function AccountDrawer({
                         rows={4}
                         value={profileAddress}
                         onChange={(e) => setProfileAddress(e.target.value)}
-                        className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none resize-none"
+                        className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none resize-none scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                       />
                     </div>
 
-                    {/* Submit Actions */}
-                    <div className="pt-3 flex flex-col gap-3">
+                    {/* Submit Action */}
+                    <div className="pt-3">
                       <button
                         type="submit"
                         disabled={isSubmitting}
                         className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
                       >
                         {isSubmitting ? 'Saving changes...' : 'Save changes'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        className="w-full py-3 px-4 bg-transparent border border-[#1E1E21] text-[#8A8F98] hover:text-white hover:border-[#3E3E44] font-medium text-[14px] transition-colors rounded-none text-center"
-                      >
-                        Cancel
                       </button>
                     </div>
                   </form>
@@ -437,12 +410,6 @@ export function AccountDrawer({
                     </button>
                   </div>
                 )}
-              </div>
-
-              {/* Drawer Footer Branding Hairline */}
-              <div className="pt-6 border-t border-[#1E1E21] text-[11px] text-[#52525A] flex justify-between items-center select-none">
-                <span>ARM ACCOUNT SECURITY</span>
-                <span>END-TO-END ENCRYPTED</span>
               </div>
 
             </motion.div>

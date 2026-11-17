@@ -18,15 +18,15 @@ export type AccountDrawerMode =
 export interface AccountSecurityInfo {
   readonly email: string;
   readonly hasPassword: boolean;
-  readonly twoFactorAuth: string;
-  readonly recoveryPhoneNumber: string;
+  readonly twoFactorAuth?: string;
+  readonly recoveryPhoneNumber?: string;
 }
 
 export interface AccountPersonalInfo {
   readonly name: string;
   readonly phoneNumber: string;
   readonly address: string;
-  readonly dateOfBirth: string;
+  readonly dateOfBirth?: string;
 }
 
 export interface AccountLocationInfo {
@@ -69,14 +69,11 @@ export const DEFAULT_CUSTOMER_ACCOUNT: CustomerAccountData = {
   security: {
     email: 'arkanpasiva@gmail.com',
     hasPassword: true,
-    twoFactorAuth: 'Email',
-    recoveryPhoneNumber: '+18837721',
   },
   personal: {
     name: 'Arkan Pasiva',
     phoneNumber: '+18837721',
     address: 'Jl. Soekarno Hatta No. 428, Bandung, Jawa Barat 40254',
-    dateOfBirth: '-',
   },
   location: {
     country: 'Indonesia',

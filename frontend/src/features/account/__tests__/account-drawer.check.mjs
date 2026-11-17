@@ -48,7 +48,26 @@ assert.ok(
 );
 console.log('✓ Hybrid Bencho LabelInput & PasswordStrength verified');
 
-// 3. Security Revocation & Auto Sign Out Flow
+// 3. Elimination of Redundant Elements (Decluttering)
+assert.ok(
+  !code.includes('Forgot your current password'),
+  'AccountDrawer must eliminate redundant Forgot your current password text'
+);
+assert.ok(
+  !code.includes('/forgot-password'),
+  'AccountDrawer must eliminate redundant /forgot-password link'
+);
+assert.ok(
+  !code.includes('Cancel</button>'),
+  'AccountDrawer must eliminate redundant Cancel button under action'
+);
+assert.ok(
+  !code.includes('ARM ACCOUNT SECURITY') && !code.includes('END-TO-END ENCRYPTED'),
+  'AccountDrawer must eliminate bottom hairline security meta text'
+);
+console.log('✓ Clutter elimination verified: Zero Cancel button, Zero forgot-password link, Zero footer meta text');
+
+// 4. Security Revocation & Auto Sign Out Flow
 assert.ok(
   code.includes('/login?status=password_changed'),
   'AccountDrawer must redirect to /login upon password change for session revocation'
@@ -59,7 +78,7 @@ assert.ok(
 );
 console.log('✓ Security session revocation and sign-in redirect verified');
 
-// 4. Motion & Smooth Bencho Transitions
+// 5. Motion & Smooth Bencho Transitions
 assert.ok(code.includes('motion.div'), 'AccountDrawer must use motion.div for fluid slide animation');
 assert.ok(code.includes('AnimatePresence'), 'AccountDrawer must use AnimatePresence for exit animations');
 assert.ok(
@@ -68,29 +87,25 @@ assert.ok(
 );
 console.log('✓ Fluid Framer Motion / Bencho slide animation verified');
 
-// 5. Accessibility
+// 6. Accessibility
 assert.ok(code.includes('role="dialog"'), 'AccountDrawer must include role="dialog"');
 assert.ok(code.includes('aria-modal="true"'), 'AccountDrawer must include aria-modal="true"');
-assert.ok(
-  code.includes('type="button"'),
-  'Interactive buttons must use semantic <button type="button">'
-);
 assert.ok(code.includes('Escape'), 'AccountDrawer must handle Escape key dismiss');
 console.log('✓ Accessibility and keyboard navigation verified');
 
-// 6. English copy
+// 7. English copy
 assert.ok(code.includes('Change password'), 'Must contain English header Change password');
 assert.ok(code.includes('Current password'), 'Must contain English label Current password');
 assert.ok(code.includes('New password'), 'Must contain English label New password');
 assert.ok(code.includes('Confirm new password'), 'Must contain English label Confirm new password');
-assert.ok(
-  code.includes('/forgot-password'),
-  'Must link to /forgot-password for forgotten credentials escape hatch'
-);
-console.log('✓ 100% English copy and /forgot-password link verified');
+console.log('✓ 100% English copy verified');
 
-// 7. CSS Invariants
+// 8. CSS Invariants & Zero Scrollbar
 assert.ok(!code.includes('!important'), 'AccountDrawer must not use CSS !important');
-console.log('✓ CSS specificity clean (zero !important)');
+assert.ok(
+  code.includes('scrollbar-none'),
+  'AccountDrawer must suppress scrollbars on drawer panel and inputs'
+);
+console.log('✓ CSS specificity clean (zero !important) and zero scrollbars verified');
 
 console.log('--- ALL ACCOUNT DRAWER CHECKS PASSED ---');

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type {
   AccountSecurityInfo,
   AccountPersonalInfo,
@@ -22,12 +22,15 @@ function TooltipIcon({ label }: Readonly<TooltipIconProps>) {
   );
 }
 
+/* ==========================================================================
+   QUADRANT 1: Sign-in and security
+   Streamlined to focus purely on active authentication credentials (Email, Password)
+   ========================================================================== */
 interface SecuritySectionProps {
   readonly data: AccountSecurityInfo;
   readonly onChangeEmail?: () => void;
   readonly onChangePassword?: () => void;
   readonly onResetPassword?: () => void;
-  readonly onChangeRecoveryPhone?: () => void;
 }
 
 export function AccountSecuritySection({
@@ -35,79 +38,61 @@ export function AccountSecuritySection({
   onChangeEmail,
   onChangePassword,
   onResetPassword,
-  onChangeRecoveryPhone,
 }: Readonly<SecuritySectionProps>) {
   return (
-    <section aria-labelledby="heading-security" className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-10 pb-16">
-      <h2 id="heading-security" className="text-[15px] font-normal text-white tracking-tight">
-        Sign-in and security
-      </h2>
+    <section
+      aria-labelledby="heading-security"
+      className="border-t border-[#1E1E21] pt-6 flex flex-col justify-between"
+    >
+      <div>
+        <h2 id="heading-security" className="text-[16px] font-normal text-white tracking-tight mb-7">
+          Sign-in and security
+        </h2>
 
-      <div className="flex flex-col gap-8">
-        {/* Email */}
-        <div>
-          <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
-            <span>Email</span>
-            <TooltipIcon label="Primary sign-in email address" />
+        <div className="flex flex-col gap-7">
+          {/* Email */}
+          <div>
+            <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
+              <span>Email</span>
+              <TooltipIcon label="Primary sign-in email address" />
+            </div>
+            <div className="text-[15px] font-medium text-white mt-1">{data.email}</div>
+            <button
+              type="button"
+              onClick={onChangeEmail}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              Change
+            </button>
           </div>
-          <div className="text-[15px] font-medium text-white mt-1">{data.email}</div>
-          <button
-            type="button"
-            onClick={onChangeEmail}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            Change
-          </button>
-        </div>
 
-        {/* Password */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Password</div>
-          <div className="text-[15px] font-medium text-white tracking-widest mt-1">••••••••</div>
-          <button
-            type="button"
-            onClick={onChangePassword ?? onResetPassword}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            Change
-          </button>
-        </div>
-
-        {/* Two-factor authentication */}
-        <div>
-          <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
-            <span>Two-factor authentication</span>
-            <TooltipIcon label="Two-factor verification channel" />
+          {/* Password */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Password</div>
+            <div className="text-[15px] font-medium text-white tracking-widest mt-1">••••••••</div>
+            <button
+              type="button"
+              onClick={onChangePassword ?? onResetPassword}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              Change
+            </button>
           </div>
-          <div className="text-[15px] font-medium text-white mt-1">{data.twoFactorAuth}</div>
-        </div>
-
-        {/* Recovery phone number */}
-        <div>
-          <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
-            <span>Recovery phone number</span>
-            <TooltipIcon label="Phone number used for account recovery and OTP" />
-          </div>
-          <div className="text-[15px] font-medium text-white mt-1">{data.recoveryPhoneNumber}</div>
-          <button
-            type="button"
-            onClick={onChangeRecoveryPhone}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            Change
-          </button>
         </div>
       </div>
     </section>
   );
 }
 
+/* ==========================================================================
+   QUADRANT 2: Personal information
+   Streamlined to essential high-performance delivery info (Name, Phone, Address)
+   ========================================================================== */
 interface PersonalInfoSectionProps {
   readonly data: AccountPersonalInfo;
   readonly onEditName?: () => void;
   readonly onEditPhone?: () => void;
   readonly onEditAddress?: () => void;
-  readonly onAddDateOfBirth?: () => void;
 }
 
 export function AccountPersonalInfoSection({
@@ -115,78 +100,69 @@ export function AccountPersonalInfoSection({
   onEditName,
   onEditPhone,
   onEditAddress,
-  onAddDateOfBirth,
 }: Readonly<PersonalInfoSectionProps>) {
   const hasAddress = Boolean(data.address && data.address !== '-');
-  const hasDob = Boolean(data.dateOfBirth && data.dateOfBirth !== '-');
 
   return (
-    <section aria-labelledby="heading-personal" className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-10 pb-16">
-      <h2 id="heading-personal" className="text-[15px] font-normal text-white tracking-tight">
-        Personal information
-      </h2>
+    <section
+      aria-labelledby="heading-personal"
+      className="border-t border-[#1E1E21] pt-6 flex flex-col justify-between"
+    >
+      <div>
+        <h2 id="heading-personal" className="text-[16px] font-normal text-white tracking-tight mb-7">
+          Personal information
+        </h2>
 
-      <div className="flex flex-col gap-8">
-        {/* Name */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Name</div>
-          <div className="text-[15px] font-medium text-white mt-1">{data.name}</div>
-          <button
-            type="button"
-            onClick={onEditName}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            Edit
-          </button>
-        </div>
-
-        {/* Phone number */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Phone number</div>
-          <div className="text-[15px] font-medium text-white mt-1">{data.phoneNumber}</div>
-          <button
-            type="button"
-            onClick={onEditPhone}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            Edit
-          </button>
-        </div>
-
-        {/* Address */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Address</div>
-          <div className="text-[15px] font-medium text-white mt-1">
-            {hasAddress ? data.address : '-'}
+        <div className="flex flex-col gap-7">
+          {/* Name */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Name</div>
+            <div className="text-[15px] font-medium text-white mt-1">{data.name}</div>
+            <button
+              type="button"
+              onClick={onEditName}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              Edit
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onEditAddress}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            {hasAddress ? 'Edit' : 'Add'}
-          </button>
-        </div>
 
-        {/* Date of birth */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Date of birth</div>
-          <div className="text-[15px] font-medium text-white mt-1">
-            {hasDob ? data.dateOfBirth : '-'}
+          {/* Phone number */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Phone number</div>
+            <div className="text-[15px] font-medium text-white mt-1">{data.phoneNumber}</div>
+            <button
+              type="button"
+              onClick={onEditPhone}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              Edit
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onAddDateOfBirth}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            {hasDob ? 'Edit' : 'Add'}
-          </button>
+
+          {/* Delivery Address */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Delivery address</div>
+            <div className="text-[15px] font-medium text-white mt-1 leading-relaxed">
+              {hasAddress ? data.address : '-'}
+            </div>
+            <button
+              type="button"
+              onClick={onEditAddress}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              {hasAddress ? 'Edit' : 'Add'}
+            </button>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
+/* ==========================================================================
+   QUADRANT 3: Location / Regional preferences
+   ========================================================================== */
 interface LocationSectionProps {
   readonly data: AccountLocationInfo;
   readonly onEditLanguage?: () => void;
@@ -197,35 +173,44 @@ export function AccountLocationSection({
   onEditLanguage,
 }: Readonly<LocationSectionProps>) {
   return (
-    <section aria-labelledby="heading-location" className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-10 pb-16">
-      <h2 id="heading-location" className="text-[15px] font-normal text-white tracking-tight">
-        Location
-      </h2>
+    <section
+      aria-labelledby="heading-location"
+      className="border-t border-[#1E1E21] pt-6 flex flex-col justify-between"
+    >
+      <div>
+        <h2 id="heading-location" className="text-[16px] font-normal text-white tracking-tight mb-7">
+          Location
+        </h2>
 
-      <div className="flex flex-col gap-8">
-        {/* Country */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Country</div>
-          <div className="text-[15px] font-medium text-white mt-1">{data.country}</div>
-        </div>
+        <div className="flex flex-col gap-7">
+          {/* Country */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Country</div>
+            <div className="text-[15px] font-medium text-white mt-1">{data.country}</div>
+          </div>
 
-        {/* Language */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Language</div>
-          <div className="text-[15px] font-medium text-white mt-1">{data.language}</div>
-          <button
-            type="button"
-            onClick={onEditLanguage}
-            className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            Edit
-          </button>
+          {/* Language */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Language</div>
+            <div className="text-[15px] font-medium text-white mt-1">{data.language}</div>
+            <button
+              type="button"
+              onClick={onEditLanguage}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              Edit
+            </button>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
+/* ==========================================================================
+   QUADRANT 4: Advanced / Account management
+   Includes interactive 1-click 'Copy ID' for fast customer support reference
+   ========================================================================== */
 interface AdvancedSectionProps {
   readonly data: AccountAdvancedInfo;
   readonly onDeleteAccount?: () => void;
@@ -235,40 +220,63 @@ export function AccountAdvancedSection({
   data,
   onDeleteAccount,
 }: Readonly<AdvancedSectionProps>) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyId = () => {
+    if (typeof navigator !== 'undefined' && navigator?.clipboard) {
+      void navigator.clipboard.writeText(data.accountIdentifier).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  };
+
   return (
-    <section aria-labelledby="heading-advanced" className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-10">
-      <h2 id="heading-advanced" className="text-[15px] font-normal text-white tracking-tight">
-        Advanced
-      </h2>
+    <section
+      aria-labelledby="heading-advanced"
+      className="border-t border-[#1E1E21] pt-6 flex flex-col justify-between"
+    >
+      <div>
+        <h2 id="heading-advanced" className="text-[16px] font-normal text-white tracking-tight mb-7">
+          Advanced
+        </h2>
 
-      <div className="flex flex-col gap-8">
-        {/* Account identifier */}
-        <div>
-          <div className="text-[13px] text-[#8A8F98]">Account identifier</div>
-          <div className="text-[14px] font-mono text-white mt-1 break-all">
-            {data.accountIdentifier}
+        <div className="flex flex-col gap-7">
+          {/* Account identifier */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Account identifier</div>
+            <div className="text-[14px] font-mono text-white mt-1 break-all select-all">
+              {data.accountIdentifier}
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyId}
+              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              {copied ? 'Copied to clipboard' : 'Copy ID'}
+            </button>
           </div>
-        </div>
 
-        {/* Terms & Conditions */}
-        <div>
-          <a
-            href={data.termsUrl}
-            className="text-[14px] text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors inline-block"
-          >
-            Terms & Conditions →
-          </a>
-        </div>
+          {/* Terms & Conditions */}
+          <div>
+            <a
+              href={data.termsUrl}
+              className="text-[14px] text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors inline-block"
+            >
+              Terms & Conditions →
+            </a>
+          </div>
 
-        {/* Delete account */}
-        <div>
-          <button
-            type="button"
-            onClick={onDeleteAccount}
-            className="text-[14px] text-[#8A8F98] underline underline-offset-4 hover:text-white transition-colors"
-          >
-            Delete account
-          </button>
+          {/* Delete account */}
+          <div>
+            <button
+              type="button"
+              onClick={onDeleteAccount}
+              className="text-[14px] text-[#8A8F98] underline underline-offset-4 hover:text-white transition-colors"
+            >
+              Delete account
+            </button>
+          </div>
         </div>
       </div>
     </section>

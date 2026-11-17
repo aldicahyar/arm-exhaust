@@ -50,6 +50,16 @@ export function AccountPortal({
     };
   }, []);
 
+  // Suppress visual scrollbar across entire page / window when on account portal
+  useEffect(() => {
+    document.documentElement.classList.add('scrollbar-none');
+    document.body.classList.add('scrollbar-none');
+    return () => {
+      document.documentElement.classList.remove('scrollbar-none');
+      document.body.classList.remove('scrollbar-none');
+    };
+  }, []);
+
   // Auto-dismiss notice banner after 4 seconds
   useEffect(() => {
     if (!noticeMessage) return;
@@ -90,7 +100,7 @@ export function AccountPortal({
   };
 
   return (
-    <div className="w-full bg-[#0A0A0B] text-white min-h-screen font-sans antialiased">
+    <div className="w-full bg-[#0A0A0B] text-white min-h-screen font-sans antialiased scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <div className="max-w-[1160px] mx-auto px-4 md:px-8 py-12 md:py-20">
         
         {/* Success Notice Banner with Bencho smooth height/fade transition */}
@@ -189,31 +199,29 @@ export function AccountPortal({
                         transition={{ duration: 0.18, ease: BENCHO_EASE }}
                       >
                         {activeTab === 'arm-id' && (
-                          <div>
-                            {/* SECTION 1: SIGN-IN AND SECURITY */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
+                            {/* QUADRANT 1: SIGN-IN AND SECURITY */}
                             <AccountSecuritySection
                               data={accountData.security}
                               onChangeEmail={() => setDrawerMode('change-email')}
                               onChangePassword={() => setDrawerMode('change-password')}
-                              onChangeRecoveryPhone={() => setDrawerMode('edit-profile')}
                             />
 
-                            {/* SECTION 2: PERSONAL INFORMATION */}
+                            {/* QUADRANT 2: PERSONAL INFORMATION */}
                             <AccountPersonalInfoSection
                               data={accountData.personal}
                               onEditName={() => setDrawerMode('edit-profile')}
                               onEditPhone={() => setDrawerMode('edit-profile')}
                               onEditAddress={() => setDrawerMode('edit-profile')}
-                              onAddDateOfBirth={() => setDrawerMode('edit-profile')}
                             />
 
-                            {/* SECTION 3: LOCATION */}
+                            {/* QUADRANT 3: LOCATION / REGIONAL PREFERENCES */}
                             <AccountLocationSection
                               data={accountData.location}
                               onEditLanguage={handleEditLanguage}
                             />
 
-                            {/* SECTION 4: ADVANCED */}
+                            {/* QUADRANT 4: ADVANCED / ACCOUNT MANAGEMENT */}
                             <AccountAdvancedSection
                               data={accountData.advanced}
                               onDeleteAccount={handleDeleteAccount}
