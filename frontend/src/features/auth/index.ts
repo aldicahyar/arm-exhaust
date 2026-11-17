@@ -8,3 +8,4 @@ export * from './Turnstile';
 export * from './OtpStep';
 export * from './LabelInput';
 export * from './AuthCheckbox';
+export * from './ResetPasswordCard';
