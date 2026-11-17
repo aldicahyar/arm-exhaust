@@ -123,9 +123,9 @@ export function AccountPersonalInfoSection({
             <div className="text-[15px] font-medium text-white mt-1">{data.name}</div>
           </div>
 
-          {/* Phone number */}
+          {/* Phone */}
           <div>
-            <div className="text-[13px] text-[#8A8F98]">Phone number</div>
+            <div className="text-[13px] text-[#8A8F98]">Phone</div>
             <div className="text-[15px] font-medium text-white mt-1">{data.phoneNumber}</div>
           </div>
 

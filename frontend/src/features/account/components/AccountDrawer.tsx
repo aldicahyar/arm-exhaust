@@ -8,6 +8,7 @@ import { LabelInput } from '../../auth/LabelInput';
 import { PasswordStrength } from '../../auth/PasswordStrength';
 import { DateWheelPicker } from './DateWheelPicker';
 import { DateWheelPickerModal } from './DateWheelPickerModal';
+import { PhoneInput } from './PhoneInput';
 import type {
   AccountDrawerMode,
   CustomerAccountData,
@@ -401,15 +402,11 @@ export function AccountDrawer({
                       />
                     </div>
 
-                    {/* Phone */}
+                    {/* Phone with Country Dial Selector */}
                     <div>
-                      <LabelInput
-                        label="Phone / WhatsApp number"
-                        type="text"
-                        name="phoneNumber"
+                      <PhoneInput
                         value={profilePhone}
-                        onChange={(e) => setProfilePhone(e.target.value)}
-                        corner={0}
+                        onChange={setProfilePhone}
                         disabled={isSubmitting}
                       />
                     </div>

@@ -8,7 +8,7 @@ export interface LabelInputProps {
   label: string;
   value: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: 'text' | 'email' | 'password';
+  type?: 'text' | 'email' | 'password' | 'tel';
   name?: string;
   id?: string;
   required?: boolean;
