@@ -9,6 +9,12 @@ export type AccountNavKey =
 
 export type AccountTabKey = 'arm-id' | 'privacy' | 'third-party';
 
+export type AccountDrawerMode =
+  | 'none'
+  | 'change-password'
+  | 'edit-profile'
+  | 'change-email';
+
 export interface AccountSecurityInfo {
   readonly email: string;
   readonly hasPassword: boolean;
@@ -38,6 +44,24 @@ export interface CustomerAccountData {
   readonly personal: AccountPersonalInfo;
   readonly location: AccountLocationInfo;
   readonly advanced: AccountAdvancedInfo;
+}
+
+export interface ChangePasswordPayload {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+  readonly confirmPassword: string;
+}
+
+export interface UpdateProfilePayload {
+  readonly name?: string;
+  readonly phoneNumber?: string;
+  readonly address?: string;
+}
+
+export interface AccountApiResponse<T = unknown> {
+  readonly success: boolean;
+  readonly message?: string;
+  readonly data?: T;
 }
 
 export const DEFAULT_CUSTOMER_ACCOUNT: CustomerAccountData = {

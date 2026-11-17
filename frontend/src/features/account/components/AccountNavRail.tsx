@@ -61,7 +61,7 @@ export function AccountNavRail({
         href="/catalog"
         className="w-full text-left py-3.5 border-b border-[#1E1E21] text-[13px] text-[#8A8F98] hover:text-white transition-colors block mt-6"
       >
-        ← Kembali ke Toko
+        ← Back to store
       </Link>
     </nav>
   );

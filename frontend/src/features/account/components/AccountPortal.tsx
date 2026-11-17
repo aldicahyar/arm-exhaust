@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type {
   AccountNavKey,
   AccountTabKey,
+  AccountDrawerMode,
   CustomerAccountData,
 } from '../types';
 import { DEFAULT_CUSTOMER_ACCOUNT } from '../types';
@@ -14,6 +15,8 @@ import {
   AccountLocationSection,
   AccountAdvancedSection,
 } from './AccountSections';
+import { AccountDrawer } from './AccountDrawer';
+import { fetchCurrentAccountData } from '../services/account.api';
 
 interface AccountPortalProps {
   readonly initialData?: CustomerAccountData;
@@ -27,34 +30,43 @@ export function AccountPortal({
   const [activeNav, setActiveNav] = useState<AccountNavKey>('dashboard');
   const [activeTab, setActiveTab] = useState<AccountTabKey>('arm-id');
   const [accountData, setAccountData] = useState<CustomerAccountData>(initialData);
+  const [drawerMode, setDrawerMode] = useState<AccountDrawerMode>('none');
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
-  const handleEditName = () => {
-    const newName = window.prompt('Ubah Nama Pengguna:', accountData.personal.name);
-    if (newName && newName.trim()) {
+  // Sync with live server session data on mount
+  useEffect(() => {
+    let isMounted = true;
+    void fetchCurrentAccountData().then((liveData) => {
+      if (isMounted && liveData) {
+        setAccountData(liveData);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Auto-dismiss notice banner after 4 seconds
+  useEffect(() => {
+    if (!noticeMessage) return;
+    const timer = setTimeout(() => {
+      setNoticeMessage(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [noticeMessage]);
+
+  const handleDrawerSuccess = (
+    updated?: Partial<CustomerAccountData>,
+    msg?: string
+  ) => {
+    if (updated) {
       setAccountData((prev) => ({
         ...prev,
-        personal: { ...prev.personal, name: newName.trim() },
+        ...updated,
       }));
     }
-  };
-
-  const handleEditPhone = () => {
-    const newPhone = window.prompt('Ubah Nomor Telepon:', accountData.personal.phoneNumber);
-    if (newPhone && newPhone.trim()) {
-      setAccountData((prev) => ({
-        ...prev,
-        personal: { ...prev.personal, phoneNumber: newPhone.trim() },
-      }));
-    }
-  };
-
-  const handleEditAddress = () => {
-    const newAddress = window.prompt('Ubah Alamat Pengiriman:', accountData.personal.address);
-    if (newAddress && newAddress.trim()) {
-      setAccountData((prev) => ({
-        ...prev,
-        personal: { ...prev.personal, address: newAddress.trim() },
-      }));
+    if (msg) {
+      setNoticeMessage(msg);
     }
   };
 
@@ -64,11 +76,12 @@ export function AccountPortal({
       ...prev,
       location: { ...prev.location, language: nextLang },
     }));
+    setNoticeMessage(`Language preference set to ${nextLang}.`);
   };
 
   const handleDeleteAccount = () => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus akun ini secara permanen?')) {
-      alert('Permintaan penghapusan akun telah dicatat.');
+    if (window.confirm('Are you sure you want to permanently delete your account?')) {
+      alert('Account deletion request has been submitted to ARM support.');
     }
   };
 
@@ -76,6 +89,23 @@ export function AccountPortal({
     <div className="w-full bg-[#0A0A0B] text-white min-h-screen font-sans antialiased">
       <div className="max-w-[1160px] mx-auto px-4 md:px-8 py-12 md:py-20">
         
+        {/* Success Notice Banner (Pure Monochrome Stealth) */}
+        {noticeMessage && (
+          <div
+            role="status"
+            className="mb-8 p-3.5 bg-[#141416] border border-white text-white text-[13px] flex items-center justify-between transition-all"
+          >
+            <span>{noticeMessage}</span>
+            <button
+              type="button"
+              onClick={() => setNoticeMessage(null)}
+              className="text-[#8A8F98] hover:text-white text-xs underline underline-offset-2 ml-4"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* POLESTAR 2-COLUMN GRID (Left Nav Rail + Right Main Content) */}
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-10 md:gap-20">
           
@@ -136,26 +166,18 @@ export function AccountPortal({
                     {/* SECTION 1: SIGN-IN AND SECURITY */}
                     <AccountSecuritySection
                       data={accountData.security}
-                      onChangeEmail={() => alert('Fitur ubah email memerlukan verifikasi tautan.')}
-                      onResetPassword={() => alert('Instruksi reset password dikirimkan ke email terdaftar.')}
-                      onChangeRecoveryPhone={handleEditPhone}
+                      onChangeEmail={() => setDrawerMode('change-email')}
+                      onChangePassword={() => setDrawerMode('change-password')}
+                      onChangeRecoveryPhone={() => setDrawerMode('edit-profile')}
                     />
 
                     {/* SECTION 2: PERSONAL INFORMATION */}
                     <AccountPersonalInfoSection
                       data={accountData.personal}
-                      onEditName={handleEditName}
-                      onEditPhone={handleEditPhone}
-                      onEditAddress={handleEditAddress}
-                      onAddDateOfBirth={() => {
-                        const dob = window.prompt('Masukkan Tanggal Lahir (DD/MM/YYYY):');
-                        if (dob) {
-                          setAccountData((prev) => ({
-                            ...prev,
-                            personal: { ...prev.personal, dateOfBirth: dob.trim() },
-                          }));
-                        }
-                      }}
+                      onEditName={() => setDrawerMode('edit-profile')}
+                      onEditPhone={() => setDrawerMode('edit-profile')}
+                      onEditAddress={() => setDrawerMode('edit-profile')}
+                      onAddDateOfBirth={() => setDrawerMode('edit-profile')}
                     />
 
                     {/* SECTION 3: LOCATION */}
@@ -174,19 +196,19 @@ export function AccountPortal({
 
                 {activeTab === 'privacy' && (
                   <div className="py-8 text-[14px] text-[#8A8F98] leading-relaxed max-w-xl">
-                    <p className="mb-4 text-white">Privasi Data Pelanggan ARM Exhaust</p>
+                    <p className="mb-4 text-white font-medium">ARM Exhaust Customer Data Privacy</p>
                     <p>
-                      Data akun Anda disimpan secara terenkripsi sesuai standar keamanan bengkel dan transaksi resmi.
-                      Kami tidak pernah membagikan riwayat modifikasi atau alamat bengkel pribadi Anda kepada pihak ketiga.
+                      Your account data is encrypted adhering to official workshop and high-security transaction standards.
+                      We never share your motorcycle build configurations or personal delivery addresses with third parties.
                     </p>
                   </div>
                 )}
 
                 {activeTab === 'third-party' && (
                   <div className="py-8 text-[14px] text-[#8A8F98] leading-relaxed max-w-xl">
-                    <p className="mb-4 text-white">Aplikasi Pihak Ketiga Terhubung</p>
+                    <p className="mb-4 text-white font-medium">Connected Third-Party Applications</p>
                     <p>
-                      Tidak ada aplikasi pihak ketiga yang saat ini memiliki akses ke akun ARM Exhaust Anda.
+                      No third-party applications currently have authorized access to your ARM Exhaust account.
                     </p>
                   </div>
                 )}
@@ -241,7 +263,7 @@ export function AccountPortal({
                     </div>
                     <button
                       type="button"
-                      onClick={() => alert('Rincian nomor resi J&T Cargo: 9821-4402-9912')}
+                      onClick={() => alert('J&T Cargo tracking number: 9821-4402-9912')}
                       className="text-[14px] text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors text-left"
                     >
                       View order →
@@ -257,7 +279,7 @@ export function AccountPortal({
                   {activeNav}
                 </h1>
                 <p className="text-[14px] text-[#8A8F98]">
-                  Bagian {activeNav} sedang disinkronkan dengan data workshop ARM Exhaust.
+                  The {activeNav} section is currently synchronizing with ARM Exhaust workshop data.
                 </p>
               </div>
             )}
@@ -265,6 +287,15 @@ export function AccountPortal({
         </div>
 
       </div>
+
+      {/* Slide-over Drawer for Password Change, Profile Edit, & Email */}
+      <AccountDrawer
+        isOpen={drawerMode !== 'none'}
+        mode={drawerMode}
+        accountData={accountData}
+        onClose={() => setDrawerMode('none')}
+        onSuccess={handleDrawerSuccess}
+      />
     </div>
   );
 }

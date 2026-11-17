@@ -49,10 +49,12 @@ export function AuthGoogleButton({ disabled = false, onClick, onCredential }: Au
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const isDev = process.env.NODE_ENV !== 'production';
   const hiddenBtnRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef(false);
   const [gisLoaded, setGisLoaded] = useState(false);
 
   useEffect(() => {
     if (!clientId || !window.google?.accounts?.id || !onCredential) return;
+    if (isInitializedRef.current) return;
 
     try {
       window.google.accounts.id.initialize({
@@ -75,6 +77,7 @@ export function AuthGoogleButton({ disabled = false, onClick, onCredential }: Au
         });
       }
 
+      isInitializedRef.current = true;
       // Trigger Google One Tap auto-prompt jika didukung browser
       window.google.accounts.id.prompt();
     } catch (err) {

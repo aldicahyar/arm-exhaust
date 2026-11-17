@@ -25,6 +25,7 @@ function TooltipIcon({ label }: Readonly<TooltipIconProps>) {
 interface SecuritySectionProps {
   readonly data: AccountSecurityInfo;
   readonly onChangeEmail?: () => void;
+  readonly onChangePassword?: () => void;
   readonly onResetPassword?: () => void;
   readonly onChangeRecoveryPhone?: () => void;
 }
@@ -32,6 +33,7 @@ interface SecuritySectionProps {
 export function AccountSecuritySection({
   data,
   onChangeEmail,
+  onChangePassword,
   onResetPassword,
   onChangeRecoveryPhone,
 }: Readonly<SecuritySectionProps>) {
@@ -64,10 +66,10 @@ export function AccountSecuritySection({
           <div className="text-[15px] font-medium text-white tracking-widest mt-1">••••••••</div>
           <button
             type="button"
-            onClick={onResetPassword}
+            onClick={onChangePassword ?? onResetPassword}
             className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
           >
-            Reset
+            Change
           </button>
         </div>
 

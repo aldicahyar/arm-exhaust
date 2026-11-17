@@ -14,6 +14,8 @@ const requiredFiles = [
   'src/features/account/components/AccountNavRail.tsx',
   'src/features/account/components/AccountSections.tsx',
   'src/features/account/components/AccountPortal.tsx',
+  'src/features/account/components/AccountDrawer.tsx',
+  'src/features/account/services/account.api.ts',
   'src/features/account/index.ts',
   'src/app/account/page.tsx',
 ];
@@ -41,6 +43,16 @@ assert.ok(
   'AccountPortal must not include green AI-slop color tokens'
 );
 console.log('✓ Zero AI-green accents verified in AccountPortal');
+
+assert.ok(
+  portalCode.includes('<AccountDrawer'),
+  'AccountPortal must integrate AccountDrawer component'
+);
+assert.ok(
+  !portalCode.includes('window.prompt'),
+  'AccountPortal must not use window.prompt mock handlers'
+);
+console.log('✓ AccountDrawer integration and removal of window.prompt verified in AccountPortal');
 
 // 2. Audit AppChrome.tsx for Header Hiding on /account
 const appChromeCode = fs.readFileSync(
@@ -89,7 +101,11 @@ assert.ok(
   navRailCode.includes("href=\"/catalog\""),
   'AccountNavRail must have clean back-to-store link'
 );
-console.log('✓ Semantic accessibility buttons and store navigation verified in AccountNavRail');
+assert.ok(
+  navRailCode.includes('Back to store'),
+  'AccountNavRail must use English text Back to store'
+);
+console.log('✓ Semantic accessibility buttons, store navigation, and English copy verified in AccountNavRail');
 
 // 5. Audit types.ts for Readonly
 const typesCode = fs.readFileSync(
