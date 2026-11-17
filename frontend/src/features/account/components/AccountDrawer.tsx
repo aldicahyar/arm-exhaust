@@ -184,82 +184,85 @@ export function AccountDrawer({
             aria-hidden="true"
           />
 
-          {/* Slide-over Panel (440px Pure Stealth with Bencho smooth cubic-bezier curve) */}
+          {/* Slide-over Panel (440px Pure Stealth with Pinned Header & Pinned Action Footer) */}
           <div className="fixed inset-y-0 right-0 flex max-w-full pl-10 pointer-events-none">
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-auto w-screen max-w-[440px] bg-[#0E0E10] border-l border-[#1E1E21] flex flex-col justify-between p-6 md:p-8 text-white shadow-2xl overflow-y-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="pointer-events-auto w-screen max-w-[440px] h-full max-h-screen bg-[#0E0E10] border-l border-[#1E1E21] flex flex-col text-white shadow-2xl overflow-hidden"
             >
               
-              {/* Header */}
-              <div>
-                <div className="flex items-center justify-between pb-6 border-b border-[#1E1E21]">
-                  <h2 id="drawer-title" className="text-xl font-normal tracking-tight text-white">
-                    {mode === 'change-password' && 'Change password'}
-                    {mode === 'edit-profile' && 'Edit personal information'}
-                    {mode === 'change-email' && 'Change email'}
-                  </h2>
-                  {!isSuccess && (
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="text-[#8A8F98] hover:text-white transition-colors p-1"
-                      aria-label="Close drawer"
-                    >
-                      <X size={20} />
-                    </button>
-                  )}
-                </div>
+              {/* Header (Permanently pinned at top) */}
+              <div className="flex items-center justify-between p-6 md:p-8 pb-5 border-b border-[#1E1E21] shrink-0">
+                <h2 id="drawer-title" className="text-xl font-normal tracking-tight text-white">
+                  {mode === 'change-password' && 'Change password'}
+                  {mode === 'edit-profile' && 'Edit personal information'}
+                  {mode === 'change-email' && 'Change email'}
+                </h2>
+                {!isSuccess && (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-[#8A8F98] hover:text-white transition-colors p-1"
+                    aria-label="Close drawer"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
 
-                {/* Error Feedback Notice */}
-                <AnimatePresence>
-                  {errorMessage && (
+              {/* Error Feedback Notice */}
+              <AnimatePresence>
+                {errorMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    role="alert"
+                    className="mx-6 md:mx-8 mt-4 p-3 bg-[#1A1212] border border-[#7F1D1D] text-[#EF4444] text-[13px] rounded-none overflow-hidden shrink-0"
+                  >
+                    {errorMessage}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ==================================================================
+                  MODE: CHANGE PASSWORD
+                  ================================================================== */}
+              {mode === 'change-password' && (
+                <div className="flex flex-col flex-1 min-h-0">
+                  {isSuccess ? (
+                    /* Security Revocation Success Screen */
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2, ease: 'easeOut' }}
-                      role="alert"
-                      className="mt-4 p-3 bg-[#1A1212] border border-[#7F1D1D] text-[#EF4444] text-[13px] rounded-none overflow-hidden"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      className="flex-1 flex flex-col items-center justify-center text-center p-6 md:p-8"
                     >
-                      {errorMessage}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Change Password Body */}
-                {mode === 'change-password' && (
-                  <div>
-                    {isSuccess ? (
-                      /* Security Revocation Success Screen */
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        className="mt-8 flex flex-col items-center text-center py-6"
+                      <div className="flex h-12 w-12 items-center justify-center bg-white text-black mb-4 select-none">
+                        <Check size={26} strokeWidth={2.5} />
+                      </div>
+                      <h3 className="text-[17px] font-normal text-white mb-2 tracking-tight">
+                        Password Successfully Updated
+                      </h3>
+                      <p className="text-[13px] text-[#8A8F98] max-w-[320px] mb-6 leading-relaxed">
+                        For your security, all active sessions across all devices have been signed out. Redirecting to sign in...
+                      </p>
+                      <a
+                        href="/login?status=password_changed"
+                        className="w-full py-3.5 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none block text-center"
                       >
-                        <div className="flex h-12 w-12 items-center justify-center bg-white text-black mb-4 select-none">
-                          <Check size={26} strokeWidth={2.5} />
-                        </div>
-                        <h3 className="text-[17px] font-normal text-white mb-2 tracking-tight">
-                          Password Successfully Updated
-                        </h3>
-                        <p className="text-[13px] text-[#8A8F98] max-w-[320px] mb-6 leading-relaxed">
-                          For your security, all active sessions across all devices have been signed out. Redirecting to sign in...
-                        </p>
-                        <a
-                          href="/login?status=password_changed"
-                          className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none block text-center"
-                        >
-                          Sign In Now
-                        </a>
-                      </motion.div>
-                    ) : (
-                      /* Hybrid Bencho Form with corner={0} */
-                      <form onSubmit={handlePasswordSubmit} className="mt-6 flex flex-col gap-4">
+                        Sign In Now
+                      </a>
+                    </motion.div>
+                  ) : (
+                    /* Hybrid Bencho Form with Pinned Footer */
+                    <form onSubmit={handlePasswordSubmit} className="flex flex-col flex-1 min-h-0 justify-between">
+                      {/* Scrollable Form Body */}
+                      <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         <p className="text-[13px] text-[#8A8F98] leading-relaxed mb-1">
                           Enter your current password and choose a secure new password.
                         </p>
@@ -313,25 +316,30 @@ export function AccountDrawer({
                             error={Boolean(confirmPassword && confirmPassword !== newPassword)}
                           />
                         </div>
+                      </div>
 
-                        {/* Submit Action */}
-                        <div className="pt-3">
-                          <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                          >
-                            {isSubmitting ? 'Updating password...' : 'Update password'}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                )}
+                      {/* Pinned Action Footer (Always 100% visible, never cut off) */}
+                      <div className="p-6 md:p-8 pt-4 pb-6 md:pb-8 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="w-full py-3.5 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                        >
+                          {isSubmitting ? 'Updating password...' : 'Update password'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
 
-                {/* Edit Profile Body with Bencho LabelInput corner={0} */}
-                {mode === 'edit-profile' && (
-                  <form onSubmit={handleProfileSubmit} className="mt-6 flex flex-col gap-4">
+              {/* ==================================================================
+                  MODE: EDIT PROFILE
+                  ================================================================== */}
+              {mode === 'edit-profile' && (
+                <form onSubmit={handleProfileSubmit} className="flex flex-col flex-1 min-h-0 justify-between">
+                  {/* Scrollable Form Body */}
+                  <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <p className="text-[13px] text-[#8A8F98] leading-relaxed mb-1">
                       Update your contact details and default cargo delivery address.
                     </p>
@@ -363,10 +371,10 @@ export function AccountDrawer({
                       />
                     </div>
 
-                    {/* Date of birth (Protected for loyalty & promotion integrity) */}
+                    {/* Date of birth (Clean label without emoji/symbols) */}
                     <div>
                       <LabelInput
-                        label="Date of birth (e.g. 14 October 1998)"
+                        label="Date of birth"
                         type="text"
                         name="dateOfBirth"
                         value={profileDob}
@@ -374,9 +382,6 @@ export function AccountDrawer({
                         corner={0}
                         disabled={isSubmitting}
                       />
-                      <p className="text-[11px] text-[#8A8F98] mt-1.5 leading-normal">
-                        🔒 Note: Date of birth can only be updated once per year to protect birthday promotion integrity.
-                      </p>
                     </div>
 
                     {/* Address */}
@@ -389,29 +394,33 @@ export function AccountDrawer({
                       </label>
                       <textarea
                         id="profile-address-input"
-                        rows={4}
+                        rows={3}
                         value={profileAddress}
                         onChange={(e) => setProfileAddress(e.target.value)}
                         className="w-full bg-[#141416] border border-[#1E1E21] text-white px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-white transition-colors rounded-none resize-none scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                       />
                     </div>
+                  </div>
 
-                    {/* Submit Action */}
-                    <div className="pt-3">
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                      >
-                        {isSubmitting ? 'Saving changes...' : 'Save changes'}
-                      </button>
-                    </div>
-                  </form>
-                )}
+                  {/* Pinned Action Footer (Always 100% visible, never cut off) */}
+                  <div className="p-6 md:p-8 pt-4 pb-6 md:pb-8 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3.5 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] active:bg-[#C8C8C8] transition-colors rounded-none disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                    >
+                      {isSubmitting ? 'Saving changes...' : 'Save changes'}
+                    </button>
+                  </div>
+                </form>
+              )}
 
-                {/* Change Email Body */}
-                {mode === 'change-email' && (
-                  <div className="mt-6 flex flex-col gap-5">
+              {/* ==================================================================
+                  MODE: CHANGE EMAIL
+                  ================================================================== */}
+              {mode === 'change-email' && (
+                <div className="flex flex-col flex-1 min-h-0 justify-between">
+                  <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <p className="text-[13px] text-[#8A8F98] leading-relaxed">
                       Your primary sign-in email is currently locked to your single sign-on identity:
                     </p>
@@ -421,16 +430,18 @@ export function AccountDrawer({
                     <p className="text-[12px] text-[#8A8F98]">
                       To request an email address update for enterprise or reseller accounts, please contact ARM support directly.
                     </p>
+                  </div>
+                  <div className="p-6 md:p-8 pt-4 pb-6 md:pb-8 border-t border-[#1E1E21] bg-[#0E0E10] shrink-0">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="w-full py-3 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] transition-colors rounded-none text-center mt-2"
+                      className="w-full py-3.5 px-4 bg-white text-black font-medium text-[14px] hover:bg-[#E2E2E2] transition-colors rounded-none text-center"
                     >
                       Close
                     </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
             </motion.div>
           </div>

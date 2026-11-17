@@ -100,12 +100,20 @@ assert.ok(code.includes('New password'), 'Must contain English label New passwor
 assert.ok(code.includes('Confirm new password'), 'Must contain English label Confirm new password');
 console.log('✓ 100% English copy verified');
 
-// 8. CSS Invariants & Zero Scrollbar
+// 8. CSS Invariants, Zero Scrollbar, & Pinned Layout
 assert.ok(!code.includes('!important'), 'AccountDrawer must not use CSS !important');
 assert.ok(
   code.includes('scrollbar-none'),
   'AccountDrawer must suppress scrollbars on drawer panel and inputs'
 );
-console.log('✓ CSS specificity clean (zero !important) and zero scrollbars verified');
+assert.ok(
+  !code.includes('🔒'),
+  'AccountDrawer must not contain emojis or informal symbols like 🔒'
+);
+assert.ok(
+  code.includes('shrink-0') && code.includes('flex-1 overflow-y-auto'),
+  'AccountDrawer must structure layout with pinned header/footer and scrollable body'
+);
+console.log('✓ CSS specificity clean, zero scrollbars, zero emojis, and pinned footer verified');
 
 console.log('--- ALL ACCOUNT DRAWER CHECKS PASSED ---');

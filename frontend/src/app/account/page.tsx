@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AccountPortal } from '@/features/account';
+import { AccountPortal } from '@/features/account/components/AccountPortal';
 
 export const metadata: Metadata = {
   title: 'Account | ARM Exhaust',
