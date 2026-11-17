@@ -116,4 +116,35 @@ assert.ok(
 );
 console.log('✓ CSS specificity clean, zero scrollbars, zero emojis, and pinned footer verified');
 
+// 9. DateWheelPicker & Steam-Style CS Fallback Integration
+assert.ok(
+  code.includes('DateWheelPicker'),
+  'AccountDrawer must integrate DateWheelPicker component'
+);
+assert.ok(
+  code.includes('isDobPickerOpen') && code.includes('setIsDobPickerOpen'),
+  'AccountDrawer must manage collapsible picker state via isDobPickerOpen'
+);
+assert.ok(
+  /Done\s*<\/button>/.test(code),
+  'AccountDrawer must provide a Done button to fold the wheel picker'
+);
+assert.ok(
+  code.includes('ARM Support') || code.includes('Customer Service') || code.includes('wa.me'),
+  'AccountDrawer must provide Steam-style Customer Service correction link when date of birth is locked'
+);
+assert.ok(
+  code.includes('can only be set once') || code.includes('Locked'),
+  'AccountDrawer must communicate one-time set rule or locked state'
+);
+assert.ok(
+  !code.includes('ONE-TIME SET') && !code.includes('One-Time Set'),
+  'AccountDrawer must eliminate the ONE-TIME SET badge for clean minimalist UX'
+);
+assert.ok(
+  code.includes('disabled') && code.includes('isDobLocked'),
+  'AccountDrawer must disable Date of birth field when already filled'
+);
+console.log('✓ Expandable DateWheelPicker with LabelInput trigger and Steam-style CS fallback verified in AccountDrawer');
+
 console.log('--- ALL ACCOUNT DRAWER CHECKS PASSED ---');

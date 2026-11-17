@@ -7,12 +7,16 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 export interface LabelInputProps {
   label: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: 'text' | 'email' | 'password';
   name?: string;
   id?: string;
   required?: boolean;
   disabled?: boolean;
+  readOnly?: boolean;
+  onClick?: () => void;
+  rightElement?: React.ReactNode;
+  focused?: boolean;
   autoComplete?: string;
   minLength?: number;
   maxLength?: number;
@@ -44,6 +48,10 @@ export function LabelInput({
   id: customId,
   required = false,
   disabled = false,
+  readOnly = false,
+  onClick,
+  rightElement,
+  focused,
   autoComplete,
   minLength,
   maxLength,
@@ -52,12 +60,14 @@ export function LabelInput({
   onFocus,
   onBlur,
   className = '',
+  placeholder,
 }: LabelInputProps) {
   const generatedId = useId().replace(/:/g, '');
   const inputId = customId || `lbi-${generatedId}`;
   const isPassword = type === 'password';
 
-  const [isFocused, setIsFocused] = useState(false);
+  const [internalFocused, setInternalFocused] = useState(false);
+  const isFocused = focused !== undefined ? focused : internalFocused;
   const [showPassword, setShowPassword] = useState(false);
   const [flipCount, setFlipCount] = useState<number | null>(null);
   const [labelWidth, setLabelWidth] = useState(40);
@@ -123,11 +133,12 @@ export function LabelInput({
 
   return (
     <div
-      className={`lbi ${className}`}
+      className={`lbi ${disabled ? 'opacity-60 cursor-not-allowed' : ''} ${className}`}
       data-up={Boolean(isUp)}
-      data-focus={Boolean(isFocused)}
+      data-focus={Boolean(isFocused && !disabled)}
       data-filled={Boolean(value && value.length > 0)}
       data-error={Boolean(error)}
+      data-disabled={Boolean(disabled)}
     >
       {/* Hidden measuring span untuk menghitung pixel width label */}
       <span
@@ -140,7 +151,8 @@ export function LabelInput({
 
       <div
         ref={boxRef}
-        className="lbi-box"
+        className={`lbi-box ${readOnly && !disabled ? 'cursor-pointer' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
+        onClick={readOnly && !disabled ? onClick : undefined}
         style={{
           height: HEIGHT,
           borderRadius: radius,
@@ -184,12 +196,15 @@ export function LabelInput({
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
           value={value}
           onChange={onChange}
+          readOnly={readOnly}
+          placeholder={isUp ? placeholder : undefined}
           onFocus={() => {
-            setIsFocused(true);
+            if (disabled) return;
+            setInternalFocused(true);
             onFocus?.();
           }}
           onBlur={() => {
-            setIsFocused(false);
+            setInternalFocused(false);
             onBlur?.();
           }}
           required={required}
@@ -198,11 +213,18 @@ export function LabelInput({
           minLength={minLength}
           maxLength={maxLength}
           data-flip={flipCount !== null ? flipCount % 2 : undefined}
-          className="lbi-field"
+          className={`lbi-field ${readOnly && !disabled ? 'cursor-pointer select-none pointer-events-none' : ''} ${disabled ? 'cursor-not-allowed select-none' : ''}`}
           style={{
-            paddingRight: isPassword ? 48 : labelStartX,
+            paddingRight: isPassword || rightElement ? 48 : labelStartX,
           }}
         />
+
+        {/* Custom Right Element (e.g. icon / chevron / badge) */}
+        {rightElement && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none select-none text-[#8A8F98]">
+            {rightElement}
+          </div>
+        )}
 
         {/* Password Eye Toggle Morph */}
         {isPassword && (

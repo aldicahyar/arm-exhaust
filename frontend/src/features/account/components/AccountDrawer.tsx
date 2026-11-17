@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Check } from 'lucide-react';
+import { X, Check, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LabelInput } from '../../auth/LabelInput';
 import { PasswordStrength } from '../../auth/PasswordStrength';
+import { DateWheelPicker } from './DateWheelPicker';
 import type {
   AccountDrawerMode,
   CustomerAccountData,
@@ -13,6 +14,24 @@ import type {
   UpdateProfilePayload,
 } from '../types';
 import { changeAccountPassword, updateAccountProfile } from '../services/account.api';
+
+function formatDateToString(d: Date): string {
+  const day = d.getDate();
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const month = months[d.getMonth()] ?? 'January';
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+function parseDateString(str?: string): Date | undefined {
+  if (!str || str === '-') return undefined;
+  const parsed = new Date(str);
+  if (!isNaN(parsed.getTime())) return parsed;
+  return undefined;
+}
 
 interface AccountDrawerProps {
   readonly isOpen: boolean;
@@ -38,10 +57,18 @@ export function AccountDrawer({
   const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
 
   // Edit profile form state
+  const isDobLocked = Boolean(
+    accountData.personal.dateOfBirth &&
+    accountData.personal.dateOfBirth !== '-'
+  );
   const [profileName, setProfileName] = useState(accountData.personal.name);
   const [profilePhone, setProfilePhone] = useState(accountData.personal.phoneNumber);
   const [profileAddress, setProfileAddress] = useState(accountData.personal.address);
   const [profileDob, setProfileDob] = useState(accountData.personal.dateOfBirth ?? '');
+  const [selectedDobDate, setSelectedDobDate] = useState<Date>(
+    () => parseDateString(accountData.personal.dateOfBirth) ?? new Date(1998, 9, 14)
+  );
+  const [isDobPickerOpen, setIsDobPickerOpen] = useState(false);
 
   // UI status state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -58,12 +85,24 @@ export function AccountDrawer({
       setProfileName(accountData.personal.name);
       setProfilePhone(accountData.personal.phoneNumber);
       setProfileAddress(accountData.personal.address);
-      setProfileDob(accountData.personal.dateOfBirth ?? '');
       setErrorMessage(null);
       setIsSubmitting(false);
       setIsSuccess(false);
+      setIsDobPickerOpen(false);
+
+      const initialDate = parseDateString(accountData.personal.dateOfBirth) ?? new Date(1998, 9, 14);
+      setSelectedDobDate(initialDate);
+      if (isDobLocked) {
+        setProfileDob(accountData.personal.dateOfBirth);
+      } else {
+        const hasExisting = Boolean(
+          accountData.personal.dateOfBirth &&
+          accountData.personal.dateOfBirth !== '-'
+        );
+        setProfileDob(hasExisting ? accountData.personal.dateOfBirth : '');
+      }
     }
-  }, [isOpen, mode, accountData]);
+  }, [isOpen, mode, accountData, isDobLocked]);
 
   // Handle ESC key and prevent body scroll while drawer is open
   useEffect(() => {
@@ -371,17 +410,94 @@ export function AccountDrawer({
                       />
                     </div>
 
-                    {/* Date of birth (Clean label without emoji/symbols) */}
+                    {/* Date of birth (Disabled if filled, clickable wheel picker if empty) */}
                     <div>
-                      <LabelInput
-                        label="Date of birth"
-                        type="text"
-                        name="dateOfBirth"
-                        value={profileDob}
-                        onChange={(e) => setProfileDob(e.target.value)}
-                        corner={0}
-                        disabled={isSubmitting}
-                      />
+                      {isDobLocked ? (
+                        <div>
+                          <LabelInput
+                            label="Date of birth"
+                            value={accountData.personal.dateOfBirth}
+                            disabled
+                            corner={0}
+                          />
+                          <p className="text-[12px] text-[#8A8F98] mt-2 leading-relaxed">
+                            Date of birth is permanently locked for promotional integrity.{' '}
+                            <a
+                              href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                                `Halo ARM Support, saya ingin mengajukan permohonan koreksi tanggal lahir untuk Akun ID: ${accountData.advanced.accountIdentifier}. Terima kasih.`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-white underline underline-offset-2 hover:text-[#8A8F98] transition-colors inline-block"
+                            >
+                              Contact ARM Support to correct a typo →
+                            </a>
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <LabelInput
+                            label="Date of birth"
+                            value={profileDob}
+                            readOnly
+                            corner={0}
+                            disabled={isSubmitting}
+                            focused={isDobPickerOpen}
+                            onClick={() => {
+                              if (!profileDob) {
+                                setProfileDob(formatDateToString(selectedDobDate));
+                              }
+                              setIsDobPickerOpen((prev) => !prev);
+                            }}
+                            rightElement={
+                              <ChevronDown
+                                size={16}
+                                className={`text-[#8A8F98] transition-transform duration-200 ${
+                                  isDobPickerOpen ? 'rotate-180 text-white' : ''
+                                }`}
+                              />
+                            }
+                          />
+
+                          <AnimatePresence>
+                            {isDobPickerOpen && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                                className="overflow-hidden border border-t-0 border-[#1E1E21] bg-[#101012] p-4 flex flex-col gap-3"
+                              >
+                                <div className="flex items-center justify-between pb-2 border-b border-[#1E1E21]">
+                                  <span className="text-[12px] text-[#8A8F98] tracking-tight">
+                                    Scroll or drag wheels to set date
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsDobPickerOpen(false)}
+                                    className="text-[12px] font-medium text-white px-2.5 py-1 bg-[#1E1E21] hover:bg-[#2B2B30] transition-colors select-none rounded-none"
+                                  >
+                                    Done
+                                  </button>
+                                </div>
+
+                                <DateWheelPicker
+                                  value={selectedDobDate}
+                                  onChange={(date) => {
+                                    setSelectedDobDate(date);
+                                    setProfileDob(formatDateToString(date));
+                                  }}
+                                  disabled={isSubmitting}
+                                />
+
+                                <p className="text-[11px] text-[#8A8F98] leading-relaxed pt-1">
+                                  Note: Date of birth can only be set once to protect birthday promotions and cannot be modified later.
+                                </p>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
                     </div>
 
                     {/* Address */}
