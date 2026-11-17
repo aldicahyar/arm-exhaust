@@ -151,6 +151,22 @@ model RegistrationOtp {
   @@schema("transaction")
 }
 
+model PasswordResetToken {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_seq      BigInt    @default(autoincrement())
+  email       String    @db.VarChar(255)
+  token_hash  String    @map("token_hash") @db.VarChar(128)
+  expires_at  DateTime  @map("expires_at") @db.Timestamptz
+  used_at     DateTime? @map("used_at") @db.Timestamptz
+  ip_address  String?   @map("ip_address") @db.Inet
+  created_at  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([email])
+  @@index([token_hash])
+  @@map("t_trx_password_resets")
+  @@schema("transaction")
+}
+
 model RateLimit {
   ip_address      String    @map("ip_address") @db.Inet
   action          String
