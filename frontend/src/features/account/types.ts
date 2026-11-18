@@ -7,7 +7,7 @@ export type AccountNavKey =
   | 'account'
   | 'signout';
 
-export type AccountTabKey = 'arm-id' | 'privacy' | 'third-party';
+export type AccountTabKey = 'arm-id' | 'privacy';
 
 export type AccountDrawerMode =
   | 'none'

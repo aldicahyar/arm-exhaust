@@ -29,11 +29,12 @@ const privacyCode = fs.readFileSync(privacyPath, 'utf-8');
 
 // Check communication categories
 assert.ok(privacyCode.includes('Order & delivery updates'), 'Must include Order & delivery updates');
-assert.ok(privacyCode.includes('Required'), 'Order & delivery updates must be marked Required');
+assert.ok(!privacyCode.includes('>Required<') && !privacyCode.includes('>REQUIRED<'), 'Order & delivery updates must eliminate noisy Required badge');
 assert.ok(privacyCode.includes('Promotions & exclusive offers'), 'Must include Promotions & exclusive offers');
 assert.ok(privacyCode.includes('New exhaust releases & soundchecks'), 'Must include New exhaust releases');
 assert.ok(privacyCode.includes('Preferred Notification Channels'), 'Must include Preferred Notification Channels');
 assert.ok(privacyCode.includes('Email') && privacyCode.includes('WhatsApp'), 'Must support Email & WhatsApp channel toggles');
+console.log('✓ Clean communication categories without noisy badges verified');
 
 // Check auto-save & zero save-button clutter
 assert.ok(privacyCode.includes('Preferences saved'), 'Must include subtle "Preferences saved" auto-save feedback');
@@ -41,12 +42,20 @@ assert.ok(privacyCode.includes('Saving...'), 'Must include quiet "Saving..." sta
 assert.ok(!privacyCode.includes('Save changes') && !privacyCode.includes('Save Preferences'), 'Must eliminate redundant manual save button');
 console.log('✓ Auto-save feedback verified, zero redundant manual save buttons');
 
-// Check ergonomic switch geometry, perfect 2px symmetry & accessibility
+// Check ergonomic switch geometry, perfect 2px symmetry, gentle 450ms smooth transition & accessibility
 assert.ok(privacyCode.includes('rounded-full'), 'Toggle switch must use ergonomic rounded-full pill design');
 assert.ok(privacyCode.includes('translate-x-5') && privacyCode.includes('translate-x-0'), 'Toggle thumb must use symmetrical 0/20px translation');
+assert.ok(privacyCode.includes('450ms') || privacyCode.includes('duration-500'), 'Toggle switch must use gentle smooth 450ms transition');
+assert.ok(privacyCode.includes('motion-reduce:transition-none'), 'Toggle switch must support prefers-reduced-motion');
 assert.ok(privacyCode.includes('role="switch"'), 'Toggle must use accessible semantic role="switch"');
 assert.ok(privacyCode.includes('aria-checked'), 'Toggle must provide aria-checked state');
-console.log('✓ Ergonomic pill switch geometry, perfect dot alignment, and accessibility verified');
+console.log('✓ Ergonomic pill switch geometry, gentle 450ms smooth transition, and accessibility verified');
+
+// Check Connected Accounts & Third-Party Access consolidation
+assert.ok(privacyCode.includes('Connected Accounts & Third-Party Access'), 'Must consolidate Connected Accounts into Privacy tab');
+assert.ok(privacyCode.includes('Google Account'), 'Must include Google Account SSO card');
+assert.ok(privacyCode.includes('Active SSO'), 'Must indicate Active SSO status');
+console.log('✓ Connected Accounts & Third-Party Access consolidation into Privacy verified');
 
 // Check Legal & Transparency
 assert.ok(privacyCode.includes('Data Protection & Legal Transparency'), 'Must include Data Protection section');

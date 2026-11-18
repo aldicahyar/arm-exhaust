@@ -115,7 +115,11 @@ assert.ok(
   portalCode.includes("activeTab === 'privacy'"),
   'AccountPortal must integrate AccountPrivacyTab cleanly in Privacy tab'
 );
-console.log('✓ Balanced 2-column layout and AccountPrivacyTab integration verified in AccountPortal');
+assert.ok(
+  !portalCode.includes("'third-party'"),
+  'AccountPortal must eliminate redundant third-party tab in favor of 2-tab seamless architecture'
+);
+console.log('✓ Seamless 2-tab architecture (ARM ID + Privacy) verified in AccountPortal');
 
 assert.ok(
   portalCode.includes("classList.add('scrollbar-none')") &&
@@ -194,6 +198,10 @@ assert.ok(
   typesCode.includes('readonly email:') && typesCode.includes('readonly name:'),
   'types.ts must use readonly properties'
 );
-console.log('✓ Immutability contracts verified in types.ts');
+assert.ok(
+  typesCode.includes("export type AccountTabKey = 'arm-id' | 'privacy';"),
+  'AccountTabKey must only declare arm-id and privacy'
+);
+console.log('✓ Immutability contracts and 2-tab types verified in types.ts');
 
 console.log('=== ALL ACCOUNT PORTAL AUDIT CHECKS PASSED SUCCESSFULLY ===');

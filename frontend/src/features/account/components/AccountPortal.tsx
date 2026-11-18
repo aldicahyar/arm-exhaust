@@ -136,7 +136,7 @@ export function AccountPortal({
                       Account
                     </h1>
 
-                    {/* TABS (ARM ID / Privacy / Third-party) */}
+                    {/* TABS (ARM ID / Privacy) */}
                     <div className="flex gap-8 border-b border-[#1E1E21] mb-12 text-[14px]">
                       <button
                         type="button"
@@ -159,17 +159,6 @@ export function AccountPortal({
                         }`}
                       >
                         Privacy
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('third-party')}
-                        className={`pb-2.5 transition-colors relative ${
-                          activeTab === 'third-party'
-                            ? 'text-white font-medium border-b-2 border-white'
-                            : 'text-[#8A8F98] font-normal hover:text-white'
-                        }`}
-                      >
-                        Third-party applications
                       </button>
                     </div>
 
@@ -205,15 +194,6 @@ export function AccountPortal({
                             userPhone={accountData.personal.phoneNumber}
                             userId={accountData.security.email}
                           />
-                        )}
-
-                        {activeTab === 'third-party' && (
-                          <div className="py-8 text-[14px] text-[#8A8F98] leading-relaxed max-w-xl">
-                            <p className="mb-4 text-white font-medium">Connected Third-Party Applications</p>
-                            <p>
-                              No third-party applications currently have authorized access to your ARM Exhaust account.
-                            </p>
-                          </div>
                         )}
                       </motion.div>
                     </AnimatePresence>

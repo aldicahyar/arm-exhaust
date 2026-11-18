@@ -48,7 +48,10 @@ function StealthToggle({
           onChange(!checked);
         }
       }}
-      className={`relative inline-flex h-6 w-11 shrink-0 p-0.5 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E0E10] select-none ${
+      style={{
+        transition: 'background-color 450ms cubic-bezier(0.4, 0, 0.2, 1)',
+      }}
+      className={`relative inline-flex h-6 w-11 shrink-0 p-0.5 cursor-pointer rounded-full transition-colors duration-500 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E0E10] select-none motion-reduce:transition-none ${
         disabled
           ? 'cursor-not-allowed opacity-50 ' + (checked ? 'bg-white' : 'bg-[#27272A]')
           : checked
@@ -57,7 +60,10 @@ function StealthToggle({
       }`}
     >
       <span
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full shadow-sm transition-transform duration-200 ease-in-out ${
+        style={{
+          transition: 'transform 450ms cubic-bezier(0.4, 0, 0.2, 1), background-color 450ms cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full shadow-sm transition-transform duration-500 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${
           checked ? 'translate-x-5 bg-[#0E0E10]' : 'translate-x-0 bg-white'
         }`}
       />
@@ -174,14 +180,9 @@ export function AccountPrivacyTab({
         {/* Row 1: Order & Delivery Updates (Always On / Mandatory) */}
         <div className="flex items-start justify-between gap-6 p-4 bg-[#121214] border border-[#1E1E21]">
           <div className="flex-1 min-w-0 pr-4">
-            <div className="flex items-center gap-2">
-              <span className="text-[14px] font-medium text-white">
-                Order & delivery updates
-              </span>
-              <span className="px-1.5 py-0.5 text-[10px] font-mono font-medium tracking-wider text-[#8A8F98] border border-[#27272A] uppercase select-none">
-                Required
-              </span>
-            </div>
+            <span className="text-[14px] font-medium text-white">
+              Order & delivery updates
+            </span>
             <p className="text-[12px] text-[#8A8F98] mt-1 leading-relaxed">
               Critical receipts, workshop custom exhaust build progress, and courier cargo tracking codes.
             </p>
@@ -287,7 +288,47 @@ export function AccountPrivacyTab({
       </div>
 
       {/* ====================================================================
-          CATEGORY 3: DATA PROTECTION & LEGAL
+          CATEGORY 3: CONNECTED ACCOUNTS & THIRD-PARTY ACCESS
+          ==================================================================== */}
+      <div className="mt-10 pt-8 border-t border-[#1E1E21]">
+        <h3 className="text-[15px] font-medium text-white tracking-tight mb-2">
+          Connected Accounts & Third-Party Access
+        </h3>
+        <p className="text-[13px] text-[#8A8F98] mb-6 leading-relaxed">
+          External applications and federated identities authorized to authenticate or access your ARM ID.
+        </p>
+
+        {/* Google SSO Connected Card */}
+        <div className="p-4 bg-[#121214] border border-[#1E1E21] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-8 h-8 rounded-none bg-[#1C1C1F] border border-[#27272A] flex items-center justify-center shrink-0 text-white font-mono text-[12px] font-bold">
+              G
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <span className="text-[14px] font-medium text-white">Google Account</span>
+                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 border border-[#27272A] text-[#8A8F98] bg-[#141416]">
+                  Connected
+                </span>
+              </div>
+              <p className="text-[12px] text-[#8A8F98] mt-0.5">
+                {userEmail} • Used for federated single sign-on authentication.
+              </p>
+            </div>
+          </div>
+          <div className="text-[11px] font-mono text-[#8A8F98] sm:text-right shrink-0">
+            Active SSO
+          </div>
+        </div>
+
+        {/* Zero External Applications Disclaimer */}
+        <div className="mt-4 p-4 border border-dashed border-[#1E1E21] bg-[#0E0E10]/50 text-[12px] text-[#8A8F98] leading-relaxed">
+          No external third-party applications currently hold OAuth tokens or permissions to access your custom vehicle telemetry, order logs, or workshop build files.
+        </div>
+      </div>
+
+      {/* ====================================================================
+          CATEGORY 4: DATA PROTECTION & LEGAL
           ==================================================================== */}
       <div className="mt-12 pt-8 border-t border-[#1E1E21]">
         <div className="flex items-start gap-3">
