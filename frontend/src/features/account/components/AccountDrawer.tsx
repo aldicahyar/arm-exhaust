@@ -414,27 +414,12 @@ export function AccountDrawer({
                     {/* Date of birth (Disabled if filled, clickable wheel picker if empty) */}
                     <div>
                       {isDobLocked ? (
-                        <div>
-                          <LabelInput
-                            label="Date of birth"
-                            value={accountData.personal.dateOfBirth}
-                            disabled
-                            corner={0}
-                          />
-                          <p className="text-[11px] text-[#8A8F98] mt-1.5 leading-relaxed">
-                            Date of birth is permanently locked for promotional integrity.{' '}
-                            <a
-                              href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                                `Halo ARM Support, saya ingin mengajukan permohonan koreksi tanggal lahir untuk Akun ID: ${accountData.advanced.accountIdentifier}. Terima kasih.`
-                              )}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-white underline underline-offset-2 hover:text-[#8A8F98] transition-colors inline-block"
-                            >
-                              Contact ARM Support to correct a typo →
-                            </a>
-                          </p>
-                        </div>
+                        <LabelInput
+                          label="Date of birth"
+                          value={accountData.personal.dateOfBirth}
+                          disabled
+                          corner={0}
+                        />
                       ) : (
                         <div>
                           <LabelInput

@@ -130,12 +130,12 @@ assert.ok(
   'AccountDrawer must integrate dedicated DateWheelPickerModal overlay to avoid inline layout shift'
 );
 assert.ok(
-  code.includes('ARM Support') || code.includes('Customer Service') || code.includes('wa.me'),
-  'AccountDrawer must provide Steam-style Customer Service correction link when date of birth is locked'
+  !code.includes('permanently locked'),
+  'AccountDrawer must eliminate redundant disclaimer text when Date of birth is already set'
 );
 assert.ok(
-  code.includes('can only be set once') || code.includes('Locked'),
-  'AccountDrawer must communicate one-time set rule or locked state'
+  code.includes('isDobLocked'),
+  'AccountDrawer must maintain isDobLocked state'
 );
 assert.ok(
   !code.includes('ONE-TIME SET') && !code.includes('One-Time Set'),
@@ -145,6 +145,6 @@ assert.ok(
   code.includes('disabled') && code.includes('isDobLocked'),
   'AccountDrawer must disable Date of birth field when already filled'
 );
-console.log('✓ Dedicated DateWheelPickerModal overlay and Steam-style CS fallback verified in AccountDrawer');
+console.log('✓ Dedicated DateWheelPickerModal overlay, zero redundant disclaimers, and locked disabled state verified in AccountDrawer');
 
 console.log('--- ALL ACCOUNT DRAWER CHECKS PASSED ---');
