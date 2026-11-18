@@ -113,6 +113,9 @@ assert.ok(phoneInputCode.includes('aria-expanded'), 'PhoneInput trigger button m
 assert.ok(phoneInputCode.includes('role="listbox"'), 'PhoneInput popover must have role="listbox"');
 assert.ok(phoneInputCode.includes('role="option"'), 'PhoneInput country item must have role="option"');
 assert.ok(phoneInputCode.includes("e.key === 'Escape'"), 'PhoneInput popover must dismiss on Escape key');
+assert.ok(!phoneInputCode.includes('selectedCountry.flag'), 'PhoneInput trigger must not render emoji/country letter prefix (clean dial code only)');
+assert.ok(!phoneInputCode.includes('country.flag'), 'PhoneInput dropdown must not render emoji/country letter prefix');
+console.log('✓ Clean dial code trigger (+1 only, zero country letter/emoji clutter) verified');
 console.log('✓ PhoneInput component, label simplicity, a11y, and 0px stealth geometry verified');
 
 // 4. Verify AccountSections.tsx

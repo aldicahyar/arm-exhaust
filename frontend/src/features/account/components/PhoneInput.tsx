@@ -135,14 +135,11 @@ export function PhoneInput({
           type="button"
           onClick={() => !disabled && setIsDropdownOpen((prev) => !prev)}
           disabled={disabled}
-          className="h-[42px] mt-[5px] px-2.5 bg-[#141416] border border-[#1E1E21] hover:border-white focus:border-white focus:outline-none transition-colors rounded-none flex items-center justify-between gap-1.5 shrink-0 select-none text-white disabled:opacity-60 disabled:cursor-not-allowed group"
+          className="h-[42px] mt-[5px] px-3 bg-[#141416] border border-[#1E1E21] hover:border-white focus:border-white focus:outline-none transition-colors rounded-none flex items-center justify-between gap-1.5 shrink-0 select-none text-white disabled:opacity-60 disabled:cursor-not-allowed group"
           aria-haspopup="listbox"
           aria-expanded={isDropdownOpen}
-          aria-label={`Selected country: ${selectedCountry.name} (${selectedCountry.dialCode})`}
+          aria-label={`Country calling code: ${selectedCountry.dialCode} (${selectedCountry.name})`}
         >
-          <span className="text-[15px] leading-none" role="img" aria-label={selectedCountry.name}>
-            {selectedCountry.flag}
-          </span>
           <span className="text-[13px] font-mono font-medium text-white">
             {selectedCountry.dialCode}
           </span>
@@ -213,7 +210,7 @@ export function PhoneInput({
                       key={country.code}
                       type="button"
                       onClick={() => handleSelectCountry(country)}
-                      className={`w-full px-2.5 py-1.5 flex items-center justify-between text-left transition-colors rounded-none text-[13px] ${
+                      className={`w-full px-3 py-2 flex items-center justify-between text-left transition-colors rounded-none text-[13px] ${
                         isSelected
                           ? 'bg-[#1E1E21] text-white font-medium'
                           : 'text-[#D1D5DB] hover:bg-[#141416] hover:text-white'
@@ -221,12 +218,7 @@ export function PhoneInput({
                       role="option"
                       aria-selected={isSelected}
                     >
-                      <div className="flex items-center gap-2 truncate pr-2">
-                        <span className="text-[14px] leading-none shrink-0" role="img" aria-label={country.name}>
-                          {country.flag}
-                        </span>
-                        <span className="truncate">{country.name}</span>
-                      </div>
+                      <span className="truncate pr-2">{country.name}</span>
                       <span className="font-mono text-[12px] text-[#8A8F98] shrink-0">
                         {country.dialCode}
                       </span>
