@@ -6,5 +6,6 @@ export * from './components/AccountDrawer';
 export * from './components/DateWheelPicker';
 export * from './components/DateWheelPickerModal';
 export * from './components/PhoneInput';
+export * from './components/AccountPrivacyTab';
 export * from './data/countries';
 export * from './services/account.api';

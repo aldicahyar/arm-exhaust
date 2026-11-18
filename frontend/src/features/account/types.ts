@@ -49,6 +49,22 @@ export interface CustomerAccountData {
   readonly advanced?: AccountAdvancedInfo;
 }
 
+export interface CommunicationPreferences {
+  readonly orderUpdates: boolean;
+  readonly promotions: boolean;
+  readonly newReleases: boolean;
+  readonly channelEmail: boolean;
+  readonly channelWhatsapp: boolean;
+}
+
+export const DEFAULT_COMMUNICATION_PREFERENCES: CommunicationPreferences = {
+  orderUpdates: true,
+  promotions: false,
+  newReleases: true,
+  channelEmail: true,
+  channelWhatsapp: false,
+};
+
 export interface ChangePasswordPayload {
   readonly currentPassword: string;
   readonly newPassword: string;

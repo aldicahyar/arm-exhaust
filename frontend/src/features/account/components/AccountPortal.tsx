@@ -14,6 +14,7 @@ import {
   AccountSecuritySection,
   AccountPersonalInfoSection,
 } from './AccountSections';
+import { AccountPrivacyTab } from './AccountPrivacyTab';
 import { AccountDrawer } from './AccountDrawer';
 import { fetchCurrentAccountData } from '../services/account.api';
 
@@ -199,22 +200,11 @@ export function AccountPortal({
                         )}
 
                         {activeTab === 'privacy' && (
-                          <div className="py-8 text-[14px] text-[#8A8F98] leading-relaxed max-w-xl">
-                            <p className="mb-4 text-white font-medium">ARM Exhaust Customer Data Privacy</p>
-                            <p className="mb-6">
-                              Your account data is encrypted adhering to official workshop and high-security transaction standards.
-                              We never share your motorcycle build configurations or personal delivery addresses with third parties.
-                            </p>
-                            <div className="pt-6 border-t border-[#1E1E21]">
-                              <a
-                                href={accountData.termsUrl ?? '/legal/terms'}
-                                className="text-[14px] text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors inline-flex items-center gap-1.5 group"
-                              >
-                                <span>Terms & Conditions</span>
-                                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
-                              </a>
-                            </div>
-                          </div>
+                          <AccountPrivacyTab
+                            userEmail={accountData.security.email}
+                            userPhone={accountData.personal.phoneNumber}
+                            userId={accountData.security.email}
+                          />
                         )}
 
                         {activeTab === 'third-party' && (

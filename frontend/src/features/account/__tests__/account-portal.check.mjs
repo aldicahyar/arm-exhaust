@@ -111,11 +111,11 @@ assert.ok(
   'AccountPortal must organize sections in a balanced 2-column layout'
 );
 assert.ok(
-  portalCode.includes('Terms & Conditions') &&
+  portalCode.includes('AccountPrivacyTab') &&
   portalCode.includes("activeTab === 'privacy'"),
-  'AccountPortal must house Terms & Conditions cleanly in Privacy tab'
+  'AccountPortal must integrate AccountPrivacyTab cleanly in Privacy tab'
 );
-console.log('✓ Balanced 2-column layout and Privacy tab Terms & Conditions verified in AccountPortal');
+console.log('✓ Balanced 2-column layout and AccountPrivacyTab integration verified in AccountPortal');
 
 assert.ok(
   portalCode.includes("classList.add('scrollbar-none')") &&

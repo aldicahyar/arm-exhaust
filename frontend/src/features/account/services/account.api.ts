@@ -3,8 +3,9 @@ import type {
   UpdateProfilePayload,
   AccountApiResponse,
   CustomerAccountData,
+  CommunicationPreferences,
 } from '../types';
-import { DEFAULT_CUSTOMER_ACCOUNT } from '../types';
+import { DEFAULT_CUSTOMER_ACCOUNT, DEFAULT_COMMUNICATION_PREFERENCES } from '../types';
 
 export async function changeAccountPassword(
   payload: ChangePasswordPayload,
@@ -107,5 +108,53 @@ export async function fetchCurrentAccountData(): Promise<CustomerAccountData | n
     };
   } catch {
     return null;
+  }
+}
+
+const STORAGE_KEY_PREFIX = 'arm_comm_preferences_';
+
+export function loadStoredPreferences(userId: string): CommunicationPreferences {
+  if (typeof window === 'undefined') {
+    return DEFAULT_COMMUNICATION_PREFERENCES;
+  }
+  try {
+    const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${userId}`);
+    if (!raw) {
+      return DEFAULT_COMMUNICATION_PREFERENCES;
+    }
+    const parsed = JSON.parse(raw);
+    return {
+      orderUpdates: true, // Always enforce true
+      promotions: Boolean(parsed.promotions),
+      newReleases: Boolean(parsed.newReleases),
+      channelEmail: parsed.channelEmail !== false,
+      channelWhatsapp: Boolean(parsed.channelWhatsapp),
+    };
+  } catch {
+    return DEFAULT_COMMUNICATION_PREFERENCES;
+  }
+}
+
+export function saveStoredPreferences(
+  userId: string,
+  prefs: {
+    orderUpdates: boolean;
+    promotions: boolean;
+    newReleases: boolean;
+    channelEmail: boolean;
+    channelWhatsapp: boolean;
+  }
+): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(
+      `${STORAGE_KEY_PREFIX}${userId}`,
+      JSON.stringify({
+        ...prefs,
+        orderUpdates: true,
+      })
+    );
+  } catch {
+    // Ignore storage quota errors
   }
 }
