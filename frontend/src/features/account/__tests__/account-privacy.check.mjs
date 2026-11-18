@@ -41,11 +41,12 @@ assert.ok(privacyCode.includes('Saving...'), 'Must include quiet "Saving..." sta
 assert.ok(!privacyCode.includes('Save changes') && !privacyCode.includes('Save Preferences'), 'Must eliminate redundant manual save button');
 console.log('✓ Auto-save feedback verified, zero redundant manual save buttons');
 
-// Check 0px geometry & accessibility
-assert.ok(privacyCode.includes('rounded-none'), 'Stealth toggle must strictly maintain 0px geometry');
+// Check ergonomic switch geometry, perfect 2px symmetry & accessibility
+assert.ok(privacyCode.includes('rounded-full'), 'Toggle switch must use ergonomic rounded-full pill design');
+assert.ok(privacyCode.includes('translate-x-5') && privacyCode.includes('translate-x-0'), 'Toggle thumb must use symmetrical 0/20px translation');
 assert.ok(privacyCode.includes('role="switch"'), 'Toggle must use accessible semantic role="switch"');
 assert.ok(privacyCode.includes('aria-checked'), 'Toggle must provide aria-checked state');
-console.log('✓ 0px stealth geometry and switch accessibility verified');
+console.log('✓ Ergonomic pill switch geometry, perfect dot alignment, and accessibility verified');
 
 // Check Legal & Transparency
 assert.ok(privacyCode.includes('Data Protection & Legal Transparency'), 'Must include Data Protection section');

@@ -25,7 +25,8 @@ interface StealthToggleProps {
 }
 
 /**
- * Pure monochrome stealth toggle switch adhering strictly to ARM 0px geometry.
+ * Ergonomic monochrome pill toggle switch (Polestar/Apple standard).
+ * Features exact 2px symmetrical padding with hardware-accelerated translation.
  */
 function StealthToggle({
   checked,
@@ -47,17 +48,17 @@ function StealthToggle({
           onChange(!checked);
         }
       }}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center border transition-colors duration-200 rounded-none focus:outline-none focus-visible:ring-1 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50 ${
-        checked
-          ? 'bg-white border-white'
-          : 'bg-[#141416] border-[#27272A] hover:border-[#3F3F46]'
+      className={`relative inline-flex h-6 w-11 shrink-0 p-0.5 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E0E10] select-none ${
+        disabled
+          ? 'cursor-not-allowed opacity-50 ' + (checked ? 'bg-white' : 'bg-[#27272A]')
+          : checked
+          ? 'bg-white'
+          : 'bg-[#27272A] hover:bg-[#323238]'
       }`}
     >
-      <motion.span
-        layout
-        transition={{ type: 'spring', stiffness: 500, damping: 32 }}
-        className={`inline-block h-4 w-4 rounded-none transition-colors duration-200 ${
-          checked ? 'translate-x-5 bg-[#0E0E10]' : 'translate-x-1 bg-[#8A8F98]'
+      <span
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full shadow-sm transition-transform duration-200 ease-in-out ${
+          checked ? 'translate-x-5 bg-[#0E0E10]' : 'translate-x-0 bg-white'
         }`}
       />
     </button>
