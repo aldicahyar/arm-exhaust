@@ -13,8 +13,6 @@ import { AccountNavRail } from './AccountNavRail';
 import {
   AccountSecuritySection,
   AccountPersonalInfoSection,
-  AccountLocationSection,
-  AccountAdvancedSection,
 } from './AccountSections';
 import { AccountDrawer } from './AccountDrawer';
 import { fetchCurrentAccountData } from '../services/account.api';
@@ -185,26 +183,17 @@ export function AccountPortal({
                       >
                         {activeTab === 'arm-id' && (
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
-                            {/* QUADRANT 1: SIGN-IN AND SECURITY */}
-                            <AccountSecuritySection
-                              data={accountData.security}
-                              onChangePassword={() => setDrawerMode('change-password')}
-                            />
-
-                            {/* QUADRANT 2: PERSONAL INFORMATION */}
+                            {/* COLUMN 1: PERSONAL INFORMATION */}
                             <AccountPersonalInfoSection
                               data={accountData.personal}
                               onEdit={() => setDrawerMode('edit-profile')}
                             />
 
-                            {/* QUADRANT 3: LOCATION / REGIONAL PREFERENCES */}
-                            <AccountLocationSection
-                              data={accountData.location}
-                            />
-
-                            {/* QUADRANT 4: ADVANCED / ACCOUNT MANAGEMENT */}
-                            <AccountAdvancedSection
-                              data={accountData.advanced}
+                            {/* COLUMN 2: SIGN-IN, SECURITY & MEMBERSHIP */}
+                            <AccountSecuritySection
+                              data={accountData.security}
+                              location={accountData.location}
+                              onChangePassword={() => setDrawerMode('change-password')}
                             />
                           </div>
                         )}
@@ -212,10 +201,19 @@ export function AccountPortal({
                         {activeTab === 'privacy' && (
                           <div className="py-8 text-[14px] text-[#8A8F98] leading-relaxed max-w-xl">
                             <p className="mb-4 text-white font-medium">ARM Exhaust Customer Data Privacy</p>
-                            <p>
+                            <p className="mb-6">
                               Your account data is encrypted adhering to official workshop and high-security transaction standards.
                               We never share your motorcycle build configurations or personal delivery addresses with third parties.
                             </p>
+                            <div className="pt-6 border-t border-[#1E1E21]">
+                              <a
+                                href={accountData.termsUrl ?? '/legal/terms'}
+                                className="text-[14px] text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors inline-flex items-center gap-1.5 group"
+                              >
+                                <span>Terms & Conditions</span>
+                                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                              </a>
+                            </div>
                           </div>
                         )}
 

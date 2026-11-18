@@ -18,6 +18,8 @@ export type AccountDrawerMode =
 export interface AccountSecurityInfo {
   readonly email: string;
   readonly hasPassword: boolean;
+  readonly role?: string;
+  readonly roleName?: string;
   readonly twoFactorAuth?: string;
   readonly recoveryPhoneNumber?: string;
 }
@@ -35,15 +37,16 @@ export interface AccountLocationInfo {
 }
 
 export interface AccountAdvancedInfo {
-  readonly accountIdentifier: string;
-  readonly termsUrl: string;
+  readonly accountIdentifier?: string;
+  readonly termsUrl?: string;
 }
 
 export interface CustomerAccountData {
   readonly security: AccountSecurityInfo;
   readonly personal: AccountPersonalInfo;
   readonly location: AccountLocationInfo;
-  readonly advanced: AccountAdvancedInfo;
+  readonly termsUrl?: string;
+  readonly advanced?: AccountAdvancedInfo;
 }
 
 export interface ChangePasswordPayload {
@@ -70,6 +73,8 @@ export const DEFAULT_CUSTOMER_ACCOUNT: CustomerAccountData = {
   security: {
     email: 'arkanpasiva@gmail.com',
     hasPassword: true,
+    role: 'customer',
+    roleName: 'ARM Member',
   },
   personal: {
     name: 'Arkan Pasiva',
@@ -81,8 +86,5 @@ export const DEFAULT_CUSTOMER_ACCOUNT: CustomerAccountData = {
     country: 'Indonesia',
     language: 'English',
   },
-  advanced: {
-    accountIdentifier: 'cc2b3f3f-7ca5-4b84-b426-906c3fa5981f',
-    termsUrl: '/legal/terms',
-  },
+  termsUrl: '/legal/terms',
 };

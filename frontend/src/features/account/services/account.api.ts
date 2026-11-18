@@ -88,6 +88,8 @@ export async function fetchCurrentAccountData(): Promise<CustomerAccountData | n
       security: {
         email: user.email ?? DEFAULT_CUSTOMER_ACCOUNT.security.email,
         hasPassword: true,
+        role: user.role ?? DEFAULT_CUSTOMER_ACCOUNT.security.role,
+        roleName: user.role_name ?? user.roleDetails?.name ?? 'ARM Member',
         twoFactorAuth: 'Email',
         recoveryPhoneNumber: user.phone ?? DEFAULT_CUSTOMER_ACCOUNT.security.recoveryPhoneNumber,
       },
@@ -95,16 +97,13 @@ export async function fetchCurrentAccountData(): Promise<CustomerAccountData | n
         name: user.name ?? DEFAULT_CUSTOMER_ACCOUNT.personal.name,
         phoneNumber: user.phone ?? DEFAULT_CUSTOMER_ACCOUNT.personal.phoneNumber,
         address: user.address ?? DEFAULT_CUSTOMER_ACCOUNT.personal.address,
-        dateOfBirth: '-',
+        dateOfBirth: user.date_of_birth ?? '-',
       },
       location: {
         country: 'Indonesia',
         language: 'English',
       },
-      advanced: {
-        accountIdentifier: user.id ?? DEFAULT_CUSTOMER_ACCOUNT.advanced.accountIdentifier,
-        termsUrl: '/legal/terms',
-      },
+      termsUrl: '/legal/terms',
     };
   } catch {
     return null;

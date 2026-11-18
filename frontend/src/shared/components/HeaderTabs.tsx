@@ -8,7 +8,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { RollUpText } from './RollUpText';
 
 export type NavTabKey = 'home' | 'product' | 'contact';
-export type LanguageKey = 'ID' | 'EN';
 
 export interface UserRoleDetails {
   id?: string;
@@ -31,11 +30,9 @@ export interface UserProfile {
 }
 
 export interface HeaderTabsProps {
-  initialLanguage?: LanguageKey;
   cartCount?: number;
   initialUser?: UserProfile | null;
   onSearchSubmit?: (query: string) => void;
-  onLanguageChange?: (lang: LanguageKey) => void;
   onLogout?: () => void;
 }
 
@@ -78,11 +75,9 @@ function renderRoleBadge(user: UserProfile) {
 }
 
 export function HeaderTabs({
-  initialLanguage = 'ID',
   cartCount = 0,
   initialUser = null,
   onSearchSubmit,
-  onLanguageChange,
   onLogout,
 }: HeaderTabsProps) {
   // Tab aktif diturunkan dari route — bukan state internal, supaya underline mengikuti navigasi
@@ -92,13 +87,11 @@ export function HeaderTabs({
     : pathname.startsWith('/contact')
       ? 'contact'
       : 'home';
-  const [currentLang, setCurrentLang] = useState<LanguageKey>(initialLanguage);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(initialUser);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Vercel-style dynamic hover & active indicators
@@ -112,7 +105,6 @@ export function HeaderTabs({
   const [isCartHovered, setIsCartHovered] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const langMenuRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -141,9 +133,6 @@ export function HeaderTabs({
       const target = event.target as Node;
       if (userMenuRef.current && !userMenuRef.current.contains(target)) {
         setIsUserMenuOpen(false);
-      }
-      if (langMenuRef.current && !langMenuRef.current.contains(target)) {
-        setIsLangMenuOpen(false);
       }
       if (
         searchContainerRef.current &&
@@ -180,12 +169,6 @@ export function HeaderTabs({
 
   const handleTabClick = () => {
     setIsMobileMenuOpen(false);
-  };
-
-  const handleLanguageSelect = (lang: LanguageKey) => {
-    setCurrentLang(lang);
-    setIsLangMenuOpen(false);
-    onLanguageChange?.(lang);
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -514,7 +497,7 @@ export function HeaderTabs({
           )}
         </div>
 
-        {/* Right Cluster: Utilities only (Search, Cart, Language) */}
+        {/* Right Cluster: Utilities only (Search, Cart) */}
         <div className="absolute right-4 lg:right-8 flex items-center gap-1 sm:gap-2">
           {/* Vertical Separator */}
           <div className="h-4 w-[1px] bg-[#2B2B30] mx-1" />
@@ -596,63 +579,6 @@ export function HeaderTabs({
               )}
             </div>
           </Link>
-
-          {/* Utility: Language Dropdown Selector */}
-          <div className="relative" ref={langMenuRef}>
-            <button
-              type="button"
-              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              aria-expanded={isLangMenuOpen}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-colors"
-            >
-              <span className="font-mono text-xs font-semibold text-white">{currentLang}</span>
-              <svg
-                className={`h-3 w-3 text-[#9AA0A8] transition-transform duration-200 ${isLangMenuOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            <AnimatePresence>
-              {isLangMenuOpen && (
-                <motion.div
-                  key="lang-dropdown"
-                  initial={{ opacity: 0, y: -6, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                  transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute right-0 mt-1 w-32 rounded-xl border border-white/[0.08] bg-[#121214] p-1 shadow-2xl shadow-black/80 z-50 overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleLanguageSelect('ID')}
-                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
-                      currentLang === 'ID' ? 'bg-white/[0.08] text-white font-medium' : 'text-zinc-400 hover:bg-white/[0.04] hover:text-white'
-                    }`}
-                  >
-                    <span className="flex items-center">
-                      Indonesia
-                    </span>
-                    {currentLang === 'ID' && <span>✓</span>}
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    title="Segera tersedia"
-                    className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-zinc-500 cursor-not-allowed"
-                  >
-                    <span className="flex items-center">
-                      English
-                    </span>
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-zinc-600">soon</span>
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
       </div>
 
@@ -772,37 +698,24 @@ export function HeaderTabs({
             ))}
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-[#2B2B30]">
+          <div className="pt-2 border-t border-[#2B2B30]">
             <Link
               href="/cart"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-2 text-xs text-white"
+              className="flex items-center justify-between py-2 px-2.5 rounded-lg text-xs font-semibold text-white hover:bg-white/[0.04] transition-colors"
             >
-              <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3" />
-              </svg>
-              <span>Shopping Cart ({cartCount})</span>
+              <span className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3" />
+                </svg>
+                Shopping Cart
+              </span>
+              {cartCount > 0 && (
+                <span className="rounded-full border border-white/10 bg-white/[0.06] text-zinc-300 px-2 py-0.5 font-mono text-[10px] font-medium">
+                  {cartCount}
+                </span>
+              )}
             </Link>
-
-            <div className="flex items-center gap-1.5 bg-[#0A0A0B] p-1 rounded-lg border border-[#2B2B30]">
-              <button
-                type="button"
-                onClick={() => handleLanguageSelect('ID')}
-                className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
-                  currentLang === 'ID' ? 'bg-white text-zinc-950' : 'text-[#9AA0A8]'
-                }`}
-              >
-                ID
-              </button>
-              <button
-                type="button"
-                disabled
-                title="Segera tersedia"
-                className="px-2 py-0.5 rounded text-[11px] font-mono text-[#8A8F98] cursor-not-allowed"
-              >
-                EN
-              </button>
-            </div>
           </div>
         </div>
       )}

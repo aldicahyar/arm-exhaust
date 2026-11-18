@@ -85,12 +85,20 @@ const sectionsCode = fs.readFileSync(
 
 assert.ok(
   sectionsCode.includes('Sign-in and security') &&
-  sectionsCode.includes('Personal information') &&
-  sectionsCode.includes('Location') &&
-  sectionsCode.includes('Advanced'),
-  'AccountSections must include all 4 official Polestar sections'
+  sectionsCode.includes('Personal information'),
+  'AccountSections must include Sign-in and security and Personal information'
 );
-console.log('✓ 4 Official Polestar sections present in AccountSections');
+assert.ok(
+  !sectionsCode.includes('heading-advanced'),
+  'AccountSections must eliminate obsolete Advanced section'
+);
+assert.ok(
+  sectionsCode.includes('getMembershipBadge') &&
+  sectionsCode.includes('Official Reseller') &&
+  sectionsCode.includes('ARM Member'),
+  'AccountSections must support Role-Based Membership Badges (Official Reseller & ARM Member)'
+);
+console.log('✓ Balanced 2-pillar sections and dynamic Role-Based Membership Badges present in AccountSections');
 
 assert.ok(
   !sectionsCode.includes('!important'),
@@ -100,9 +108,14 @@ console.log('✓ CSS specificity clean (no !important)');
 
 assert.ok(
   portalCode.includes('grid grid-cols-1 lg:grid-cols-2'),
-  'AccountPortal must organize the 4 sections in a 2x2 Symmetric Grid layout'
+  'AccountPortal must organize sections in a balanced 2-column layout'
 );
-console.log('✓ 2x2 Symmetric Grid layout verified in AccountPortal');
+assert.ok(
+  portalCode.includes('Terms & Conditions') &&
+  portalCode.includes("activeTab === 'privacy'"),
+  'AccountPortal must house Terms & Conditions cleanly in Privacy tab'
+);
+console.log('✓ Balanced 2-column layout and Privacy tab Terms & Conditions verified in AccountPortal');
 
 assert.ok(
   portalCode.includes("classList.add('scrollbar-none')") &&
@@ -129,10 +142,10 @@ assert.ok(
   'AccountSections must eliminate static mock Two-factor authentication row'
 );
 assert.ok(
-  sectionsCode.includes('Copy ID'),
-  'AccountSections must include interactive 1-click Copy ID button in Advanced section'
+  !sectionsCode.includes('Copy ID') && !sectionsCode.includes('accountIdentifier'),
+  'AccountSections must eliminate Copy ID and raw account identifier for security & simplicity'
 );
-console.log('✓ Form redundancy elimination, Date of birth retention, and Copy ID micro-interaction verified in AccountSections');
+console.log('✓ Form redundancy elimination, Date of birth retention, and Copy ID elimination verified in AccountSections');
 
 assert.ok(
   !sectionsCode.includes('onChangeEmail'),

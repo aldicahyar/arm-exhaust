@@ -29,18 +29,56 @@ function TooltipIcon({ label }: Readonly<TooltipIconProps>) {
    Streamlined to focus purely on active authentication credentials.
    Email is the read-only primary identity (no pseudo-change button).
    Password retains fully functional session-revoking Change action.
+   Includes Role-Based Membership Status badge & Regional Preferences.
    ========================================================================== */
+export interface MembershipBadgeInfo {
+  readonly label: string;
+  readonly badgeClass: string;
+  readonly dotClass: string;
+  readonly description: string;
+}
+
+export function getMembershipBadge(role?: string): MembershipBadgeInfo {
+  const normalized = (role || '').trim().toLowerCase();
+  if (normalized === 'reseller') {
+    return {
+      label: 'Official Reseller',
+      badgeClass: 'text-white border-[#3F3F46] bg-[#18181B]',
+      dotClass: 'bg-white',
+      description: 'Authorized B2B partner with wholesale pricing and cargo priorities.',
+    };
+  }
+  if (normalized === 'admin' || normalized === 'superadmin') {
+    return {
+      label: 'ARM Management',
+      badgeClass: 'text-white border-[#3F3F46] bg-[#18181B]',
+      dotClass: 'bg-white',
+      description: 'System administrator and operations personnel.',
+    };
+  }
+  return {
+    label: 'ARM Member',
+    badgeClass: 'text-white border-[#27272A] bg-[#141416]',
+    dotClass: 'bg-[#8A8F98]',
+    description: 'Verified retail customer entitled to official exhaust warranties and birthday rewards.',
+  };
+}
+
 interface SecuritySectionProps {
   readonly data: AccountSecurityInfo;
+  readonly location?: AccountLocationInfo;
   readonly onChangePassword?: () => void;
   readonly onResetPassword?: () => void;
 }
 
 export function AccountSecuritySection({
   data,
+  location,
   onChangePassword,
   onResetPassword,
 }: Readonly<SecuritySectionProps>) {
+  const membership = getMembershipBadge(data.role);
+
   return (
     <section
       aria-labelledby="heading-security"
@@ -72,6 +110,28 @@ export function AccountSecuritySection({
             >
               Change
             </button>
+          </div>
+
+          {/* Membership Status (Role-based Model 3: ARM Member / Official Reseller) */}
+          <div>
+            <div className="flex items-center gap-1.5 text-[13px] text-[#8A8F98]">
+              <span>Membership status</span>
+              <TooltipIcon label={membership.description} />
+            </div>
+            <div className="mt-1.5">
+              <span className={`inline-flex items-center gap-2 px-2.5 py-1 text-[13px] font-medium border ${membership.badgeClass} rounded-none select-none`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${membership.dotClass}`} />
+                <span>{membership.label}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Regional Preferences */}
+          <div>
+            <div className="text-[13px] text-[#8A8F98]">Regional preferences</div>
+            <div className="text-[15px] font-medium text-white mt-1">
+              {location ? `${location.country} • ${location.language} (Global)` : 'Indonesia • English (Global)'}
+            </div>
           </div>
         </div>
       </div>
@@ -204,74 +264,4 @@ export function AccountLocationSection({
   );
 }
 
-/* ==========================================================================
-   QUADRANT 4: Advanced / Account management
-   Includes interactive 1-click 'Copy ID' for fast customer support reference.
-   ========================================================================== */
-interface AdvancedSectionProps {
-  readonly data: AccountAdvancedInfo;
-}
 
-export function AccountAdvancedSection({
-  data,
-}: Readonly<AdvancedSectionProps>) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyId = () => {
-    if (typeof navigator !== 'undefined' && navigator?.clipboard) {
-      void navigator.clipboard.writeText(data.accountIdentifier).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
-  };
-
-  return (
-    <section
-      aria-labelledby="heading-advanced"
-      className="border-t border-[#1E1E21] pt-6 flex flex-col justify-between"
-    >
-      <div>
-        <h2 id="heading-advanced" className="text-[16px] font-normal text-white tracking-tight mb-7">
-          Advanced
-        </h2>
-
-        <div className="flex flex-col gap-6">
-          {/* Account identifier */}
-          <div>
-            <div className="text-[13px] text-[#8A8F98]">Account identifier</div>
-            <div className="text-[14px] font-mono text-white mt-1 break-all select-all">
-              {data.accountIdentifier}
-            </div>
-            <button
-              type="button"
-              onClick={handleCopyId}
-              className="text-[13px] text-white underline underline-offset-4 mt-1.5 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              {copied ? 'Copied to clipboard' : 'Copy ID'}
-            </button>
-          </div>
-
-          {/* Terms & Conditions */}
-          <div>
-            <a
-              href={data.termsUrl}
-              className="text-[14px] text-white underline underline-offset-4 hover:text-[#8A8F98] transition-colors inline-block"
-            >
-              Terms & Conditions →
-            </a>
-          </div>
-
-          {/* Membership Status Badge */}
-          <div>
-            <div className="text-[13px] text-[#8A8F98]">Membership status</div>
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-white select-none" />
-              <span className="text-[14px] font-medium text-white">Verified Customer</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
