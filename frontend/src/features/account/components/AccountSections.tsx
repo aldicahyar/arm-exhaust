@@ -120,7 +120,6 @@ export function AccountSecuritySection({
             </div>
             <div className="mt-1.5">
               <span className={`inline-flex items-center gap-2 px-2.5 py-1 text-[13px] font-medium border ${membership.badgeClass} rounded-none select-none`}>
-                <span className={`inline-block w-1.5 h-1.5 rounded-full ${membership.dotClass}`} />
                 <span>{membership.label}</span>
               </span>
             </div>
