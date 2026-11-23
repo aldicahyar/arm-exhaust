@@ -13,7 +13,7 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" className="scrollbar-none" suppressHydrationWarning>
       <head>
         {process.env.NODE_ENV === 'development' && (
           <script
@@ -46,7 +46,7 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
           rel="stylesheet"
         />
       </head>
-      <body className="bg-[#0A0A0B] text-white antialiased" suppressHydrationWarning>
+      <body className="bg-[#0A0A0B] text-white antialiased scrollbar-none" suppressHydrationWarning>
         <NoticeProvider>
           <ConfirmProvider>
             <DynamicIslandNotice />

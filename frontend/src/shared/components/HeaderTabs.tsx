@@ -30,10 +30,10 @@ export interface UserProfile {
 }
 
 export interface HeaderTabsProps {
-  cartCount?: number;
-  initialUser?: UserProfile | null;
-  onSearchSubmit?: (query: string) => void;
-  onLogout?: () => void;
+  readonly cartCount?: number;
+  readonly initialUser?: UserProfile | null;
+  readonly onSearchSubmit?: (query: string) => void;
+  readonly onLogout?: () => void;
 }
 
 const TABS: { id: NavTabKey; label: string; href: string }[] = [
@@ -79,9 +79,12 @@ export function HeaderTabs({
   initialUser = null,
   onSearchSubmit,
   onLogout,
-}: HeaderTabsProps) {
+}: Readonly<HeaderTabsProps>) {
   // Tab aktif diturunkan dari route — bukan state internal, supaya underline mengikuti navigasi
   const pathname = usePathname();
+  const isHomePage = pathname === '/';
+  const [isScrolledPastHero, setIsScrolledPastHero] = useState(!isHomePage);
+
   const activeTab: NavTabKey = pathname.startsWith('/catalog')
     ? 'product'
     : pathname.startsWith('/contact')
@@ -107,6 +110,27 @@ export function HeaderTabs({
   const userMenuRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Singer-style scroll listener with hysteresis: On homepage, hide header tabs while in hero (< 80px)
+  useEffect(() => {
+    if (!isHomePage) {
+      setIsScrolledPastHero(true);
+      return;
+    }
+
+    const checkScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setIsScrolledPastHero((prev) => {
+        if (!prev && scrollY > 80) return true;
+        if (prev && scrollY < 35) return false;
+        return prev;
+      });
+    };
+
+    checkScroll();
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    return () => window.removeEventListener('scroll', checkScroll);
+  }, [isHomePage]);
 
   // Calculate sliding active underline based on activeTab
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
@@ -263,10 +287,36 @@ export function HeaderTabs({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#2B2B30] bg-[#0A0A0B]/95 backdrop-blur-md transition-colors font-sans">
-      {/* Tier 1: Brand Logo Centered — full-width divider, content capped at max-w-7xl.
-          Collapse saat footer terlihat supaya logo tidak dobel. */}
-      <div className={`border-b transition-all duration-300 ${isFooterVisible ? 'max-h-0 overflow-hidden border-transparent opacity-0' : 'max-h-[76px] border-[#1E1E21]'}`}>
+    <header
+      className={`${
+        isHomePage ? 'fixed top-0 left-0' : 'sticky top-0'
+      } z-40 w-full font-sans transition-colors duration-500`}
+    >
+      {/* ── Seamless Dual-Layer Backdrop Crossfade (Zero Snap/Flicker) ── */}
+      {/* 1. Hero Mode Atmospheric Gradient */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 border-none bg-gradient-to-b from-black/80 via-black/20 to-transparent transition-opacity duration-500 ease-out ${
+          isHomePage && !isScrolledPastHero ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+      {/* 2. Sticky Scrolled Solid Glass with Bottom Border */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 bg-[#0A0A0B]/95 backdrop-blur-md border-b border-[#2B2B30] transition-opacity duration-500 ease-out ${
+          isHomePage && !isScrolledPastHero ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
+
+      {/* Tier 1: Brand Logo Centered (Singer Option A: Pure Floating Logo in Hero Mode).
+          Collapse saat footer terlihat supaya logo tidak dobel. Seamless 0px border in hero mode. */}
+      <div
+        className={`relative z-10 transition-all duration-300 ${
+          isFooterVisible
+            ? 'max-h-0 overflow-hidden opacity-0'
+            : 'max-h-[76px] opacity-100'
+        }`}
+      >
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-center px-4 sm:px-6 lg:px-8">
           <Link
             href="/"
@@ -283,41 +333,67 @@ export function HeaderTabs({
             />
           </Link>
         </div>
+        {/* Subtle dividing line between Tier 1 and Tier 2 (Fades in ONLY when scrolled past hero) */}
+        <div
+          aria-hidden="true"
+          className={`h-px w-full bg-[#1E1E21] transition-opacity duration-500 ${
+            isHomePage && !isScrolledPastHero ? 'opacity-0' : 'opacity-100'
+          }`}
+        />
       </div>
 
-      {/* Tier 2: Burger left (mobile) + Centered Vercel Tabs (desktop) + Utilities right */}
-      <div className="relative flex h-[52px] items-center justify-center px-4">
-        {/* Mobile burger — only visible below md, tier stays usable on mobile */}
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Open menu"
-          aria-expanded={isMobileMenuOpen}
-          className="md:hidden absolute left-4 flex h-9 w-9 items-center justify-center rounded-lg text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-colors"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            {isMobileMenuOpen ? (
-              <path d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+      {/* Tier 2: Centered Tabs (Home, Product, Contact, Profile) + Right Utilities (Search, Cart).
+          Singer Option A: Smoothly expands and reveals with Framer Motion when scrolled past hero! */}
+      <motion.div
+        initial={false}
+        animate={{
+          height: isHomePage && !isScrolledPastHero ? 0 : 52,
+          opacity: isHomePage && !isScrolledPastHero ? 0 : 1,
+        }}
+        transition={{
+          duration: 0.38,
+          ease: [0.16, 1, 0.3, 1],
+        }}
+        className={`relative z-10 overflow-hidden ${
+          isHomePage && !isScrolledPastHero
+            ? 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+            : 'max-h-[52px] opacity-100 overflow-visible'
+        }`}
+      >
+        <div className="relative flex h-[52px] items-center justify-center px-4">
+          {/* Mobile burger — only visible below md when Tier 2 is revealed */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Open menu"
+            aria-expanded={isMobileMenuOpen}
+            className="md:hidden absolute left-4 flex h-9 w-9 items-center justify-center rounded-lg text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {isMobileMenuOpen ? (
+                <path d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
 
-        {/* Centered Tab List: nav tabs + auth tab-4 (desktop only).
-            Indicators live INSIDE this container so offsetLeft/offsetWidth match their position. */}
-        <div className="relative hidden md:flex h-full items-center space-x-[2px]">
-          {/* Sliding Hover Highlight */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 h-[32px] transition-all duration-200 ease-out bg-white/[0.08] rounded-[6px] pointer-events-none"
-            style={{ ...hoverStyle, opacity: hoveredIndex !== null ? 1 : 0 }}
-          />
+          {/* Centered Tab List: nav tabs + auth tab-4 (desktop only).
+              Indicators live INSIDE this container so offsetLeft/offsetWidth match their position. */}
+          <div className="relative hidden md:flex h-full items-center space-x-[2px]">
+            {/* Sliding Hover Highlight */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 h-[32px] transition-all duration-200 ease-out bg-white/[0.08] rounded-[6px] pointer-events-none"
+              style={{ ...hoverStyle, opacity: hoveredIndex !== null ? 1 : 0 }}
+            />
 
-          {/* Sliding Active Underline — only for nav tabs 0-2, NOT auth tab */}
-          <div
-            className="absolute bottom-0 h-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.35)] transition-all duration-300 ease-out pointer-events-none"
-            style={activeStyle}
-          />
+            {/* Sliding Active Underline — only for nav tabs 0-2, NOT auth tab. Hidden during hero mode to eliminate white border bug. */}
+            <div
+              className={`absolute bottom-0 h-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.35)] pointer-events-none transition-all duration-300 ease-out ${
+                isHomePage && !isScrolledPastHero ? 'opacity-0' : 'opacity-100'
+              }`}
+              style={activeStyle}
+            />
 
           {TABS.map((tab, idx) => (
             <Link
@@ -581,10 +657,11 @@ export function HeaderTabs({
           </Link>
         </div>
       </div>
+      </motion.div>
 
-      {/* Mobile Drawer (Burger Menu) */}
+      {/* Mobile Navigation Drawer */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-[#2B2B30] bg-[#141416] px-4 py-3 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-150">
+        <div className="md:hidden border-t border-[#2B2B30] bg-[#141416]/95 backdrop-blur-md px-4 py-4 flex flex-col gap-2 max-w-7xl mx-auto animate-in slide-in-from-top-2 duration-150 shadow-2xl">
           <div className="flex items-center rounded-lg border border-[#2B2B30] bg-[#0A0A0B] px-3 py-2 text-xs">
             <svg className="h-4 w-4 text-[#9AA0A8] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <circle cx="11" cy="11" r="8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

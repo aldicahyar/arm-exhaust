@@ -13,6 +13,8 @@ import {
   Trash2,
   PanelRightClose,
   PanelRightOpen,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useNotice, useDoubleSafetyAction, ACTION_PRESETS } from '@/shared/components';
 import { cn } from '@/shared/utils/cn';
@@ -344,19 +346,49 @@ function HeroLivePreview({
                 className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/85 via-[#0A0A0B]/20 to-transparent"
               />
 
-              {/* Headline Copy Overlay */}
+              {/* Headline Copy & Singer Contextual Action Links Overlay */}
               <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                <div className="mb-1 flex items-center gap-1.5 font-mono text-[9px] tracking-widest uppercase text-zinc-400">
-                  <span className="h-px w-3 bg-zinc-500" aria-hidden="true" />
-                  <span>{previewSlide.tag}</span>
-                </div>
                 <p className="font-['Space_Grotesk'] text-base sm:text-lg font-bold tracking-tight text-white leading-snug line-clamp-2">
                   {previewSlide.title}
                 </p>
-                <div className="mt-1.5 font-mono text-[10px] text-zinc-400 truncate">
-                  {previewSlide.href}
+                <div className="mt-2 flex items-center gap-2.5 font-mono text-[9px] text-zinc-300">
+                  <span className="text-white">Specifications ↗</span>
+                  <span className="text-zinc-600">•</span>
+                  <span className="text-zinc-400">Series ↗</span>
                 </div>
               </div>
+
+              {/* Subtle Side Chevrons in Preview */}
+              {activeSlides.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const curIdx = activeSlides.findIndex((s) => s.id === previewSlide.id);
+                      const prevIdx = (curIdx - 1 + activeSlides.length) % activeSlides.length;
+                      onSelectSlide(activeSlides[prevIdx].id);
+                    }}
+                    aria-label="Slide sebelumnya"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 hover:text-white transition"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const curIdx = activeSlides.findIndex((s) => s.id === previewSlide.id);
+                      const nextIdx = (curIdx + 1) % activeSlides.length;
+                      onSelectSlide(activeSlides[nextIdx].id);
+                    }}
+                    aria-label="Slide selanjutnya"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 hover:text-white transition"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         ) : (
@@ -366,41 +398,29 @@ function HeroLivePreview({
         )}
       </div>
 
-      {/* Live Strip Navigation Mirror (Reflects Drag-and-Drop Order Real-Time) */}
+      {/* Live Slide Thumb Bar (Singer Pure Clean Style) */}
       {activeSlides.length > 0 && (
-        <div
-          className="grid border-t border-[#1E1E21] bg-[#0A0A0B]"
-          style={{
-            gridTemplateColumns: `repeat(${activeSlides.length}, minmax(0, 1fr))`,
-          }}
-        >
-          {activeSlides.map((activeItem, idx) => {
-            const isSelected = previewSlide?.id === activeItem.id;
-            return (
-              <button
-                key={activeItem.id}
-                type="button"
-                onClick={() => onSelectSlide(activeItem.id)}
-                className={cn(
-                  'relative p-2.5 text-left border-r border-[#1E1E21] last:border-r-0 transition-colors',
-                  isSelected ? 'bg-[#141418]' : 'hover:bg-[#111114]'
-                )}
-              >
-                {isSelected && <div className="absolute inset-x-0 top-0 h-[2px] bg-white" />}
-                <div className="font-mono text-[9px] uppercase tracking-wider text-zinc-500 truncate">
-                  {`${formatSlideNumber(idx)} · ${activeItem.category}`}
-                </div>
-                <div
+        <div className="flex items-center justify-between px-4 py-2 border-t border-zinc-900 bg-[#0A0A0B] text-[10px]">
+          <span className="font-mono text-zinc-500">
+            Slide {activeSlides.findIndex((s) => s.id === previewSlide?.id) + 1} dari {activeSlides.length}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {activeSlides.map((activeItem, idx) => {
+              const isSelected = previewSlide?.id === activeItem.id;
+              return (
+                <button
+                  key={activeItem.id}
+                  type="button"
+                  onClick={() => onSelectSlide(activeItem.id)}
+                  aria-label={`Pilih slide ${idx + 1}`}
                   className={cn(
-                    'mt-0.5 text-[11px] font-semibold truncate',
-                    isSelected ? 'text-white' : 'text-zinc-400'
+                    'h-1.5 rounded-full transition-all duration-200',
+                    isSelected ? 'w-5 bg-white' : 'w-1.5 bg-zinc-700 hover:bg-zinc-500'
                   )}
-                >
-                  {activeItem.strip_title}
-                </div>
-              </button>
-            );
-          })}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -15,6 +15,9 @@ const heroCode = fs.readFileSync(heroPath, 'utf8');
 assert.ok(!headerCode.includes('#E81828'), 'HeaderTabs.tsx must NOT contain any #E81828 red accent');
 assert.ok(headerCode.includes('bg-white shadow-[0_0_8px_rgba(255,255,255,0.35)]'), 'HeaderTabs.tsx must have pure white sliding underline');
 assert.ok(headerCode.includes('focus-visible:ring-zinc-400'), 'HeaderTabs.tsx must use monochrome focus-visible ring');
+assert.ok(headerCode.includes('isHomePage && !isScrolledPastHero'), 'HeaderTabs.tsx must track isHomePage && !isScrolledPastHero for Singer Option A');
+assert.ok(headerCode.includes('max-h-0 opacity-0 overflow-hidden pointer-events-none'), 'HeaderTabs.tsx must collapse tabs in hero mode');
+assert.ok(headerCode.includes('border-none bg-gradient-to-b'), 'HeaderTabs.tsx must use border-none in hero mode for zero-seam junction');
 
 // 2. HeroCarousel verification
 assert.ok(heroCode.includes('CAMPAIGN_SLIDES'), 'HeroCarousel.tsx must export CAMPAIGN_SLIDES');
@@ -22,6 +25,8 @@ assert.ok(heroCode.includes('PRODUK') && heroCode.includes('PROMO') && heroCode.
 assert.ok(heroCode.includes('useReducedMotion'), 'HeroCarousel.tsx must support prefers-reduced-motion via useReducedMotion');
 assert.ok(heroCode.includes('bg-gradient-to-t') && heroCode.includes('bg-gradient-to-r'), 'HeroCarousel.tsx must have dual ambient dark gradient overlay');
 assert.ok(heroCode.includes('calc(100svh - 129px)'), 'HeroCarousel.tsx must fit exactly 100svh below header');
+assert.ok(!heroCode.includes('hidden md:grid gap-2'), 'HeroCarousel.tsx must NOT render bottom campaign slide card box (pure clean Singer layout)');
+assert.ok(heroCode.includes('aria-label="Previous Slide"') && heroCode.includes('aria-label="Next Slide"'), 'HeroCarousel.tsx must support subtle side chevrons');
 
 // 3. Image uniformity verification
 assert.ok(!heroCode.includes('fs-nmax-turbo-hero.jpg'), 'HeroCarousel.tsx must NOT use oversized cutout image');

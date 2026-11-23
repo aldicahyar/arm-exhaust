@@ -8,7 +8,6 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 export interface HeroCampaignSlide {
   readonly id: string;
   readonly category: 'PRODUK' | 'PROMO' | 'ACARA' | 'WORKSHOP' | string;
-  readonly tag: string;
   readonly title: string;
   readonly stripTitle: string;
   readonly href: string;
@@ -20,7 +19,6 @@ export const CAMPAIGN_SLIDES: readonly HeroCampaignSlide[] = [
   {
     id: 'kdv2-vario125',
     category: 'PRODUK',
-    tag: '01 / NEW ARRIVAL',
     title: 'ARM ZX-25R TITANIUM FULL SYSTEM',
     stripTitle: 'ZX-25R Titanium Series',
     href: '/catalog',
@@ -29,7 +27,6 @@ export const CAMPAIGN_SLIDES: readonly HeroCampaignSlide[] = [
   {
     id: 'promo-deals',
     category: 'PROMO',
-    tag: '02 / SPECIAL PROMO',
     title: 'YEAR-END RACING DEALS: DISKON 20%',
     stripTitle: 'Year-End Racing Deals',
     href: '/catalog',
@@ -38,7 +35,6 @@ export const CAMPAIGN_SLIDES: readonly HeroCampaignSlide[] = [
   {
     id: 'event-sentul',
     category: 'ACARA',
-    tag: '03 / TRACK EVENT',
     title: 'SENTUL TRACK DAY & DYNO MEETUP',
     stripTitle: 'Sentul Track Day 2026',
     href: '/contact',
@@ -47,7 +43,6 @@ export const CAMPAIGN_SLIDES: readonly HeroCampaignSlide[] = [
   {
     id: 'workshop-custom',
     category: 'WORKSHOP',
-    tag: '04 / IN-HOUSE WORKSHOP',
     title: 'CUSTOM INLET & PRECISION DYNO TUNE',
     stripTitle: 'Custom Inlet & Dyno Tune',
     href: 'https://wa.me/6281234567890',
@@ -74,7 +69,6 @@ interface RawApiSlide {
 export function HeroCarousel() {
   const [slides, setSlides] = useState<readonly HeroCampaignSlide[]>(CAMPAIGN_SLIDES);
   const [active, setActive] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const startRef = useRef<number>(Date.now());
   const elapsed = useRef<number>(0);
@@ -118,23 +112,31 @@ export function HeroCarousel() {
 
   const goTo = useCallback((idx: number) => {
     setActive(idx);
-    setProgress(0);
     elapsed.current = 0;
     startRef.current = Date.now();
   }, []);
+
+  const handlePrev = useCallback(() => {
+    setActive((prev) => (prev - 1 + slides.length) % slides.length);
+    elapsed.current = 0;
+    startRef.current = Date.now();
+  }, [slides.length]);
+
+  const handleNext = useCallback(() => {
+    setActive((prev) => (prev + 1) % slides.length);
+    elapsed.current = 0;
+    startRef.current = Date.now();
+  }, [slides.length]);
 
   useEffect(() => {
     if (paused || slides.length === 0) return;
 
     const tick = () => {
       const total = elapsed.current + (Date.now() - startRef.current);
-      const pct = Math.min((total / DURATION) * 100, 100);
-      setProgress(pct);
       if (total >= DURATION) {
         elapsed.current = 0;
         startRef.current = Date.now();
         setActive((p) => (p + 1) % slides.length);
-        setProgress(0);
       } else {
         rafRef.current = requestAnimationFrame(tick);
       }
@@ -158,41 +160,33 @@ export function HeroCarousel() {
     setPaused(false);
   };
 
-  const handlePanel = (idx: number) => {
-    if (idx === active) {
-      if (paused) {
-        resume();
-      } else {
-        pause();
-      }
-    } else {
-      goTo(idx);
-      setPaused(false);
-    }
-  };
-
   const slideIndex = active >= slides.length ? 0 : active;
   const slide = slides[slideIndex] ?? CAMPAIGN_SLIDES[0];
 
   return (
     <section
-      className="relative flex w-full flex-col justify-between overflow-hidden bg-[#0E0E10]"
-      style={{ height: 'calc(100svh - 129px)', minHeight: '460px' }}
+      id="hero-section"
+      className="group relative flex w-full flex-col justify-between overflow-hidden bg-[#0E0E10] h-[100svh] min-h-[460px]"
+      style={{
+        height: '100svh',
+        minHeight: '460px',
+        /* Zoom-proof & Singer full-screen contract: calc(100svh - 129px) and 460px */
+      }}
       aria-label="ARM Exhaust featured campaigns and products"
       onMouseEnter={pause}
       onMouseLeave={resume}
     >
-      {/* ── Slide Area: Fleksibel Mengisi Seluruh Ruang Tersedia (Flex-1) ── */}
+      {/* ── Slide Area: Fleksibel Mengisi Seluruh Ruang Viewport (Flex-1) ── */}
       <div className="relative flex flex-1 flex-col justify-end overflow-hidden">
         {/* Background Image Container */}
         <div className="absolute inset-0 z-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={slide.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, scale: 1.02 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
+              transition={{ duration: shouldReduceMotion ? 0.2 : 0.6, ease: 'easeOut' }}
               className="absolute inset-0"
             >
               <Image
@@ -207,117 +201,110 @@ export function HeroCarousel() {
           </AnimatePresence>
         </div>
 
-        {/* Dual Ambient Dark Gradient Blending Overlay */}
+        {/* Dual Ambient Dark Gradient Blending Overlay (Singer Luxury Automotive Vignette) */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#0A0A0B] via-transparent to-[#0A0A0B]/75"
+          className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/20 to-transparent"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-[#0A0A0B]/85 via-[#0A0A0B]/25 to-transparent"
+          className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-[#0A0A0B]/90 via-[#0A0A0B]/35 to-transparent"
         />
 
-        {/* Content Layer Over Image (Responsive, Clutter-Free, Anti-Overflow) */}
-        <div className="relative z-20 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8">
+        {/* Content Layer Over Image (Singer-Inspired Refined Typography & Atmospheric Restraint) */}
+        <div className="relative z-20 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8 lg:pb-20">
           <AnimatePresence mode="wait">
             <motion.div
               key={slide.id}
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 6 }}
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -6 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="max-w-2xl"
+              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
+              className="max-w-3xl"
             >
-              <div className="mb-2 flex items-center gap-2 font-mono text-[10px] sm:text-[11px] font-medium tracking-widest uppercase text-zinc-400">
-                <span className="h-px w-3.5 bg-zinc-500" aria-hidden="true" />
-                <span>{slide.tag}</span>
-              </div>
-              <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-white drop-shadow-md sm:text-3xl md:text-4xl lg:text-[40px] leading-[1.14]">
+              {/* Bold Marque Title (Clean Singer Typography without arrow icon or strip badge) */}
+              <h1 className="font-['Space_Grotesk'] text-2xl sm:text-4xl md:text-5xl lg:text-[54px] font-bold tracking-tight text-white drop-shadow-2xl leading-[1.08]">
                 <Link
                   href={slide.href}
-                  className="group inline transition-colors duration-200 hover:text-zinc-300"
+                  className="inline transition-colors duration-200 hover:text-zinc-200"
                 >
-                  <span>{slide.title}</span>
-                  <span
-                    className="inline-block ml-2.5 text-zinc-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5 group-hover:text-white align-middle"
-                    aria-hidden="true"
-                  >
-                    <svg
-                      className="inline h-5 w-5 sm:h-6 sm:w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H7M17 7V17" />
-                    </svg>
-                  </span>
+                  {slide.title}
                 </Link>
               </h1>
+
+              {/* Contextual Action Links (Singer True Match) */}
+              <div className="mt-4 flex items-center gap-4 text-xs font-medium">
+                <Link
+                  href={slide.href}
+                  className="inline-flex items-center gap-1.5 text-white hover:text-zinc-300 transition-colors py-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded"
+                >
+                  <span>Vehicle Specifications</span>
+                </Link>
+                <span className="text-zinc-600 font-mono" aria-hidden="true">|</span>
+                <Link
+                  href="/catalog"
+                  className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors py-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded"
+                >
+                  <span>Explore Series</span>
+                </Link>
+              </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Dot Indicators Mobile */}
-        <div className="absolute top-4 right-4 z-30 flex gap-1.5 md:hidden">
+        {/* Dot Indicators Mobile & Tablet */}
+        <div className="absolute bottom-6 right-6 z-30 flex gap-2 md:hidden">
           {slides.map((s, i) => (
             <button
               key={s.id}
               type="button"
               onClick={() => goTo(i)}
               aria-label={`Slide ${i + 1}`}
-              className={`h-[3px] rounded-none transition-all duration-300 ${
-                i === slideIndex ? 'w-6 bg-white' : 'w-2 bg-white/20'
+              className={`h-1 rounded-full transition-all duration-300 ${
+                i === slideIndex ? 'w-6 bg-white' : 'w-2 bg-white/30'
               }`}
             />
           ))}
         </div>
       </div>
 
-      {/* ── Low-Profile Strip Navigation (Desktop): Selalu Terkunci di Bawah Viewport (Shrink-0) ── */}
-      <div
-        className="relative z-20 hidden shrink-0 border-t border-[#1E1E21] bg-[#0A0A0B] md:grid"
-        style={{ gridTemplateColumns: `repeat(${slides.length}, minmax(0, 1fr))` }}
-      >
-        {slides.map((s, i) => {
-          const isActive = i === slideIndex;
-          return (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => handlePanel(i)}
-              className={`relative p-3.5 sm:p-4 text-left transition-colors duration-150 border-r border-[#1E1E21] last:border-r-0 ${
-                isActive ? 'bg-[#141418]' : 'hover:bg-[#111114]'
-              }`}
+      {/* ── Singer-Style Subtle Floating Side Navigation Chevrons ── */}
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="Previous Slide"
+            className="group/nav absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/25 backdrop-blur-xs text-white/40 opacity-0 md:group-hover:opacity-100 hover:text-white hover:bg-black/50 transition-all duration-300 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
+          >
+            <svg
+              className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 group-hover/nav:-translate-x-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
             >
-              {/* Progress bar line */}
-              <div className="absolute left-0 right-0 top-0 h-[2px] bg-[#1E1E21] overflow-hidden">
-                {isActive && (
-                  <motion.div
-                    className="h-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.4)]"
-                    style={{ width: `${progress}%` }}
-                    transition={{ duration: 0 }}
-                  />
-                )}
-              </div>
-
-              {/* Counter & Category */}
-              <div className="font-mono text-[10px] tracking-wider text-zinc-500 uppercase transition-colors">
-                {`0${i + 1} • ${s.category}`}
-              </div>
-
-              {/* Strip Title */}
-              <div
-                className={`mt-0.5 sm:mt-1 font-['Space_Grotesk'] text-xs sm:text-sm font-bold transition-colors truncate ${
-                  isActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
-                }`}
-              >
-                {s.stripTitle}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Next Slide"
+            className="group/nav absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/25 backdrop-blur-xs text-white/40 opacity-0 md:group-hover:opacity-100 hover:text-white hover:bg-black/50 transition-all duration-300 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
+          >
+            <svg
+              className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 group-hover/nav:translate-x-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </>
+      )}
     </section>
   );
 }

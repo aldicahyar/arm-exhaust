@@ -44,6 +44,10 @@ assert.ok(
 );
 assert.ok(!heroCode.includes('btnText'), 'HeroCarousel.tsx must NOT contain physical button btnText');
 assert.ok(!heroCode.includes('bg-white px-4'), 'HeroCarousel.tsx must NOT contain white button box');
+assert.ok(
+  !heroCode.toLowerCase().includes('scroll to discover'),
+  'HeroCarousel.tsx must NOT contain "Scroll to Discover" widget for pure Singer aesthetic'
+);
 
 // 2. Events Section in page.tsx Tests
 // 2.1 Must fetch from /api/public/community-events
