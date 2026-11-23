@@ -111,7 +111,7 @@ export function HeaderTabs({
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Singer-style scroll listener with hysteresis: On homepage, hide header tabs while in hero (< 80px)
+  // Scroll listener with hysteresis: On homepage, hide header tabs while in hero (< 80px)
   useEffect(() => {
     if (!isHomePage) {
       setIsScrolledPastHero(true);
@@ -308,7 +308,7 @@ export function HeaderTabs({
         }`}
       />
 
-      {/* Tier 1: Brand Logo Centered (Singer Option A: Pure Floating Logo in Hero Mode).
+      {/* Tier 1: Brand Logo Centered.
           Collapse saat footer terlihat supaya logo tidak dobel. Seamless 0px border in hero mode. */}
       <div
         className={`relative z-10 transition-all duration-300 ${
@@ -343,7 +343,7 @@ export function HeaderTabs({
       </div>
 
       {/* Tier 2: Centered Tabs (Home, Product, Contact, Profile) + Right Utilities (Search, Cart).
-          Singer Option A: Smoothly expands and reveals with Framer Motion when scrolled past hero! */}
+           Option A: Smoothly expands and reveals with Framer Motion when scrolled past hero! */}
       <motion.div
         initial={false}
         animate={{

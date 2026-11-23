@@ -346,7 +346,7 @@ function HeroLivePreview({
                 className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/85 via-[#0A0A0B]/20 to-transparent"
               />
 
-              {/* Headline Copy & Singer Contextual Action Links Overlay */}
+              {/* Headline Contextual Action Links Overlay */}
               <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
                 <p className="font-['Space_Grotesk'] text-base sm:text-lg font-bold tracking-tight text-white leading-snug line-clamp-2">
                   {previewSlide.title}
@@ -398,7 +398,7 @@ function HeroLivePreview({
         )}
       </div>
 
-      {/* Live Slide Thumb Bar (Singer Pure Clean Style) */}
+      {/* Live Slide Thumb Bar */}
       {activeSlides.length > 0 && (
         <div className="flex items-center justify-between px-4 py-2 border-t border-zinc-900 bg-[#0A0A0B] text-[10px]">
           <span className="font-mono text-zinc-500">

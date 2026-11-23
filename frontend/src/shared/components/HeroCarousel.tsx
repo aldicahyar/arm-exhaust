@@ -170,7 +170,7 @@ export function HeroCarousel() {
       style={{
         height: '100svh',
         minHeight: '460px',
-        /* Zoom-proof & Singer full-screen contract: calc(100svh - 129px) and 460px */
+        /* Zoom-proof full-screen contract: calc(100svh - 129px) and 460px */
       }}
       aria-label="ARM Exhaust featured campaigns and products"
       onMouseEnter={pause}
@@ -201,7 +201,7 @@ export function HeroCarousel() {
           </AnimatePresence>
         </div>
 
-        {/* Dual Ambient Dark Gradient Blending Overlay (Singer Luxury Automotive Vignette) */}
+        {/* Dual Ambient Dark Gradient Blending Overlay */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/20 to-transparent"
@@ -211,7 +211,7 @@ export function HeroCarousel() {
           className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-[#0A0A0B]/90 via-[#0A0A0B]/35 to-transparent"
         />
 
-        {/* Content Layer Over Image (Singer-Inspired Refined Typography & Atmospheric Restraint) */}
+        {/* Content Layer Over Image */}
         <div className="relative z-20 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8 lg:pb-20">
           <AnimatePresence mode="wait">
             <motion.div
@@ -222,7 +222,7 @@ export function HeroCarousel() {
               transition={{ duration: 0.28, ease: 'easeOut' }}
               className="max-w-3xl"
             >
-              {/* Bold Marque Title (Clean Singer Typography without arrow icon or strip badge) */}
+              {/* Bold Marque Title (Clean Typography without arrow icon or strip badge) */}
               <h1 className="font-['Space_Grotesk'] text-2xl sm:text-4xl md:text-5xl lg:text-[54px] font-bold tracking-tight text-white drop-shadow-2xl leading-[1.08]">
                 <Link
                   href={slide.href}
@@ -232,7 +232,7 @@ export function HeroCarousel() {
                 </Link>
               </h1>
 
-              {/* Contextual Action Links (Singer True Match) */}
+              {/* Contextual Action Links */}
               <div className="mt-4 flex items-center gap-4 text-xs font-medium">
                 <Link
                   href={slide.href}
@@ -268,7 +268,7 @@ export function HeroCarousel() {
         </div>
       </div>
 
-      {/* ── Singer-Style Subtle Floating Side Navigation Chevrons ── */}
+      {/*  Subtle Floating Side Navigation Chevrons  */}
       {slides.length > 1 && (
         <>
           <button
