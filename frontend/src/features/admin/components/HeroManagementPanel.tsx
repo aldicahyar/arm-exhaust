@@ -370,7 +370,7 @@ function HeroLivePreview({
                       onSelectSlide(activeSlides[prevIdx].id);
                     }}
                     aria-label="Slide sebelumnya"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 hover:text-white transition"
+                    className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center bg-transparent text-white/50 hover:text-white transition drop-shadow-md"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -383,7 +383,7 @@ function HeroLivePreview({
                       onSelectSlide(activeSlides[nextIdx].id);
                     }}
                     aria-label="Slide selanjutnya"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white/70 hover:text-white transition"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center bg-transparent text-white/50 hover:text-white transition drop-shadow-md"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>

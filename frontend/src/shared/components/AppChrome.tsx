@@ -16,7 +16,8 @@ export function AppChrome({ children }: Readonly<AppChromeProps>) {
   if (
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/admin') ||
-    pathname?.startsWith('/account')
+    pathname?.startsWith('/account') ||
+    pathname?.startsWith('/verify')
   ) {
     return null;
   }

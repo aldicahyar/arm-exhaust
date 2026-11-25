@@ -268,21 +268,21 @@ export function HeroCarousel() {
         </div>
       </div>
 
-      {/*  Subtle Floating Side Navigation Chevrons  */}
+      {/* ── Subtle Floating Side Navigation Chevrons (Pure Transparent Minimalist) ── */}
       {slides.length > 1 && (
         <>
           <button
             type="button"
             onClick={handlePrev}
             aria-label="Previous Slide"
-            className="group/nav absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/25 backdrop-blur-xs text-white/40 opacity-0 md:group-hover:opacity-100 hover:text-white hover:bg-black/50 transition-all duration-300 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
+            className="group/nav absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-30 flex h-12 w-12 items-center justify-center bg-transparent text-white/40 opacity-0 md:group-hover:opacity-100 hover:text-white transition-all duration-300 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded-full"
           >
             <svg
-              className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 group-hover/nav:-translate-x-0.5"
+              className="h-6 w-6 sm:h-8 sm:w-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] transition-transform duration-200 group-hover/nav:-translate-x-1"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={1.5}
+              strokeWidth={1.25}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -291,14 +291,14 @@ export function HeroCarousel() {
             type="button"
             onClick={handleNext}
             aria-label="Next Slide"
-            className="group/nav absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/25 backdrop-blur-xs text-white/40 opacity-0 md:group-hover:opacity-100 hover:text-white hover:bg-black/50 transition-all duration-300 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
+            className="group/nav absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-30 flex h-12 w-12 items-center justify-center bg-transparent text-white/40 opacity-0 md:group-hover:opacity-100 hover:text-white transition-all duration-300 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded-full"
           >
             <svg
-              className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 group-hover/nav:translate-x-0.5"
+              className="h-6 w-6 sm:h-8 sm:w-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] transition-transform duration-200 group-hover/nav:translate-x-1"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={1.5}
+              strokeWidth={1.25}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>

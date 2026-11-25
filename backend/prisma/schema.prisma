@@ -23,6 +23,17 @@ model User {
   role_rel        Role?            @relation(fields: [role], references: [id])
   created_invites ResellerInvite[] @relation("InviteCreator")
   claimed_invites ResellerInvite[] @relation("InviteClaimer")
+  motorbikes      CustomerMotorbike[]  @relation("UserMotorbikes")
+  orders          Order[]              @relation("UserOrders")
+  certificates    ExhaustCertificate[] @relation("UserCertificates")
+  created_motorbikes CustomerMotorbike[] @relation("MotorbikeCreator")
+  updated_motorbikes CustomerMotorbike[] @relation("MotorbikeUpdater")
+  deleted_motorbikes CustomerMotorbike[] @relation("MotorbikeDeleter")
+  created_orders  Order[]              @relation("OrderCreator")
+  updated_orders  Order[]              @relation("OrderUpdater")
+  created_certificates ExhaustCertificate[] @relation("CertificateCreator")
+  updated_certificates ExhaustCertificate[] @relation("CertificateUpdater")
+  revoked_certificates ExhaustCertificate[] @relation("CertificateRevoker")
 
   @@map("t_mtr_users")
   @@schema("master")
@@ -252,5 +263,127 @@ model HomeNewArrival {
   @@index([is_active, sort_order])
   @@map("t_mtr_home_new_arrivals")
   @@schema("master")
+}
+
+// ==========================================
+// 1. GARASI MOTOR PELANGGAN (Schema: master)
+// ==========================================
+model CustomerMotorbike {
+  id              String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String               @map("user_id") @db.Uuid
+  brand           String               @db.VarChar(50)
+  model           String               @db.VarChar(100)
+  year            Int
+  engine_specs    String               @map("engine_specs") @db.VarChar(100)
+  header_port_mm  Int                  @default(50) @map("header_port_mm")
+  is_primary      Boolean              @default(true) @map("is_primary")
+  
+  // Status Keaktifan & Soft Delete
+  is_active       Boolean              @default(true) @map("is_active")
+  deleted_at      DateTime?            @map("deleted_at") @db.Timestamptz
+  deleted_by      String?              @map("deleted_by") @db.Uuid
+
+  // Audit Trail
+  created_at      DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updated_at      DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  created_by      String?              @map("created_by") @db.Uuid
+  updated_by      String?              @map("updated_by") @db.Uuid
+
+  user            User                 @relation("UserMotorbikes", fields: [user_id], references: [id], onDelete: Cascade)
+  creator         User?                @relation("MotorbikeCreator", fields: [created_by], references: [id], onDelete: SetNull)
+  updater         User?                @relation("MotorbikeUpdater", fields: [updated_by], references: [id], onDelete: SetNull)
+  deleter         User?                @relation("MotorbikeDeleter", fields: [deleted_by], references: [id], onDelete: SetNull)
+  certificates    ExhaustCertificate[]
+
+  @@index([user_id, is_active])
+  @@map("t_mtr_customer_motorbikes")
+  @@schema("master")
+}
+
+// ==========================================
+// 2. PESANAN & TAHAP FABRIKASI (Schema: transaction)
+// ==========================================
+model Order {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_code           String               @unique @map("order_code") @db.VarChar(30)
+  user_id              String               @map("user_id") @db.Uuid
+  product_name         String               @map("product_name") @db.VarChar(150)
+  target_motorbike     String               @map("target_motorbike") @db.VarChar(100)
+  
+  // Status Pesanan & Keaktifan
+  status               String               @default("IN_FABRICATION") @db.VarChar(30)
+  is_active            Boolean              @default(true) @map("is_active")
+  cancelled_at         DateTime?            @map("cancelled_at") @db.Timestamptz
+  cancelled_reason     String?              @map("cancelled_reason") @db.Text
+
+  // Tahap Fabrikasi
+  fabrication_stage    String               @default("TIG_WELDING") @map("fabrication_stage") @db.VarChar(50)
+  fabrication_progress Int                  @default(75) @map("fabrication_progress")
+  courier_name         String?              @map("courier_name") @db.VarChar(50)
+  waybill_number       String?              @map("waybill_number") @db.VarChar(50)
+  estimated_delivery   DateTime?            @map("estimated_delivery") @db.Timestamptz
+
+  // Audit Trail
+  created_at           DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updated_at           DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  created_by           String?              @map("created_by") @db.Uuid
+  updated_by           String?              @map("updated_by") @db.Uuid
+
+  user                 User                 @relation("UserOrders", fields: [user_id], references: [id], onDelete: Cascade)
+  creator              User?                @relation("OrderCreator", fields: [created_by], references: [id], onDelete: SetNull)
+  updater              User?                @relation("OrderUpdater", fields: [updated_by], references: [id], onDelete: SetNull)
+  certificate          ExhaustCertificate?
+
+  @@index([user_id, is_active])
+  @@map("t_trx_orders")
+  @@schema("transaction")
+}
+
+// ==========================================
+// 3. PASPOR KEASLIAN DIGITAL & QR (Schema: transaction)
+// ==========================================
+model ExhaustCertificate {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  serial_number      String             @unique @map("serial_number") @db.VarChar(50)
+  verification_token String             @default(dbgenerated("gen_random_uuid()")) @map("verification_token") @db.VarChar(64)
+  order_id           String             @unique @map("order_id") @db.Uuid
+  user_id            String             @map("user_id") @db.Uuid
+  motorbike_id       String?            @map("motorbike_id") @db.Uuid
+  model_name         String             @map("model_name") @db.VarChar(150)
+  material_grade     String             @default("Grade 1 Japanese Titanium") @map("material_grade") @db.VarChar(100)
+  welder_signature   String             @default("ARM Master Tech #04") @map("welder_signature") @db.VarChar(100)
+  fabrication_date   DateTime           @default(now()) @map("fabrication_date") @db.Timestamptz
+  
+  // Status Garansi & Keaktifan
+  warranty_type      String             @default("LIFETIME_STRUCTURAL_TIG_WELD") @map("warranty_type") @db.VarChar(50)
+  warranty_status    String             @default("ACTIVE") @map("warranty_status") @db.VarChar(30)
+  is_active          Boolean            @default(true) @map("is_active")
+  
+  // Status Pencabutan / Revokasi
+  is_revoked         Boolean            @default(false) @map("is_revoked")
+  revoked_reason     String?            @map("revoked_reason") @db.VarChar(255)
+  revoked_at         DateTime?          @map("revoked_at") @db.Timestamptz
+  revoked_by         String?            @map("revoked_by") @db.Uuid
+
+  verification_count Int                @default(0) @map("verification_count")
+
+  // Audit Trail
+  created_at         DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updated_at         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  created_by         String?            @map("created_by") @db.Uuid
+  updated_by         String?            @map("updated_by") @db.Uuid
+
+  order              Order              @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  user               User               @relation("UserCertificates", fields: [user_id], references: [id], onDelete: Cascade)
+  motorbike          CustomerMotorbike? @relation(fields: [motorbike_id], references: [id], onDelete: SetNull)
+  creator            User?              @relation("CertificateCreator", fields: [created_by], references: [id], onDelete: SetNull)
+  updater            User?              @relation("CertificateUpdater", fields: [updated_by], references: [id], onDelete: SetNull)
+  revoker            User?              @relation("CertificateRevoker", fields: [revoked_by], references: [id], onDelete: SetNull)
+
+  @@index([serial_number, is_active, is_revoked])
+  @@index([serial_number, verification_token])
+  @@index([user_id])
+  @@map("t_trx_exhaust_certificates")
+  @@schema("transaction")
 }
 

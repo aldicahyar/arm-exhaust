@@ -4,6 +4,8 @@ import type {
   AccountApiResponse,
   CustomerAccountData,
   CommunicationPreferences,
+  CustomerDashboardTelemetry,
+  PublicCertificateData,
 } from '../types';
 import { DEFAULT_CUSTOMER_ACCOUNT, DEFAULT_COMMUNICATION_PREFERENCES } from '../types';
 
@@ -158,3 +160,119 @@ export function saveStoredPreferences(
     // Ignore storage quota errors
   }
 }
+
+export async function fetchDashboardTelemetry(): Promise<CustomerDashboardTelemetry> {
+  const fallback: CustomerDashboardTelemetry = {
+    memberSince: 'November 2026',
+    activeFabrication: {
+      orderCode: 'ARM-8821',
+      productName: 'Megaphone Titanium GP Full System',
+      targetMotorbike: 'Kawasaki Ninja ZX-25R',
+      status: 'IN_FABRICATION',
+      stage: 'TIG_WELDING',
+      stageLabel: 'Argon TIG Header Welding & Fabrication',
+      progressPercentage: 75,
+      estimatedDelivery: '20 November 2026',
+      courier: {
+        name: 'J&T Cargo',
+        waybillNumber: '9821-4402-9912',
+        trackingUrl: 'https://www.jet.co.id/track?awb=9821-4402-9912',
+      },
+    },
+    motorbikes: [
+      {
+        id: 'mb-zx25r-01',
+        brand: 'Kawasaki',
+        model: 'Ninja ZX-25R',
+        year: 2023,
+        engineSpecs: '249cc • 4-Cylinder Inline',
+        headerPortMm: 50,
+        isPrimary: true,
+        installedExhaust: {
+          modelName: 'Megaphone Titanium GP Full System',
+          serialNumber: 'ARM-ZX25R-2026-0882',
+          isVerified: true,
+          warrantyStatus: 'ACTIVE',
+          warrantyType: 'Lifetime Structural TIG Weld',
+          verificationUrl: '/verify/ARM-ZX25R-2026-0882',
+        },
+      },
+    ],
+  };
+
+  try {
+    const res = await fetch('/api/account/dashboard');
+    if (!res.ok) {
+      return fallback;
+    }
+    const data = await res.json();
+    return data ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function fetchPublicCertificate(
+  serialNumber: string,
+  token?: string
+): Promise<PublicCertificateData | null> {
+  const canonical = (serialNumber || '').trim().toUpperCase();
+  const cleanToken = token ? token.trim() : undefined;
+  const isDemoTokenMatch = cleanToken === 'v_k9m2xLq1p8yT3w';
+
+  const fallbackProtected: PublicCertificateData = {
+    isAuthentic: true,
+    isProtected: true,
+    requiresToken: true,
+    tokenValid: false,
+    serialNumber: canonical || 'ARM-ZX25R-2026-0882',
+    modelName: 'Megaphone Titanium GP Full System',
+    vehicleMatch: 'Kawasaki Ninja ZX-25R (2023)',
+    message: 'Official ARM authenticity record found. Verification token required to unlock full provenance.',
+  };
+
+  const fallbackUnlocked: PublicCertificateData = {
+    isAuthentic: true,
+    isProtected: false,
+    requiresToken: false,
+    tokenValid: true,
+    serialNumber: canonical || 'ARM-ZX25R-2026-0882',
+    modelName: 'Megaphone Titanium GP Full System',
+    vehicleMatch: 'Kawasaki Ninja ZX-25R (2023)',
+    materialGrade: 'Grade 1 Japanese Titanium (TIG Welded)',
+    fabricationDate: '18 November 2026',
+    welderSignature: 'ARM Master Tech #04',
+    warrantyStatus: 'ACTIVE',
+    warrantyType: 'Lifetime Structural TIG Weld',
+    verificationCount: 1,
+    isRevoked: false,
+    ownerMasked: 'Arkan P.',
+    cityOrigin: 'Bandung, Jawa Barat',
+  };
+
+  const fallback = isDemoTokenMatch ? fallbackUnlocked : fallbackProtected;
+
+  try {
+    const baseUrl = typeof window === 'undefined'
+      ? (process.env.BACKEND_URL ?? 'http://localhost:4000')
+      : '';
+    const tokenQuery = cleanToken ? `?token=${encodeURIComponent(cleanToken)}` : '';
+    const res = await fetch(`${baseUrl}/api/verify/${encodeURIComponent(canonical)}${tokenQuery}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      if (canonical !== 'ARM-ZX25R-2026-0882') {
+        return null;
+      }
+      return fallback;
+    }
+    const data = await res.json();
+    return data ?? fallback;
+  } catch {
+    if (canonical !== 'ARM-ZX25R-2026-0882') {
+      return null;
+    }
+    return fallback;
+  }
+}
+

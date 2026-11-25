@@ -104,3 +104,66 @@ export const DEFAULT_CUSTOMER_ACCOUNT: CustomerAccountData = {
   },
   termsUrl: '/legal/terms',
 };
+
+export interface ActiveFabricationData {
+  readonly orderCode: string;
+  readonly productName: string;
+  readonly targetMotorbike: string;
+  readonly status: string;
+  readonly stage: string;
+  readonly stageLabel: string;
+  readonly progressPercentage: number;
+  readonly estimatedDelivery: string;
+  readonly courier: {
+    readonly name: string;
+    readonly waybillNumber: string;
+    readonly trackingUrl?: string;
+  };
+}
+
+export interface CustomerMotorbikeData {
+  readonly id: string;
+  readonly brand: string;
+  readonly model: string;
+  readonly year: number;
+  readonly engineSpecs: string;
+  readonly headerPortMm: number;
+  readonly isPrimary: boolean;
+  readonly installedExhaust?: {
+    readonly modelName: string;
+    readonly serialNumber: string;
+    readonly isVerified: boolean;
+    readonly warrantyStatus: string;
+    readonly warrantyType: string;
+    readonly verificationUrl: string;
+    readonly verificationToken?: string;
+  };
+}
+
+export interface CustomerDashboardTelemetry {
+  readonly memberSince: string;
+  readonly activeFabrication?: ActiveFabricationData | null;
+  readonly motorbikes: readonly CustomerMotorbikeData[];
+}
+
+export interface PublicCertificateData {
+  readonly isAuthentic: boolean;
+  readonly isProtected?: boolean;
+  readonly requiresToken?: boolean;
+  readonly tokenValid?: boolean;
+  readonly serialNumber: string;
+  readonly modelName: string;
+  readonly vehicleMatch: string;
+  readonly materialGrade?: string;
+  readonly fabricationDate?: string;
+  readonly welderSignature?: string;
+  readonly warrantyStatus?: string;
+  readonly warrantyType?: string;
+  readonly verificationCount?: number;
+  readonly isRevoked?: boolean;
+  readonly revokedReason?: string;
+  readonly ownerMasked?: string;
+  readonly cityOrigin?: string;
+  readonly message?: string;
+}
+

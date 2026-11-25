@@ -573,109 +573,114 @@ export function HeaderTabs({
           )}
         </div>
 
-        {/* Right Cluster: Utilities only (Search, Cart) */}
-        <div className="absolute right-4 lg:right-8 flex items-center gap-1 sm:gap-2">
-          {/* Vertical Separator */}
-          <div className="h-4 w-[1px] bg-[#2B2B30] mx-1" />
+        {/* Right Cluster: Utilities only (Search, Cart) — Only visible when user is logged in */}
+        {currentUser && (
+          <div className="absolute right-4 lg:right-8 flex items-center gap-1 sm:gap-2">
+            {/* Vertical Separator */}
+            <div className="h-4 w-[1px] bg-[#2B2B30] mx-1" />
 
-          {/* Utility: Expandable Search Bar with 21st.dev Lucide Animated Icon */}
-          <div ref={searchContainerRef} className="relative flex items-center">
-            {isSearchExpanded ? (
-              <div className="flex items-center rounded-lg border border-zinc-700 bg-[#141416] px-2.5 py-1 shadow-sm transition-all animate-in fade-in duration-200">
-                <svg className="h-3.5 w-3.5 text-zinc-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="11" cy="11" r="8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  placeholder="Search bike / inlet..."
-                  className="w-44 bg-transparent text-xs text-white placeholder-[#8A8F98] focus:outline-none"
-                />
+            {/* Utility: Expandable Search Bar with 21st.dev Lucide Animated Icon */}
+            <div ref={searchContainerRef} className="relative flex items-center">
+              {isSearchExpanded ? (
+                <div className="flex items-center rounded-lg border border-zinc-700 bg-[#141416] px-2.5 py-1 shadow-sm transition-all animate-in fade-in duration-200">
+                  <svg className="h-3.5 w-3.5 text-zinc-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    placeholder="Search bike / inlet..."
+                    className="w-44 bg-transparent text-xs text-white placeholder-[#8A8F98] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setIsSearchExpanded(false); setSearchQuery(''); }}
+                    className="text-[#9AA0A8] hover:text-white ml-1 p-0.5"
+                    title="Close search"
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => { setIsSearchExpanded(false); setSearchQuery(''); }}
-                  className="text-[#9AA0A8] hover:text-white ml-1 p-0.5"
-                  title="Close search"
+                  onClick={() => setIsSearchExpanded(true)}
+                  onMouseEnter={() => setIsSearchHovered(true)}
+                  onMouseLeave={() => setIsSearchHovered(false)}
+                  title="Open search"
+                  className="flex items-center rounded-lg px-2.5 py-1.5 text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-all"
                 >
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className={`h-4 w-4 transition-transform duration-300 ${isSearchHovered ? '-translate-y-0.5 -translate-x-0.5 text-white' : ''}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
+                    strokeLinecap="round" strokeLinejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
                   </svg>
                 </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsSearchExpanded(true)}
-                onMouseEnter={() => setIsSearchHovered(true)}
-                onMouseLeave={() => setIsSearchHovered(false)}
-                title="Open search"
-                className="flex items-center rounded-lg px-2.5 py-1.5 text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-all"
-              >
-                <svg
-                  className={`h-4 w-4 transition-transform duration-300 ${isSearchHovered ? '-translate-y-0.5 -translate-x-0.5 text-white' : ''}`}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {/* Utility: Cart with 21st.dev Lucide Animated Icon (5a2718f0) */}
-          <Link
-            href="/cart"
-            title="Shopping Cart"
-            onMouseEnter={() => setIsCartHovered(true)}
-            onMouseLeave={() => setIsCartHovered(false)}
-            className="relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-all group"
-          >
-            <div className="relative">
-              {/* Animated Cart Icon from 21st.dev 5a2718f0 */}
-              <svg
-                className={`h-4 w-4 transition-transform duration-300 ${isCartHovered ? 'scale-110 -translate-y-0.5 text-white' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" />
-              </svg>
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-white px-1 text-[9px] font-bold font-mono text-zinc-950 shadow-xs">
-                  {cartCount}
-                </span>
               )}
             </div>
-          </Link>
-        </div>
+
+            {/* Utility: Cart with 21st.dev Lucide Animated Icon (5a2718f0) */}
+            <Link
+              href="/cart"
+              title="Shopping Cart"
+              onMouseEnter={() => setIsCartHovered(true)}
+              onMouseLeave={() => setIsCartHovered(false)}
+              className="relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-[#9AA0A8] hover:bg-white/[0.08] hover:text-white transition-all group"
+            >
+              <div className="relative">
+                {/* Animated Cart Icon from 21st.dev 5a2718f0 */}
+                <svg
+                  className={`h-4 w-4 transition-transform duration-300 ${isCartHovered ? 'scale-110 -translate-y-0.5 text-white' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-white px-1 text-[9px] font-bold font-mono text-zinc-950 shadow-xs">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+            </Link>
+          </div>
+        )}
       </div>
       </motion.div>
 
       {/* Mobile Navigation Drawer */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-[#2B2B30] bg-[#141416]/95 backdrop-blur-md px-4 py-4 flex flex-col gap-2 max-w-7xl mx-auto animate-in slide-in-from-top-2 duration-150 shadow-2xl">
-          <div className="flex items-center rounded-lg border border-[#2B2B30] bg-[#0A0A0B] px-3 py-2 text-xs">
-            <svg className="h-4 w-4 text-[#9AA0A8] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <circle cx="11" cy="11" r="8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search bike / inlet..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              className="w-full bg-transparent text-white placeholder-[#8A8F98] focus:outline-none"
-            />
-          </div>
+          {/* Mobile Search — only visible when logged in */}
+          {currentUser && (
+            <div className="flex items-center rounded-lg border border-[#2B2B30] bg-[#0A0A0B] px-3 py-2 text-xs">
+              <svg className="h-4 w-4 text-[#9AA0A8] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="11" cy="11" r="8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search bike / inlet..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="w-full bg-transparent text-white placeholder-[#8A8F98] focus:outline-none"
+              />
+            </div>
+          )}
 
           {/* Mobile Auth */}
           <div className="flex items-center justify-between pt-1">
@@ -775,25 +780,27 @@ export function HeaderTabs({
             ))}
           </div>
 
-          <div className="pt-2 border-t border-[#2B2B30]">
-            <Link
-              href="/cart"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between py-2 px-2.5 rounded-lg text-xs font-semibold text-white hover:bg-white/[0.04] transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3" />
-                </svg>
-                Shopping Cart
-              </span>
-              {cartCount > 0 && (
-                <span className="rounded-full border border-white/10 bg-white/[0.06] text-zinc-300 px-2 py-0.5 font-mono text-[10px] font-medium">
-                  {cartCount}
+          {currentUser && (
+            <div className="pt-2 border-t border-[#2B2B30]">
+              <Link
+                href="/cart"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-2 px-2.5 rounded-lg text-xs font-semibold text-white hover:bg-white/[0.04] transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path d="M6.29977 5H21L19 12H7.37671M20 16H8L6 3H3" />
+                  </svg>
+                  Shopping Cart
                 </span>
-              )}
-            </Link>
-          </div>
+                {cartCount > 0 && (
+                  <span className="rounded-full border border-white/10 bg-white/[0.06] text-zinc-300 px-2 py-0.5 font-mono text-[10px] font-medium">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>
