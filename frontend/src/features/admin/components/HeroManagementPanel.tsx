@@ -38,6 +38,7 @@ interface HeroFormData {
   strip_title: string;
   href: string;
   image_url: string;
+  image_mobile_url: string;
   is_active: boolean;
 }
 
@@ -48,8 +49,49 @@ const INITIAL_FORM: HeroFormData = {
   strip_title: '',
   href: '',
   image_url: '',
+  image_mobile_url: '',
   is_active: true,
 };
+
+type HeroImageTarget = 'image_url' | 'image_mobile_url';
+type HeroImageFlags = Readonly<Record<HeroImageTarget, boolean>>;
+type PreviewDevice = 'desktop' | 'mobile';
+
+const NO_IMAGE_FLAGS: HeroImageFlags = { image_url: false, image_mobile_url: false };
+
+const IMAGE_UPLOAD_SUCCESS_MESSAGE: Readonly<Record<HeroImageTarget, string>> = {
+  image_url: 'Gambar slide berhasil diunggah.',
+  image_mobile_url: 'Gambar HP berhasil diunggah.',
+};
+
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const VALID_UPLOAD_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+
+function getUploadValidationError(file: File): { title: string; message: string; detail: string } | null {
+  if (!VALID_UPLOAD_MIMES.includes(file.type)) {
+    return {
+      title: 'Format Tidak Didukung',
+      message: 'Gunakan file JPEG, PNG, atau WebP.',
+      detail: `Tipe file ${file.type} tidak didukung`,
+    };
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return {
+      title: 'File Terlalu Besar',
+      message: 'Ukuran maksimal file gambar adalah 5MB.',
+      detail: `Ukuran file: ${(file.size / (1024 * 1024)).toFixed(2)}MB`,
+    };
+  }
+  return null;
+}
+
+/** HP preview uses the mobile image when set, otherwise the desktop image (same as the storefront). */
+function getPreviewImageSrc(slide: HeroSlide, device: PreviewDevice): string {
+  if (device === 'mobile' && slide.image_mobile_url) {
+    return slide.image_mobile_url;
+  }
+  return slide.image_url;
+}
 
 export { MODAL_INPUT_CLASS };
 
@@ -202,6 +244,12 @@ function HeroSortableRow({
               <span className="font-semibold text-zinc-950/80">{slide.category}</span>
               <span className="text-zinc-300">/</span>
               <span className="truncate">{slide.tag}</span>
+              {!slide.image_mobile_url && (
+                <>
+                  <span className="text-zinc-300" aria-hidden="true">·</span>
+                  <span className="shrink-0 normal-case tracking-normal text-zinc-400">Tanpa gambar HP</span>
+                </>
+              )}
             </div>
 
             <h3 className="text-sm font-semibold tracking-tight text-zinc-950 truncate" title={slide.title}>
@@ -274,6 +322,207 @@ function HeroSortableRow({
   );
 }
 
+interface PreviewDeviceToggleProps {
+  readonly device: PreviewDevice;
+  readonly onChange: (device: PreviewDevice) => void;
+}
+
+const PREVIEW_DEVICE_OPTIONS: ReadonlyArray<{ readonly value: PreviewDevice; readonly label: string }> = [
+  { value: 'desktop', label: 'Desktop' },
+  { value: 'mobile', label: 'HP' },
+];
+
+function PreviewDeviceToggle({ device, onChange }: Readonly<PreviewDeviceToggleProps>) {
+  return (
+    <fieldset className="inline-flex items-center rounded-md border border-zinc-800 p-0.5">
+      <legend className="sr-only">Mode pratinjau</legend>
+      {PREVIEW_DEVICE_OPTIONS.map((option) => {
+        const isActive = device === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={isActive}
+            onClick={() => onChange(option.value)}
+            className={cn(
+              'rounded px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-500',
+              isActive ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-200'
+            )}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </fieldset>
+  );
+}
+
+interface HeroPreviewSlideProps {
+  readonly slide: HeroSlide;
+  readonly device: PreviewDevice;
+  readonly activeSlides: HeroSlide[];
+  readonly onSelectSlide: (id: string) => void;
+}
+
+function HeroPreviewSlide({
+  slide,
+  device,
+  activeSlides,
+  onSelectSlide,
+}: Readonly<HeroPreviewSlideProps>) {
+  const imageSrc = getPreviewImageSrc(slide, device);
+
+  const selectRelative = (step: number) => {
+    const curIdx = activeSlides.findIndex((s) => s.id === slide.id);
+    const nextIdx = (curIdx + step + activeSlides.length) % activeSlides.length;
+    onSelectSlide(activeSlides[nextIdx].id);
+  };
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={`${slide.id}-${device}-${imageSrc}`}
+        initial={{ opacity: 0.4 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0.4 }}
+        transition={{ duration: 0.2 }}
+        className="absolute inset-0"
+      >
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={slide.title}
+            className={cn(
+              'h-full w-full object-cover transition-opacity duration-300',
+              !slide.is_active && 'opacity-35 grayscale'
+            )}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-zinc-700">
+            <ImageIcon className="h-8 w-8" />
+          </div>
+        )}
+
+        {/* Storefront Gradient Overlay */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/20 to-transparent"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/85 via-[#0A0A0B]/20 to-transparent"
+        />
+
+        {/* Headline Contextual Action Links Overlay */}
+        <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+          <p className="font-['Space_Grotesk'] text-base sm:text-lg font-bold tracking-tight text-white leading-snug line-clamp-2">
+            {slide.title}
+          </p>
+          <div className="mt-2 flex items-center gap-2.5 font-mono text-[9px] text-zinc-300">
+            <span className="text-white">Specifications ↗</span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-zinc-400">Series ↗</span>
+          </div>
+        </div>
+
+        {/* Subtle Side Chevrons in Preview */}
+        {activeSlides.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                selectRelative(-1);
+              }}
+              aria-label="Slide sebelumnya"
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center bg-transparent text-white/50 hover:text-white transition drop-shadow-md"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                selectRelative(1);
+              }}
+              aria-label="Slide selanjutnya"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center bg-transparent text-white/50 hover:text-white transition drop-shadow-md"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+interface HeroPreviewFrameProps {
+  readonly device: PreviewDevice;
+  readonly children: React.ReactNode;
+}
+
+/** Desktop: full-width 16:9 canvas. HP: narrow 9/19.5 phone frame. */
+function HeroPreviewFrame({ device, children }: Readonly<HeroPreviewFrameProps>) {
+  if (device === 'mobile') {
+    return (
+      <div className="flex justify-center bg-[#0E0E10] px-4 py-5">
+        <div className="relative aspect-[9/19.5] w-full max-w-[220px] overflow-hidden rounded-[1.25rem] border border-zinc-800 bg-[#0E0E10]">
+          {children}
+        </div>
+      </div>
+    );
+  }
+  return <div className="relative aspect-video w-full bg-[#0E0E10] overflow-hidden">{children}</div>;
+}
+
+interface HeroModalPhonePreviewProps {
+  readonly formData: HeroFormData;
+}
+
+const NO_PREVIEW_SLIDES: HeroSlide[] = [];
+const noopSelectSlide = () => {};
+
+/** Live HP preview inside the add/edit modal, built from the unsaved form values. */
+function HeroModalPhonePreview({ formData }: Readonly<HeroModalPhonePreviewProps>) {
+  const imageUrl = formData.image_url.trim();
+  const imageMobileUrl = formData.image_mobile_url.trim();
+  if (!imageUrl && !imageMobileUrl) return null;
+
+  // Always rendered as "active" so the admin sees the real storefront look, not the greyed inactive state.
+  const draftSlide: HeroSlide = {
+    id: 'modal-draft',
+    category: formData.category,
+    tag: formData.tag,
+    title: formData.title.trim() || 'Judul slide',
+    strip_title: formData.strip_title,
+    href: formData.href,
+    image_url: imageUrl,
+    image_mobile_url: imageMobileUrl || null,
+    sort_order: 0,
+    is_active: true,
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <span className="block text-[11px] font-medium text-zinc-700">Pratinjau HP</span>
+      <div className="overflow-hidden rounded-lg border border-zinc-200">
+        <HeroPreviewFrame device="mobile">
+          <HeroPreviewSlide
+            slide={draftSlide}
+            device="mobile"
+            activeSlides={NO_PREVIEW_SLIDES}
+            onSelectSlide={noopSelectSlide}
+          />
+        </HeroPreviewFrame>
+      </div>
+      {!imageMobileUrl && (
+        <p className="text-[10px] text-zinc-500">Tanpa gambar HP — memakai gambar desktop (terpotong)</p>
+      )}
+    </div>
+  );
+}
+
 interface HeroLivePreviewProps {
   readonly slides: HeroSlide[];
   readonly focusedSlide: HeroSlide | null;
@@ -285,118 +534,56 @@ function HeroLivePreview({
   focusedSlide,
   onSelectSlide,
 }: Readonly<HeroLivePreviewProps>) {
+  const [device, setDevice] = useState<PreviewDevice>('desktop');
   const activeSlides = slides.filter((s) => s.is_active);
   const previewSlide = focusedSlide ?? activeSlides[0] ?? slides[0] ?? null;
+  const showMobileFallbackNote = device === 'mobile' && previewSlide !== null && !previewSlide.image_mobile_url;
 
   return (
     <div className="rounded-2xl border border-zinc-800/90 bg-[#0A0A0B] text-white overflow-hidden shadow-lg">
       {/* Minimal Stage Caption */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-900">
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-zinc-900">
         <span className="font-mono text-[10px] tracking-widest uppercase text-zinc-400">
           Pratinjau Storefront
         </span>
-        {previewSlide && (
-          <span
-            className={cn(
-              'font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border',
-              previewSlide.is_active
-                ? 'border-zinc-700 bg-zinc-900 text-zinc-200'
-                : 'border-zinc-800 bg-transparent text-zinc-500'
-            )}
-          >
-            {previewSlide.is_active ? 'Tayang' : 'Nonaktif'}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          <PreviewDeviceToggle device={device} onChange={setDevice} />
+          {previewSlide && (
+            <span
+              className={cn(
+                'font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border',
+                previewSlide.is_active
+                  ? 'border-zinc-700 bg-zinc-900 text-zinc-200'
+                  : 'border-zinc-800 bg-transparent text-zinc-500'
+              )}
+            >
+              {previewSlide.is_active ? 'Tayang' : 'Nonaktif'}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* 16:9 Hero Canvas Mirror */}
-      <div className="relative aspect-video w-full bg-[#0E0E10] overflow-hidden">
+      {/* Hero Canvas Mirror (Desktop 16:9 / HP 9:19.5) */}
+      <HeroPreviewFrame device={device}>
         {previewSlide ? (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${previewSlide.id}-${previewSlide.image_url}`}
-              initial={{ opacity: 0.4 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0.4 }}
-              transition={{ duration: 0.2 }}
-              className="absolute inset-0"
-            >
-              {previewSlide.image_url ? (
-                <img
-                  src={previewSlide.image_url}
-                  alt={previewSlide.title}
-                  className={cn(
-                    'h-full w-full object-cover transition-opacity duration-300',
-                    !previewSlide.is_active && 'opacity-35 grayscale'
-                  )}
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-zinc-700">
-                  <ImageIcon className="h-8 w-8" />
-                </div>
-              )}
-
-              {/* Storefront Gradient Overlay */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/20 to-transparent"
-              />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/85 via-[#0A0A0B]/20 to-transparent"
-              />
-
-              {/* Headline Contextual Action Links Overlay */}
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                <p className="font-['Space_Grotesk'] text-base sm:text-lg font-bold tracking-tight text-white leading-snug line-clamp-2">
-                  {previewSlide.title}
-                </p>
-                <div className="mt-2 flex items-center gap-2.5 font-mono text-[9px] text-zinc-300">
-                  <span className="text-white">Specifications ↗</span>
-                  <span className="text-zinc-600">•</span>
-                  <span className="text-zinc-400">Series ↗</span>
-                </div>
-              </div>
-
-              {/* Subtle Side Chevrons in Preview */}
-              {activeSlides.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const curIdx = activeSlides.findIndex((s) => s.id === previewSlide.id);
-                      const prevIdx = (curIdx - 1 + activeSlides.length) % activeSlides.length;
-                      onSelectSlide(activeSlides[prevIdx].id);
-                    }}
-                    aria-label="Slide sebelumnya"
-                    className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center bg-transparent text-white/50 hover:text-white transition drop-shadow-md"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const curIdx = activeSlides.findIndex((s) => s.id === previewSlide.id);
-                      const nextIdx = (curIdx + 1) % activeSlides.length;
-                      onSelectSlide(activeSlides[nextIdx].id);
-                    }}
-                    aria-label="Slide selanjutnya"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center bg-transparent text-white/50 hover:text-white transition drop-shadow-md"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
+          <HeroPreviewSlide
+            slide={previewSlide}
+            device={device}
+            activeSlides={activeSlides}
+            onSelectSlide={onSelectSlide}
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs text-zinc-500">
             Belum ada slide untuk ditampilkan
           </div>
         )}
-      </div>
+      </HeroPreviewFrame>
+
+      {showMobileFallbackNote && (
+        <p className="px-4 pb-3 -mt-2 bg-[#0E0E10] text-center font-mono text-[10px] text-zinc-500">
+          Tanpa gambar HP — memakai gambar desktop (terpotong)
+        </p>
+      )}
 
       {/* Live Slide Thumb Bar */}
       {activeSlides.length > 0 && (
@@ -427,39 +614,209 @@ function HeroLivePreview({
   );
 }
 
+interface HeroImageFieldProps {
+  readonly target: HeroImageTarget;
+  readonly label: string;
+  readonly helpText?: string;
+  readonly value: string;
+  readonly isUploading: boolean;
+  readonly dragActive: boolean;
+  readonly previewError: boolean;
+  readonly uploadAriaLabel: string;
+  readonly urlAriaLabel: string;
+  readonly urlPlaceholder: string;
+  readonly previewAlt: string;
+  /** Tailwind classes for the thumbnail frame (aspect ratio + width). */
+  readonly thumbnailClass: string;
+  readonly onChangeUrl: (target: HeroImageTarget, value: string) => void;
+  readonly onClear?: (target: HeroImageTarget) => void;
+  readonly onSetPreviewError: (target: HeroImageTarget, err: boolean) => void;
+  readonly onDrag: (e: React.DragEvent, target: HeroImageTarget) => void;
+  readonly onDrop: (e: React.DragEvent, target: HeroImageTarget) => void;
+  readonly onFileSelect: (file: File, target: HeroImageTarget) => void;
+}
+
+function HeroImageField({
+  target,
+  label,
+  helpText,
+  value,
+  isUploading,
+  dragActive,
+  previewError,
+  uploadAriaLabel,
+  urlAriaLabel,
+  urlPlaceholder,
+  previewAlt,
+  thumbnailClass,
+  onChangeUrl,
+  onClear,
+  onSetPreviewError,
+  onDrag,
+  onDrop,
+  onFileSelect,
+}: Readonly<HeroImageFieldProps>) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onFileSelect(file, target);
+    }
+    // Allow re-selecting the same file after clearing / a failed upload
+    e.target.value = '';
+  };
+
+  // aria-disabled (not `disabled`) while uploading: a disabled button gets no drag events in
+  // Chromium, so a drop would fall through and open the file in the tab.
+  const handleClick = () => {
+    if (isUploading) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleDragEvent = (e: React.DragEvent) => {
+    if (isUploading) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onDrag(e, target);
+  };
+
+  const handleDropEvent = (e: React.DragEvent) => {
+    if (isUploading) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onDrop(e, target);
+  };
+
+  return (
+    <div className="space-y-2">
+      <span className="block text-[11px] font-medium text-zinc-700">{label}</span>
+      {helpText && <p className="text-[10px] text-zinc-500 -mt-1">{helpText}</p>}
+
+      <button
+        type="button"
+        onDragEnter={handleDragEvent}
+        onDragOver={handleDragEvent}
+        onDragLeave={handleDragEvent}
+        onDrop={handleDropEvent}
+        onClick={handleClick}
+        aria-disabled={isUploading}
+        className={cn(
+          'w-full flex flex-col items-center justify-center p-4 border border-dashed rounded-lg cursor-pointer transition text-center focus:outline-none focus:ring-1 focus:ring-zinc-900 aria-disabled:cursor-wait',
+          dragActive
+            ? 'border-zinc-900 bg-zinc-100'
+            : 'border-zinc-300 bg-zinc-50/70 hover:border-zinc-400 hover:bg-zinc-100/50'
+        )}
+        aria-label={uploadAriaLabel}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        {isUploading ? (
+          <div className="flex items-center gap-2 text-zinc-600">
+            <RefreshCw className="h-4 w-4 animate-spin motion-reduce:animate-none text-zinc-900" />
+            <span className="font-medium text-zinc-900">Mengunggah media...</span>
+          </div>
+        ) : (
+          <>
+            <Upload className="h-5 w-5 text-zinc-400 mb-1" />
+            <span className="text-zinc-900 font-medium">Klik atau seret gambar ke sini</span>
+            <span className="text-[10px] text-zinc-500 mt-0.5">JPEG, PNG, atau WebP (maks. 5MB)</span>
+          </>
+        )}
+      </button>
+
+      <input
+        type="text"
+        aria-label={urlAriaLabel}
+        placeholder={urlPlaceholder}
+        value={value}
+        onChange={(e) => {
+          onChangeUrl(target, e.target.value);
+          onSetPreviewError(target, false);
+        }}
+        className={cn(MODAL_INPUT_CLASS, 'font-mono py-1.5')}
+      />
+
+      {value && (
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              'relative rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100',
+              thumbnailClass
+            )}
+          >
+            {previewError ? (
+              <div className="flex flex-col items-center justify-center h-full w-full bg-zinc-100 text-zinc-500 text-center p-3">
+                <ImageIcon className="h-5 w-5 mb-1 text-zinc-400" />
+                <span className="text-[10px]">URL gambar tidak dapat dimuat</span>
+              </div>
+            ) : (
+              <img
+                src={value}
+                alt={previewAlt}
+                className="w-full h-full object-cover"
+                onError={() => onSetPreviewError(target, true)}
+              />
+            )}
+          </div>
+          {onClear && (
+            <button
+              type="button"
+              onClick={() => onClear(target)}
+              disabled={isUploading}
+              className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 transition disabled:opacity-40"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span>Hapus gambar HP</span>
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface HeroSlideModalProps {
   readonly isOpen: boolean;
   readonly editingSlide: HeroSlide | null;
   readonly formData: HeroFormData;
-  readonly isUploading: boolean;
-  readonly dragActive: boolean;
-  readonly previewError: boolean;
-  readonly fileInputRef: React.RefObject<HTMLInputElement | null>;
+  readonly uploading: HeroImageFlags;
+  readonly dragTarget: HeroImageTarget | null;
+  readonly previewErrors: HeroImageFlags;
   readonly onClose: () => void;
   readonly onSubmit: (e: React.FormEvent) => Promise<boolean>;
   readonly onChangeForm: React.Dispatch<React.SetStateAction<HeroFormData>>;
-  readonly onSetPreviewError: (err: boolean) => void;
-  readonly onDrag: (e: React.DragEvent) => void;
-  readonly onDrop: (e: React.DragEvent) => void;
-  readonly onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  readonly onSetPreviewError: (target: HeroImageTarget, err: boolean) => void;
+  readonly onDrag: (e: React.DragEvent, target: HeroImageTarget) => void;
+  readonly onDrop: (e: React.DragEvent, target: HeroImageTarget) => void;
+  readonly onFileSelect: (file: File, target: HeroImageTarget) => void;
 }
 
 function HeroSlideModal({
   isOpen,
   editingSlide,
   formData,
-  isUploading,
-  dragActive,
-  previewError,
-  fileInputRef,
+  uploading,
+  dragTarget,
+  previewErrors,
   onClose,
   onSubmit,
   onChangeForm,
   onSetPreviewError,
   onDrag,
   onDrop,
-  onFileChange,
+  onFileSelect,
 }: Readonly<HeroSlideModalProps>) {
+  const isUploading = uploading.image_url || uploading.image_mobile_url;
   const { submitState, isCloseLocked, handleFormSubmit } = useModalSubmit({
     isOpen,
     isUploading,
@@ -469,6 +826,15 @@ function HeroSlideModal({
   });
 
   if (!isOpen) return null;
+
+  const handleChangeImageUrl = (target: HeroImageTarget, value: string) => {
+    onChangeForm((prev) => ({ ...prev, [target]: value }));
+  };
+
+  const handleClearImage = (target: HeroImageTarget) => {
+    onChangeForm((prev) => ({ ...prev, [target]: '' }));
+    onSetPreviewError(target, false);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -496,7 +862,7 @@ function HeroSlideModal({
               {editingSlide ? 'Edit Slide Hero' : 'Tambah Slide Hero'}
             </h3>
             <p className="text-[11px] text-zinc-500">
-              Visual 16:9 dan informasi teks banner beranda.
+              Visual desktop 16:9, gambar HP 9:16 (opsional), dan teks banner beranda.
             </p>
           </div>
           <button
@@ -556,7 +922,7 @@ function HeroSlideModal({
                 id="slide-title"
                 type="text"
                 required
-                placeholder="ARM ZX-25R TITANIUM FULL SYSTEM"
+                placeholder="ARM NUSANTARA TI — BURNT TITANIUM"
                 value={formData.title}
                 onChange={(e) => onChangeForm((prev) => ({ ...prev, title: e.target.value }))}
                 className={cn(MODAL_INPUT_CLASS, 'font-semibold')}
@@ -572,7 +938,7 @@ function HeroSlideModal({
                   id="slide-strip-title"
                   type="text"
                   required
-                  placeholder="ZX-25R Titanium Series"
+                  placeholder="Nusantara Titanium Series"
                   value={formData.strip_title}
                   onChange={(e) => onChangeForm((prev) => ({ ...prev, strip_title: e.target.value }))}
                   className={MODAL_INPUT_CLASS}
@@ -595,77 +961,47 @@ function HeroSlideModal({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <span className="block text-[11px] font-medium text-zinc-700">
-                Gambar Slide (16:9)
-              </span>
+            <HeroImageField
+              target="image_url"
+              label="Gambar Slide (16:9)"
+              value={formData.image_url}
+              isUploading={uploading.image_url}
+              dragActive={dragTarget === 'image_url'}
+              previewError={previewErrors.image_url}
+              uploadAriaLabel="Unggah file gambar slide"
+              urlAriaLabel="URL gambar manual"
+              urlPlaceholder="Atau masukkan URL gambar (/images/hero/...)"
+              previewAlt="Pratinjau slide"
+              thumbnailClass="aspect-video w-full"
+              onChangeUrl={handleChangeImageUrl}
+              onSetPreviewError={onSetPreviewError}
+              onDrag={onDrag}
+              onDrop={onDrop}
+              onFileSelect={onFileSelect}
+            />
 
-              <button
-                type="button"
-                onDragEnter={onDrag}
-                onDragOver={onDrag}
-                onDragLeave={onDrag}
-                onDrop={onDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={cn(
-                  'w-full flex flex-col items-center justify-center p-4 border border-dashed rounded-lg cursor-pointer transition text-center focus:outline-none focus:ring-1 focus:ring-zinc-900',
-                  dragActive
-                    ? 'border-zinc-900 bg-zinc-100'
-                    : 'border-zinc-300 bg-zinc-50/70 hover:border-zinc-400 hover:bg-zinc-100/50'
-                )}
-                aria-label="Unggah file gambar slide"
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={onFileChange}
-                  className="hidden"
-                />
-                {isUploading ? (
-                  <div className="flex items-center gap-2 text-zinc-600">
-                    <RefreshCw className="h-4 w-4 animate-spin text-zinc-900" />
-                    <span className="font-medium text-zinc-900">Mengunggah media...</span>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="h-5 w-5 text-zinc-400 mb-1" />
-                    <span className="text-zinc-900 font-medium">Klik atau seret gambar ke sini</span>
-                    <span className="text-[10px] text-zinc-500 mt-0.5">JPEG, PNG, atau WebP (maks. 5MB)</span>
-                  </>
-                )}
-              </button>
+            <HeroImageField
+              target="image_mobile_url"
+              label="Gambar HP (9:16) — opsional"
+              helpText="Tanpa gambar ini, tampilan HP memotong gambar desktop. Disarankan 1080 × 1920 px."
+              value={formData.image_mobile_url}
+              isUploading={uploading.image_mobile_url}
+              dragActive={dragTarget === 'image_mobile_url'}
+              previewError={previewErrors.image_mobile_url}
+              uploadAriaLabel="Unggah file gambar HP"
+              urlAriaLabel="URL gambar HP manual"
+              urlPlaceholder="Atau masukkan URL gambar HP (/images/hero/...)"
+              previewAlt="Pratinjau gambar HP"
+              thumbnailClass="aspect-[9/16] w-28 shrink-0"
+              onChangeUrl={handleChangeImageUrl}
+              onClear={handleClearImage}
+              onSetPreviewError={onSetPreviewError}
+              onDrag={onDrag}
+              onDrop={onDrop}
+              onFileSelect={onFileSelect}
+            />
 
-              <input
-                type="text"
-                aria-label="URL gambar manual"
-                placeholder="Atau masukkan URL gambar (/images/hero/...)"
-                value={formData.image_url}
-                onChange={(e) => {
-                  onChangeForm((prev) => ({ ...prev, image_url: e.target.value }));
-                  onSetPreviewError(false);
-                }}
-                className={cn(MODAL_INPUT_CLASS, 'font-mono py-1.5')}
-              />
-
-              {formData.image_url && (
-                <div className="relative aspect-video w-full rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100">
-                  {previewError ? (
-                    <div className="flex flex-col items-center justify-center h-full w-full bg-zinc-100 text-zinc-500 text-center p-3">
-                      <ImageIcon className="h-5 w-5 mb-1 text-zinc-400" />
-                      <span className="text-[10px]">URL gambar tidak dapat dimuat</span>
-                    </div>
-                  ) : (
-                    <img
-                      src={formData.image_url}
-                      alt="Pratinjau slide"
-                      className="w-full h-full object-cover"
-                      onError={() => onSetPreviewError(true)}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
+            <HeroModalPhonePreview formData={formData} />
 
             <div className="pt-1">
               <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -713,10 +1049,19 @@ export function HeroManagementPanel() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
   const [formData, setFormData] = useState<HeroFormData>(INITIAL_FORM);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [dragActive, setDragActive] = useState<boolean>(false);
+  const [uploading, setUploading] = useState<HeroImageFlags>(NO_IMAGE_FLAGS);
+  const [dragTarget, setDragTarget] = useState<HeroImageTarget | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [previewError, setPreviewError] = useState<boolean>(false);
+  const [previewErrors, setPreviewErrors] = useState<HeroImageFlags>(NO_IMAGE_FLAGS);
+  const isUploading = uploading.image_url || uploading.image_mobile_url;
+
+  const setUploadingFor = (target: HeroImageTarget, value: boolean) => {
+    setUploading((prev) => ({ ...prev, [target]: value }));
+  };
+
+  const setPreviewErrorFor = useCallback((target: HeroImageTarget, value: boolean) => {
+    setPreviewErrors((prev) => ({ ...prev, [target]: value }));
+  }, []);
   const [isPreviewVisible, setIsPreviewVisible] = useState<boolean>(true);
 
   // Initialize from localStorage after mounting to avoid Next.js SSR hydration mismatch
@@ -766,7 +1111,6 @@ export function HeroManagementPanel() {
     }
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const lastCommittedRef = useRef<HeroSlide[]>([]);
   const latestOrderRef = useRef<HeroSlide[]>([]);
 
@@ -807,7 +1151,7 @@ export function HeroManagementPanel() {
   const handleOpenCreate = () => {
     setEditingSlide(null);
     setFormData(INITIAL_FORM);
-    setPreviewError(false);
+    setPreviewErrors(NO_IMAGE_FLAGS);
     setIsModalOpen(true);
   };
 
@@ -820,9 +1164,10 @@ export function HeroManagementPanel() {
       strip_title: slide.strip_title,
       href: slide.href,
       image_url: slide.image_url,
+      image_mobile_url: slide.image_mobile_url ?? '',
       is_active: slide.is_active,
     });
-    setPreviewError(false);
+    setPreviewErrors(NO_IMAGE_FLAGS);
     setIsModalOpen(true);
   };
 
@@ -831,30 +1176,22 @@ export function HeroManagementPanel() {
     setIsModalOpen(false);
     setEditingSlide(null);
     setFormData(INITIAL_FORM);
-    setPreviewError(false);
+    setPreviewErrors(NO_IMAGE_FLAGS);
   }, [isUploading]);
 
-  const handleFileUpload = async (file: File) => {
-    const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!validMimes.includes(file.type)) {
-      notify?.error('Format Tidak Didukung', 'Gunakan file JPEG, PNG, atau WebP.', {
+  /** Uploads one image file and writes the returned URL into the given form field. */
+  const handleFileUpload = async (file: File, target: HeroImageTarget) => {
+    const validationError = getUploadValidationError(file);
+    if (validationError) {
+      notify?.error(validationError.title, validationError.message, {
         source: HERO_NOTICE_SOURCE,
         action: 'upload',
-        detail: `Tipe file ${file.type} tidak didukung`,
+        detail: validationError.detail,
       });
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      notify?.error('File Terlalu Besar', 'Ukuran maksimal file gambar adalah 5MB.', {
-        source: HERO_NOTICE_SOURCE,
-        action: 'upload',
-        detail: `Ukuran file: ${(file.size / (1024 * 1024)).toFixed(2)}MB`,
-      });
-      return;
-    }
-
-    setIsUploading(true);
+    setUploadingFor(target, true);
     try {
       const body = new FormData();
       body.append('file', file);
@@ -870,9 +1207,9 @@ export function HeroManagementPanel() {
       }
 
       const result = await res.json();
-      setFormData((prev) => ({ ...prev, image_url: result.url }));
-      setPreviewError(false);
-      notify?.success('Upload Berhasil', 'Gambar slide berhasil diunggah.', {
+      setFormData((prev) => ({ ...prev, [target]: result.url }));
+      setPreviewErrorFor(target, false);
+      notify?.success('Upload Berhasil', IMAGE_UPLOAD_SUCCESS_MESSAGE[target], {
         source: HERO_NOTICE_SOURCE,
         action: 'upload',
         detail: result.url,
@@ -885,32 +1222,31 @@ export function HeroManagementPanel() {
         detail: msg,
       });
     } finally {
-      setIsUploading(false);
+      setUploadingFor(target, false);
     }
   };
 
-  const handleDrag = (e: React.DragEvent) => {
+  const handleFileSelect = (file: File, target: HeroImageTarget) => {
+    void handleFileUpload(file, target);
+  };
+
+  const handleDrag = (e: React.DragEvent, target: HeroImageTarget) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
+      setDragTarget(target);
     } else if (e.type === 'dragleave') {
-      setDragActive(false);
+      setDragTarget(null);
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent, target: HeroImageTarget) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer?.files?.[0]) {
-      void handleFileUpload(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      void handleFileUpload(e.target.files[0]);
+    setDragTarget(null);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      void handleFileUpload(file, target);
     }
   };
 
@@ -934,6 +1270,7 @@ export function HeroManagementPanel() {
       strip_title: formData.strip_title.trim(),
       href: formData.href.trim(),
       image_url: formData.image_url.trim(),
+      image_mobile_url: formData.image_mobile_url.trim() || null,
       is_active: formData.is_active,
     };
 
@@ -1379,17 +1716,16 @@ export function HeroManagementPanel() {
         isOpen={isModalOpen}
         editingSlide={editingSlide}
         formData={formData}
-        isUploading={isUploading}
-        dragActive={dragActive}
-        previewError={previewError}
-        fileInputRef={fileInputRef}
+        uploading={uploading}
+        dragTarget={dragTarget}
+        previewErrors={previewErrors}
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
         onChangeForm={setFormData}
-        onSetPreviewError={setPreviewError}
+        onSetPreviewError={setPreviewErrorFor}
         onDrag={handleDrag}
         onDrop={handleDrop}
-        onFileChange={handleFileChange}
+        onFileSelect={handleFileSelect}
       />
       {/* Floating Action Bar (Monochrome Dock for Multi-Select Bulk Delete) */}
       <AnimatePresence>

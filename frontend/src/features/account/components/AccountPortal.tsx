@@ -420,7 +420,7 @@ export function AccountPortal({
                         <div>
                           <div className="text-[13px] text-[#8A8F98] mb-1">Order #ARM-2026-0882</div>
                           <div className="text-[18px] font-normal text-white">
-                            Megaphone Titanium GP Full System
+                            Luster V2 M-Quick
                           </div>
                           <div className="text-[13px] text-[#8A8F98] mt-1">
                             Estimated delivery: 20 November 2026 • In fabrication

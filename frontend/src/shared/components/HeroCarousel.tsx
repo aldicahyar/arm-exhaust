@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
@@ -12,6 +12,8 @@ export interface HeroCampaignSlide {
   readonly stripTitle: string;
   readonly href: string;
   readonly image: string;
+  /** Gambar HP opsional (1080x1920, 9:16). Dipakai di layar < 768px; kosong = pakai `image`. */
+  readonly imageMobile?: string;
 }
 
 // Standar gambar: Full-bleed 1920x1080 (16:9) landscape fotografi sinematik (seragam seperti 'Acara')
@@ -19,8 +21,8 @@ export const CAMPAIGN_SLIDES: readonly HeroCampaignSlide[] = [
   {
     id: 'kdv2-vario125',
     category: 'PRODUK',
-    title: 'ARM ZX-25R TITANIUM FULL SYSTEM',
-    stripTitle: 'ZX-25R Titanium Series',
+    title: 'ARM NUSANTARA TI — BURNT TITANIUM',
+    stripTitle: 'Nusantara Titanium Series',
     href: '/catalog',
     image: '/assets/products/sample-hero.jpg',
   },
@@ -52,6 +54,55 @@ export const CAMPAIGN_SLIDES: readonly HeroCampaignSlide[] = [
 
 const DURATION = 5500;
 
+/** Gambar HP dipakai di bawah breakpoint `md` Tailwind; >= 768px selalu gambar desktop. */
+const MOBILE_MEDIA = '(max-width: 767px)';
+
+interface HeroSlideImageProps {
+  readonly slide: HeroCampaignSlide;
+  readonly priority: boolean;
+}
+
+/**
+ * Art direction: bila slide punya Gambar HP, render <picture> agar browser hanya
+ * mengunduh satu sumber yang cocok dengan viewport. getImageProps tidak menyisipkan
+ * <link rel="preload">, jadi slide pertama tidak memicu unduhan ganda.
+ */
+function HeroSlideImage({ slide, priority }: Readonly<HeroSlideImageProps>) {
+  if (!slide.imageMobile) {
+    return (
+      <Image
+        src={slide.image}
+        alt={slide.title}
+        fill
+        priority={priority}
+        sizes="100vw"
+        className="object-cover object-center"
+      />
+    );
+  }
+
+  const common = {
+    alt: slide.title,
+    fill: true,
+    sizes: '100vw',
+    // Next 16: `priority` is deprecated; eager + high fetch priority for the first (LCP) slide.
+    loading: priority ? ('eager' as const) : undefined,
+    fetchPriority: priority ? ('high' as const) : undefined,
+    className: 'object-cover object-center',
+  };
+  const { props: mobileProps } = getImageProps({ ...common, src: slide.imageMobile });
+  // `images.unoptimized: true` (next.config.ts) => getImageProps tidak menghasilkan srcSet, jadi pakai src.
+  const mobileSrcSet = mobileProps.srcSet ?? mobileProps.src;
+  const { props: desktopProps } = getImageProps({ ...common, src: slide.image });
+
+  return (
+    <picture>
+      <source media={MOBILE_MEDIA} srcSet={mobileSrcSet} sizes="100vw" />
+      <img {...desktopProps} alt={slide.title} />
+    </picture>
+  );
+}
+
 interface RawApiSlide {
   readonly id?: string;
   readonly category?: string;
@@ -62,6 +113,7 @@ interface RawApiSlide {
   readonly href?: string;
   readonly image_url?: string;
   readonly image?: string;
+  readonly image_mobile_url?: string | null;
   readonly sort_order?: number;
   readonly is_active?: boolean;
 }
@@ -96,6 +148,7 @@ export function HeroCarousel() {
           stripTitle: item.strip_title ?? item.stripTitle ?? item.title ?? '',
           href: item.href ?? '/catalog',
           image: item.image_url ?? item.image ?? '/assets/products/sample-hero.jpg',
+          imageMobile: item.image_mobile_url ?? undefined,
         }));
         if (validSlides.length > 0) {
           setSlides(validSlides);
@@ -189,14 +242,7 @@ export function HeroCarousel() {
               transition={{ duration: shouldReduceMotion ? 0.2 : 0.6, ease: 'easeOut' }}
               className="absolute inset-0"
             >
-              <Image
-                src={slide.image}
-                alt={slide.title}
-                fill
-                priority={slideIndex === 0}
-                sizes="100vw"
-                className="object-cover object-center"
-              />
+              <HeroSlideImage slide={slide} priority={slideIndex === 0} />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -212,7 +258,8 @@ export function HeroCarousel() {
         />
 
         {/* Content Layer Over Image */}
-        <div className="relative z-20 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8 lg:pb-20">
+        {/* Left edge aligned with the Previous Slide chevron (left-5 + centered 32px icon ≈ 40px) */}
+        <div className="relative z-20 flex w-full flex-1 flex-col justify-end px-4 pb-12 sm:px-10 sm:pb-16 lg:pb-20">
           <AnimatePresence mode="wait">
             <motion.div
               key={slide.id}
@@ -220,10 +267,10 @@ export function HeroCarousel() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
               transition={{ duration: 0.28, ease: 'easeOut' }}
-              className="max-w-3xl"
+              className="max-w-4xl"
             >
               {/* Bold Marque Title (Clean Typography without arrow icon or strip badge) */}
-              <h1 className="font-['Space_Grotesk'] text-2xl sm:text-4xl md:text-5xl lg:text-[54px] font-bold tracking-tight text-white drop-shadow-2xl leading-[1.08]">
+              <h1 className="font-['Montserrat'] text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-light uppercase tracking-[0.06em] lg:tracking-[0.1em] text-balance text-white drop-shadow-2xl leading-[1.2]">
                 <Link
                   href={slide.href}
                   className="inline transition-colors duration-200 hover:text-zinc-200"
@@ -233,7 +280,7 @@ export function HeroCarousel() {
               </h1>
 
               {/* Contextual Action Links */}
-              <div className="mt-4 flex items-center gap-4 text-xs font-medium">
+              <div className="mt-5 flex items-center gap-3 sm:gap-5 whitespace-nowrap font-['Montserrat'] text-[10px] sm:text-[11px] font-normal uppercase tracking-[0.14em] sm:tracking-[0.22em]">
                 <Link
                   href={slide.href}
                   className="inline-flex items-center gap-1.5 text-white hover:text-zinc-300 transition-colors py-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 rounded"

@@ -118,7 +118,7 @@ export default function VerifyNotFound() {
                 type="text"
                 value={inputSerial}
                 onChange={(e) => setInputSerial(e.target.value)}
-                placeholder="e.g. ARM-ZX25R-2026-0882"
+                placeholder="e.g. ARM-NMAX-2026-0882"
                 className="flex-1 bg-black text-white px-4 py-3 text-sm font-mono outline-none placeholder:text-zinc-600"
                 required
               />

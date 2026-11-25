@@ -32,6 +32,19 @@ const createMockPrisma = () => {
       findMany: async () => store.campaignSlide,
       findUnique: async ({ where }) => store.campaignSlide.find((s) => s.id === where.id),
       findFirst: async () => store.campaignSlide[store.campaignSlide.length - 1],
+      create: async ({ data }) => {
+        store.lastCampaignSlideCreateData = data;
+        const item = { id: `cs-${Date.now()}`, ...data };
+        store.campaignSlide.push(item);
+        return item;
+      },
+      update: async ({ where, data }) => {
+        store.lastCampaignSlideUpdateData = data;
+        const idx = store.campaignSlide.findIndex((s) => s.id === where.id);
+        if (idx === -1) throw new Error('Not found');
+        store.campaignSlide[idx] = { ...store.campaignSlide[idx], ...data };
+        return store.campaignSlide[idx];
+      },
     },
     communityEvent: {
       count: async () => store.communityEvent.length,
@@ -232,6 +245,52 @@ const createMockPrisma = () => {
   assert.equal(updatedHeaders.section3.tag, 'Produk Baru');
   assert.equal(updatedHeaders.section3.title, 'Terbaru dari Bengkel');
   console.log('✅ Test 4 Passed: Home headers get and update via AppConfig');
+}
+
+// Test 5: Hero slide optional mobile image (image_mobile_url)
+{
+  const mockPrisma = createMockPrisma();
+  const service = new ContentManagementService(mockPrisma);
+
+  mockPrisma._store.campaignSlide = [
+    {
+      id: 'cs-1', category: 'C', tag: 'T', title: 'Slide 1', strip_title: 'S1', href: '/a',
+      image_url: '/desktop.jpg', image_mobile_url: '/mobile.jpg', sort_order: 0, is_active: true,
+    },
+  ];
+
+  // Whitespace-only value clears the mobile image (stored as null)
+  await service.updateHeroSlide('cs-1', { image_mobile_url: '  ' });
+  assert.ok(
+    Object.hasOwn(mockPrisma._store.lastCampaignSlideUpdateData, 'image_mobile_url'),
+    'Update data must include image_mobile_url when provided',
+  );
+  assert.equal(mockPrisma._store.lastCampaignSlideUpdateData.image_mobile_url, null);
+
+  // Explicit null also clears
+  await service.updateHeroSlide('cs-1', { image_mobile_url: null });
+  assert.equal(mockPrisma._store.lastCampaignSlideUpdateData.image_mobile_url, null);
+
+  // Non-empty value is trimmed
+  await service.updateHeroSlide('cs-1', { image_mobile_url: '  /new-mobile.jpg ' });
+  assert.equal(mockPrisma._store.lastCampaignSlideUpdateData.image_mobile_url, '/new-mobile.jpg');
+
+  // Omitted field is left untouched (key absent from update data)
+  await service.updateHeroSlide('cs-1', { title: 'X' });
+  assert.equal(
+    Object.hasOwn(mockPrisma._store.lastCampaignSlideUpdateData, 'image_mobile_url'),
+    false,
+    'Update data must not include image_mobile_url when omitted',
+  );
+  assert.equal(mockPrisma._store.campaignSlide[0].image_mobile_url, '/new-mobile.jpg');
+
+  // Create without the field stores null
+  await service.createHeroSlide({
+    category: 'C', tag: 'T', title: 'Slide 2', strip_title: 'S2', href: '/b', image_url: '/d2.jpg',
+  });
+  assert.equal(mockPrisma._store.lastCampaignSlideCreateData.image_mobile_url, null);
+
+  console.log('✅ Test 5 Passed: Hero slide image_mobile_url normalization (null/trim/untouched)');
 }
 
 console.log('🎉 All ContentManagementService unit tests passed successfully!');

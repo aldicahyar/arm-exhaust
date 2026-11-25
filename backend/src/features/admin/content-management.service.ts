@@ -32,8 +32,8 @@ export const DEFAULT_CAMPAIGN_SLIDES = [
   {
     category: 'PRODUK',
     tag: '01 / NEW ARRIVAL',
-    title: 'ARM ZX-25R TITANIUM FULL SYSTEM',
-    strip_title: 'ZX-25R Titanium Series',
+    title: 'ARM NUSANTARA TI — BURNT TITANIUM',
+    strip_title: 'Nusantara Titanium Series',
     href: '/catalog',
     image_url: '/assets/products/sample-hero.jpg',
     sort_order: 0,
@@ -685,6 +685,7 @@ export class ContentManagementService implements OnModuleInit {
       strip_title: dto.strip_title ?? dto.stripTitle,
       href: dto.href,
       image_url: dto.image_url ?? dto.imageUrl ?? dto.image,
+      image_mobile_url: this.normalizeOptionalImage(dto.image_mobile_url) ?? null,
       sort_order: sortOrder,
       is_active: dto.is_active ?? dto.isActive ?? true,
     };
@@ -698,9 +699,27 @@ export class ContentManagementService implements OnModuleInit {
       strip_title: dto.strip_title ?? dto.stripTitle,
       href: dto.href,
       image_url: dto.image_url ?? dto.imageUrl ?? dto.image,
+      image_mobile_url: this.normalizeOptionalImage(dto.image_mobile_url),
       sort_order: dto.sort_order ?? dto.sortOrder,
       is_active: dto.is_active ?? dto.isActive,
     };
+  }
+
+  /**
+   * Normalizes an optional image URL field:
+   * `undefined` stays `undefined` (field untouched on update),
+   * `null` / empty / whitespace-only strings become `null` (clears the image),
+   * other strings are trimmed.
+   */
+  private normalizeOptionalImage(value: unknown): string | null | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+    if (typeof value !== 'string') {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
   }
 
   private normalizeEventPayload(dto: any, sortOrder: number) {

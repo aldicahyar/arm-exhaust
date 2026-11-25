@@ -32,6 +32,11 @@ export class CreateCampaignSlideDto {
   image_url: string;
 
   @IsOptional()
+  @IsString({ message: 'URL gambar HP harus berupa teks.' })
+  @MaxLength(255, { message: 'URL gambar HP maksimal 255 karakter.' })
+  image_mobile_url?: string | null;
+
+  @IsOptional()
   @IsNumber({}, { message: 'Sort order harus berupa angka.' })
   sort_order?: number;
 
@@ -70,6 +75,11 @@ export class UpdateCampaignSlideDto {
   @IsString()
   @MaxLength(255)
   image_url?: string;
+
+  @IsOptional()
+  @IsString({ message: 'URL gambar HP harus berupa teks.' })
+  @MaxLength(255, { message: 'URL gambar HP maksimal 255 karakter.' })
+  image_mobile_url?: string | null;
 
   @IsOptional()
   @IsNumber()

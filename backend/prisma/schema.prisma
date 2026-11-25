@@ -193,17 +193,18 @@ model RateLimit {
 }
 
 model CampaignSlide {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  category    String   @db.VarChar(30)
-  tag         String   @db.VarChar(50)
-  title       String   @db.VarChar(150)
-  strip_title String   @map("strip_title") @db.VarChar(80)
-  href        String   @db.VarChar(255)
-  image_url   String   @map("image_url") @db.VarChar(255)
-  sort_order  Int      @default(0) @map("sort_order")
-  is_active   Boolean  @default(true) @map("is_active")
-  created_at  DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updated_at  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category         String   @db.VarChar(30)
+  tag              String   @db.VarChar(50)
+  title            String   @db.VarChar(150)
+  strip_title      String   @map("strip_title") @db.VarChar(80)
+  href             String   @db.VarChar(255)
+  image_url        String   @map("image_url") @db.VarChar(255)
+  image_mobile_url String?  @map("image_mobile_url") @db.VarChar(255)
+  sort_order       Int      @default(0) @map("sort_order")
+  is_active        Boolean  @default(true) @map("is_active")
+  created_at       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updated_at       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   @@index([is_active, sort_order])
   @@map("t_mtr_campaign_slides")

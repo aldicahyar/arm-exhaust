@@ -166,8 +166,8 @@ export async function fetchDashboardTelemetry(): Promise<CustomerDashboardTeleme
     memberSince: 'November 2026',
     activeFabrication: {
       orderCode: 'ARM-8821',
-      productName: 'Megaphone Titanium GP Full System',
-      targetMotorbike: 'Kawasaki Ninja ZX-25R',
+      productName: 'Luster V2 M-Quick',
+      targetMotorbike: 'Yamaha NMAX Turbo',
       status: 'IN_FABRICATION',
       stage: 'TIG_WELDING',
       stageLabel: 'Argon TIG Header Welding & Fabrication',
@@ -181,20 +181,20 @@ export async function fetchDashboardTelemetry(): Promise<CustomerDashboardTeleme
     },
     motorbikes: [
       {
-        id: 'mb-zx25r-01',
-        brand: 'Kawasaki',
-        model: 'Ninja ZX-25R',
+        id: 'mb-nmax-01',
+        brand: 'Yamaha',
+        model: 'NMAX Turbo',
         year: 2023,
         engineSpecs: '249cc • 4-Cylinder Inline',
         headerPortMm: 50,
         isPrimary: true,
         installedExhaust: {
-          modelName: 'Megaphone Titanium GP Full System',
-          serialNumber: 'ARM-ZX25R-2026-0882',
+          modelName: 'Luster V2 M-Quick',
+          serialNumber: 'ARM-NMAX-2026-0882',
           isVerified: true,
           warrantyStatus: 'ACTIVE',
           warrantyType: 'Lifetime Structural TIG Weld',
-          verificationUrl: '/verify/ARM-ZX25R-2026-0882',
+          verificationUrl: '/verify/ARM-NMAX-2026-0882',
         },
       },
     ],
@@ -225,9 +225,9 @@ export async function fetchPublicCertificate(
     isProtected: true,
     requiresToken: true,
     tokenValid: false,
-    serialNumber: canonical || 'ARM-ZX25R-2026-0882',
-    modelName: 'Megaphone Titanium GP Full System',
-    vehicleMatch: 'Kawasaki Ninja ZX-25R (2023)',
+    serialNumber: canonical || 'ARM-NMAX-2026-0882',
+    modelName: 'Luster V2 M-Quick',
+    vehicleMatch: 'Yamaha NMAX Turbo (2024)',
     message: 'Official ARM authenticity record found. Verification token required to unlock full provenance.',
   };
 
@@ -236,9 +236,9 @@ export async function fetchPublicCertificate(
     isProtected: false,
     requiresToken: false,
     tokenValid: true,
-    serialNumber: canonical || 'ARM-ZX25R-2026-0882',
-    modelName: 'Megaphone Titanium GP Full System',
-    vehicleMatch: 'Kawasaki Ninja ZX-25R (2023)',
+    serialNumber: canonical || 'ARM-NMAX-2026-0882',
+    modelName: 'Luster V2 M-Quick',
+    vehicleMatch: 'Yamaha NMAX Turbo (2024)',
     materialGrade: 'Grade 1 Japanese Titanium (TIG Welded)',
     fabricationDate: '18 November 2026',
     welderSignature: 'ARM Master Tech #04',
@@ -261,7 +261,7 @@ export async function fetchPublicCertificate(
       cache: 'no-store',
     });
     if (!res.ok) {
-      if (canonical !== 'ARM-ZX25R-2026-0882') {
+      if (canonical !== 'ARM-NMAX-2026-0882') {
         return null;
       }
       return fallback;
@@ -269,7 +269,7 @@ export async function fetchPublicCertificate(
     const data = await res.json();
     return data ?? fallback;
   } catch {
-    if (canonical !== 'ARM-ZX25R-2026-0882') {
+    if (canonical !== 'ARM-NMAX-2026-0882') {
       return null;
     }
     return fallback;

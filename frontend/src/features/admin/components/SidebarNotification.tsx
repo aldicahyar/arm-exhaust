@@ -87,7 +87,7 @@ export const DEFAULT_ADMIN_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-1',
     title: 'Pesanan Baru',
-    description: '#ARM-8821 — Knalpot ZX-25R Carbon Full System (Menunggu Konfirmasi)',
+    description: '#ARM-8821 — Knalpot Warrior NMAX (Menunggu Konfirmasi)',
     time: '5 menit lalu',
     category: 'order',
     unread: true,
@@ -132,7 +132,7 @@ export const DEFAULT_ADMIN_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'notif-6',
     title: 'Peringatan Stok Sistem',
-    description: 'Sisa stok Silencer Titanium Ninja 250 tersisa 2 unit di gudang pusat',
+    description: 'Sisa stok Silencer Supernova Vario tersisa 2 unit di gudang pusat',
     time: '5 jam lalu',
     category: 'security',
     unread: true,

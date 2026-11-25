@@ -27,9 +27,9 @@ assert.ok(
   'Must handle absolute baseUrl for SSR in fetchPublicCertificate'
 );
 assert.ok(
-  apiContent.includes('return canonical === \'ARM-ZX25R-2026-0882\' ? fallback : null') ||
-  apiContent.includes('if (canonical !== \'ARM-ZX25R-2026-0882\') {\n      return null;') ||
-  apiContent.includes('if (canonical !== \'ARM-ZX25R-2026-0882\') return null;'),
+  apiContent.includes('return canonical === \'ARM-NMAX-2026-0882\' ? fallback : null') ||
+  apiContent.includes('if (canonical !== \'ARM-NMAX-2026-0882\') {\n      return null;') ||
+  apiContent.includes('if (canonical !== \'ARM-NMAX-2026-0882\') return null;'),
   'Catch block must not return fallback for unknown serial numbers'
 );
 

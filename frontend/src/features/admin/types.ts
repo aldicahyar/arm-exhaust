@@ -143,6 +143,7 @@ export interface HeroSlide {
   strip_title: string;
   href: string;
   image_url: string;
+  image_mobile_url?: string | null;
   sort_order: number;
   is_active: boolean;
   created_at?: string;

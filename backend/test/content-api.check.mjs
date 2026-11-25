@@ -87,8 +87,8 @@ assert.ok(
 
 // Check seeding defaults
 assert.ok(
-  serviceContent.includes('ARM ZX-25R TITANIUM FULL SYSTEM'),
-  'Must include default ARM ZX-25R titanium slide in seed defaults',
+  serviceContent.includes('ARM NUSANTARA TI — BURNT TITANIUM'),
+  'Must include default ARM Nusantara Ti burnt titanium slide in seed defaults',
 );
 assert.ok(
   serviceContent.includes('Sponsored event name') || serviceContent.includes('SPONSORSHIP'),
@@ -315,10 +315,10 @@ assert.equal(activeSlides[0].sort_order, 0, 'First slide sort_order should be 0'
 const newSlide = await service.createHeroSlide({
   category: 'PRODUK',
   tag: '05 / RACING',
-  title: 'ARM CBR250RR FULL SYSTEM',
-  strip_title: 'CBR250RR Series',
+  title: 'ARM VARIO 160 FULL SYSTEM',
+  strip_title: 'Vario 160 Series',
   href: '/catalog',
-  image_url: '/assets/products/cbr.jpg',
+  image_url: '/assets/products/vario.jpg',
 });
 assert.equal(newSlide.sort_order, 4, 'New slide sort_order should be max + 1 (4)');
 

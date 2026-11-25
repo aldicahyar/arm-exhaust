@@ -38,8 +38,8 @@ export class VerifyService {
     });
 
     if (!certificate) {
-      // Check for default showcase serial number if DB empty (e.g., initial seed for Ninja ZX-25R)
-      if (canonicalSerial === 'ARM-ZX25R-2026-0882') {
+      // Check for default showcase serial number if DB empty (e.g., initial seed for NMAX Turbo)
+      if (canonicalSerial === 'ARM-NMAX-2026-0882') {
         const isDemoTokenMatch = cleanToken === 'v_k9m2xLq1p8yT3w';
 
         if (!isDemoTokenMatch) {
@@ -48,9 +48,9 @@ export class VerifyService {
             isProtected: true,
             requiresToken: true,
             tokenValid: false,
-            serialNumber: 'ARM-ZX25R-2026-0882',
-            modelName: 'Megaphone Titanium GP Full System',
-            vehicleMatch: 'Kawasaki Ninja ZX-25R (2023)',
+            serialNumber: 'ARM-NMAX-2026-0882',
+            modelName: 'Luster V2 M-Quick',
+            vehicleMatch: 'Yamaha NMAX Turbo (2024)',
             message: 'Official ARM authenticity record found. Verification token required to unlock full provenance.',
           };
         }
@@ -60,9 +60,9 @@ export class VerifyService {
           isProtected: false,
           requiresToken: false,
           tokenValid: true,
-          serialNumber: 'ARM-ZX25R-2026-0882',
-          modelName: 'Megaphone Titanium GP Full System',
-          vehicleMatch: 'Kawasaki Ninja ZX-25R (2023)',
+          serialNumber: 'ARM-NMAX-2026-0882',
+          modelName: 'Luster V2 M-Quick',
+          vehicleMatch: 'Yamaha NMAX Turbo (2024)',
           materialGrade: 'Grade 1 Japanese Titanium (TIG Welded)',
           fabricationDate: '18 November 2026',
           welderSignature: 'ARM Master Tech #04',
@@ -81,7 +81,7 @@ export class VerifyService {
 
     const vehicleMatch = certificate.motorbike
       ? `${certificate.motorbike.brand} ${certificate.motorbike.model} (${certificate.motorbike.year})`
-      : 'Kawasaki Ninja ZX-25R (2023)';
+      : 'Yamaha NMAX Turbo (2024)';
 
     // 2. Validate token against certificate record
     const recordToken = (certificate as { verification_token?: string | null }).verification_token;
