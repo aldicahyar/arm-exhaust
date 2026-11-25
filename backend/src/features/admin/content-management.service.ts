@@ -32,7 +32,7 @@ export const DEFAULT_CAMPAIGN_SLIDES = [
   {
     category: 'PRODUK',
     tag: '01 / NEW ARRIVAL',
-    title: 'ARM NUSANTARA TI — BURNT TITANIUM',
+    title: 'ARM NUSANTARA BURNT TITANIUM',
     strip_title: 'Nusantara Titanium Series',
     href: '/catalog',
     image_url: '/assets/products/sample-hero.jpg',

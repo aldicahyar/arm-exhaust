@@ -21,7 +21,7 @@ export const CAMPAIGN_SLIDES: readonly HeroCampaignSlide[] = [
   {
     id: 'kdv2-vario125',
     category: 'PRODUK',
-    title: 'ARM NUSANTARA TI — BURNT TITANIUM',
+    title: 'ARM NUSANTARA BURNT TITANIUM',
     stripTitle: 'Nusantara Titanium Series',
     href: '/catalog',
     image: '/assets/products/sample-hero.jpg',

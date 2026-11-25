@@ -922,7 +922,7 @@ function HeroSlideModal({
                 id="slide-title"
                 type="text"
                 required
-                placeholder="ARM NUSANTARA TI — BURNT TITANIUM"
+                placeholder="ARM NUSANTARA BURNT TITANIUM"
                 value={formData.title}
                 onChange={(e) => onChangeForm((prev) => ({ ...prev, title: e.target.value }))}
                 className={cn(MODAL_INPUT_CLASS, 'font-semibold')}

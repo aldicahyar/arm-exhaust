@@ -87,7 +87,7 @@ assert.ok(
 
 // Check seeding defaults
 assert.ok(
-  serviceContent.includes('ARM NUSANTARA TI — BURNT TITANIUM'),
+  serviceContent.includes('ARM NUSANTARA BURNT TITANIUM'),
   'Must include default ARM Nusantara Ti burnt titanium slide in seed defaults',
 );
 assert.ok(
