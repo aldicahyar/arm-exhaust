@@ -1,13 +1,17 @@
 {
   "name": "arm-exhaust",
   "version": "0.1.0",
+  "engines": {
+    "node": ">=26"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "test": "npm run test:auth",
-    "test:auth": "node src/features/auth/__tests__/use-auth-form-priority.check.mjs && node src/features/auth/__tests__/otp-step-bencho.check.mjs && node src/features/auth/__tests__/auth-checkbox.check.mjs && node src/features/auth/__tests__/auth-transition.check.mjs && node src/features/auth/__tests__/label-input.check.mjs && node src/features/auth/__tests__/use-auth-form-remember.check.mjs && node src/features/auth/__tests__/auth-google-button.check.mjs && node src/features/auth/__tests__/auth-card-bencho.check.mjs && node src/features/auth/__tests__/label-input-fixes.check.mjs && node src/features/auth/__tests__/auth-card.check.mjs && node src/features/auth/__tests__/auth-card-forgot-password.check.mjs && node src/features/auth/__tests__/reset-password-page.check.mjs"
+    "test:auth": "node src/features/auth/__tests__/use-auth-form-priority.check.mjs && node src/features/auth/__tests__/otp-step-bencho.check.mjs && node src/features/auth/__tests__/auth-checkbox.check.mjs && node src/features/auth/__tests__/auth-transition.check.mjs && node src/features/auth/__tests__/label-input.check.mjs && node src/features/auth/__tests__/use-auth-form-remember.check.mjs && node src/features/auth/__tests__/auth-google-button.check.mjs && node src/features/auth/__tests__/auth-card-bencho.check.mjs && node src/features/auth/__tests__/label-input-fixes.check.mjs && node src/features/auth/__tests__/auth-card.check.mjs && node src/features/auth/__tests__/auth-card-forgot-password.check.mjs && node src/features/auth/__tests__/reset-password-page.check.mjs",
+    "test:home": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/features/catalog/__tests__/showcase-math.check.mjs && node src/features/catalog/__tests__/new-arrivals-showcase.check.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/features/community/__tests__/agenda-date.check.mjs && node src/features/community/__tests__/events-agenda.check.mjs"
   },
   "dependencies": {
     "@types/node": "^26.6.6",

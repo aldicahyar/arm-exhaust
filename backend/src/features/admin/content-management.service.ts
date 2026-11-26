@@ -132,7 +132,7 @@ export const DEFAULT_HOME_VALUE_PROPS = [
   {
     step_number: '04',
     title: 'IN-HOUSE FITTING',
-    description: 'Installed by ARM technicians: precise, clean, measured.',
+    description: 'Fitted in the ARM workshop by our own technicians, not a third-party installer.',
     sort_order: 3,
     is_active: true,
   },
@@ -195,7 +195,7 @@ export const DEFAULT_HOME_NEW_ARRIVALS = [
 
 export const DEFAULT_HOME_SECTION_2_HEADER: HomeHeaderDto = {
   tag: 'Why ARM Exhaust',
-  title: 'Custom, precise, warranted.',
+  title: 'Made for one bike at a time.',
 };
 
 export const DEFAULT_HOME_SECTION_3_HEADER: HomeHeaderDto = {

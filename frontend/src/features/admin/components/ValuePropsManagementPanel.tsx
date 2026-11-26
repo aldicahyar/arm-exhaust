@@ -432,7 +432,7 @@ export function ValuePropsManagementPanel({ className }: Readonly<ValuePropsMana
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
   const [headerData, setHeaderData] = useState<HomeSectionHeader>({
     tag: 'Why ARM Exhaust',
-    title: 'Custom, precise, warranted.',
+    title: 'Made for one bike at a time.',
   });
   const [isSavingHeader, setIsSavingHeader] = useState(false);
 
@@ -467,7 +467,7 @@ export function ValuePropsManagementPanel({ className }: Readonly<ValuePropsMana
         if (headersJson?.section2) {
           setHeaderData({
             tag: headersJson.section2.tag ?? 'Why ARM Exhaust',
-            title: headersJson.section2.title ?? 'Custom, precise, warranted.',
+            title: headersJson.section2.title ?? 'Made for one bike at a time.',
           });
         }
       }
@@ -787,7 +787,7 @@ export function ValuePropsManagementPanel({ className }: Readonly<ValuePropsMana
                   onChange={(e) =>
                     setHeaderData((prev) => ({ ...prev, title: e.target.value }))
                   }
-                  placeholder="Custom, precise, warranted."
+                  placeholder="Made for one bike at a time."
                   className={cn(MODAL_INPUT_CLASS, 'font-medium bg-white')}
                 />
               </div>

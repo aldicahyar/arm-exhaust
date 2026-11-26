@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { HeroCarousel } from '@/shared/components';
-import { ProductCard } from '@/features/catalog';
+import { HeroCarousel, Reveal } from '@/shared/components';
+import { NewArrivalsShowcase, type ShowcaseItem } from '@/features/catalog';
+import { EventsAgenda } from '@/features/community';
+import { preferCatalogImage } from '@/features/catalog/showcase-math';
 import { PRODUCTS, type Product } from '@/shared/lib/products';
 
 export interface CommunityEventItem {
@@ -90,12 +90,12 @@ export const DEFAULT_VALUE_PROPS: readonly HomeValuePropItem[] = [
   { stepNumber: '01', title: 'CUSTOM PER BIKE', description: 'Built to match your bike and preferred sound — not factory dimensions.' },
   { stepNumber: '02', title: 'ROAD TESTED', description: 'Every unit is road-tested before being handed to its owner.' },
   { stepNumber: '03', title: 'WORKSHOP WARRANTY', description: 'Official warranty on materials and build quality.' },
-  { stepNumber: '04', title: 'IN-HOUSE FITTING', description: 'Installed by ARM technicians: precise, clean, measured.' },
+  { stepNumber: '04', title: 'IN-HOUSE FITTING', description: 'Fitted in the ARM workshop by our own technicians, not a third-party installer.' },
 ];
 
 export const DEFAULT_VALUE_PROPS_HEADER: HomeHeader = {
   tag: 'Why ARM Exhaust',
-  title: 'Custom, precise, warranted.',
+  title: 'Made for one bike at a time.',
 };
 
 export const DEFAULT_NEW_ARRIVALS_HEADER: HomeHeader = {
@@ -166,7 +166,8 @@ function mapNewArrivalToProduct(item: HomeNewArrivalItem): Product {
       inlet: item.inlet ?? catalogProduct.inlet,
       material: item.material ?? catalogProduct.material,
       price: item.priceDisplay ?? item.price_display ?? catalogProduct.price,
-      image: item.imageUrl ?? item.image_url ?? catalogProduct.image,
+      // Foto bawaan lama di data admin (sample-hero / flyer *-grid) diganti foto katalog resmi ARM.
+      image: preferCatalogImage(item.imageUrl ?? item.image_url, catalogProduct.image) ?? catalogProduct.image,
     };
   }
 
@@ -285,139 +286,71 @@ export default function LandingPage() {
     };
   }, []);
 
+  const showcaseItems: ShowcaseItem[] = newArrivals.map((item) => {
+    const product = mapNewArrivalToProduct(item);
+    return {
+      key: item.id,
+      product,
+      href: item.href ?? `/products/${product.id}`,
+    };
+  });
+
   return (
     <main className="min-h-screen bg-[#0A0A0B] text-white selection:bg-zinc-800 selection:text-white">
       {/* Hero Section — Progressive Carousel */}
       <HeroCarousel />
 
       {/* Section 2: Trust / Value Props */}
-      <section className="border-t border-[#1E1E21] min-h-[calc(100svh-128px)] flex flex-col justify-center">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-16 w-full flex flex-col">
-          <span className="font-mono text-xs text-[#8A8F98] tracking-wider uppercase">
-            {valuePropsHeader.tag}
-          </span>
-          <h2 className="font-['Space_Grotesk'] text-xl md:text-2xl font-bold tracking-tight text-white mt-1">
-            {valuePropsHeader.title}
-          </h2>
+      {/* Editorial split: gutter sama dengan hero (px-4 sm:px-10), tipografi Montserrat light uppercase */}
+      <section
+        aria-labelledby="value-props-title"
+        className="border-t border-[#1E1E21] min-h-[calc(100svh-128px)] flex flex-col justify-center"
+      >
+        <div className="w-full px-4 sm:px-10 py-20 lg:py-28 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
+          {/* Kolom kiri — judul section (sticky di desktop) */}
+          <div className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start">
+            <span className="font-['Montserrat'] text-[11px] font-normal uppercase tracking-[0.22em] text-zinc-400">
+              {valuePropsHeader.tag}
+            </span>
+            <h2
+              id="value-props-title"
+              className="mt-5 font-['Montserrat'] text-2xl sm:text-3xl lg:text-[40px] font-light uppercase tracking-[0.06em] lg:tracking-[0.08em] leading-[1.2] text-balance text-white"
+            >
+              {valuePropsHeader.title}
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[#1E1E21] border border-[#1E1E21] mt-8">
-            {valueProps.map((v, idx) => {
-              const stepNumber = String(idx + 1).padStart(2, '0');
-              return (
-                <div key={v.id ?? `val-prop-${stepNumber}`} className="bg-[#0A0A0B] p-6">
-                  <span className="font-mono text-xs text-white/25">{stepNumber}</span>
-                  <h3
-                    className="text-white mt-3 leading-none"
-                    style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', letterSpacing: '0.05em' }}
-                  >
+          {/* Kolom kanan — daftar keunggulan (tanpa urutan) dipisah hairline; muncul sekali sebagai satu blok */}
+          <Reveal className="lg:col-span-7">
+            <ul className="border-b border-[#1E1E21]">
+              {valueProps.map((v) => (
+                <li
+                  key={v.id ?? v.title}
+                  className="grid grid-cols-1 gap-y-3 border-t border-[#1E1E21] py-8 sm:py-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-10"
+                >
+                  <h3 className="font-['Montserrat'] text-base sm:text-lg font-light uppercase tracking-[0.14em] leading-snug text-white">
                     {v.title}
                   </h3>
-                  <p className="text-xs text-[#8A8F98] leading-relaxed mt-2">{v.description}</p>
-                </div>
-              );
-            })}
-          </div>
+                  <p className="text-sm leading-relaxed text-zinc-400">{v.description}</p>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
         </div>
       </section>
 
-      {/* Section 3: New Arrival — Product Grid */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-16 border-t border-[#1E1E21] w-full min-h-[calc(100svh-128px)] flex flex-col justify-center">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <span className="font-mono text-xs text-[#8A8F98] tracking-wider uppercase">
-              {newArrivalsHeader.tag}
-            </span>
-            <h2 className="font-['Space_Grotesk'] text-xl md:text-2xl font-bold tracking-tight text-white mt-1">
-              {newArrivalsHeader.title}
-            </h2>
-          </div>
-          <Link
-            href={newArrivalsHeader.linkHref ?? '/catalog'}
-            className="text-xs font-medium text-[#9AA0A8] hover:text-white transition-colors"
-          >
-            {newArrivalsHeader.linkLabel ?? 'All Products ↗'}
-          </Link>
-        </div>
+      {/* Section 3: New Arrival — pinned scrolling (desktop) / bertumpuk (HP, reduced-motion) */}
+      <NewArrivalsShowcase
+        header={{
+          tag: newArrivalsHeader.tag,
+          title: newArrivalsHeader.title,
+          linkHref: newArrivalsHeader.linkHref ?? '/catalog',
+        }}
+        items={showcaseItems}
+      />
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {newArrivals.map((item) => {
-            const product = mapNewArrivalToProduct(item);
-            const badge = item.badgeText ?? item.badge_text;
-            return (
-              <div key={item.id} className="relative group/card">
-                {badge ? (
-                  <span className="pointer-events-none absolute top-2.5 left-2.5 z-10 font-mono text-[10px] text-zinc-300 border border-[#3A3A42] bg-[#141416]/90 backdrop-blur-sm px-2 py-0.5 rounded uppercase tracking-wider shadow-sm">
-                    {badge}
-                  </span>
-                ) : null}
-                <ProductCard item={product} />
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Section 4: News / Event — ARM on the ground */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-16 border-t border-[#1E1E21] w-full min-h-[calc(100svh-128px)] flex flex-col justify-center">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <span className="font-mono text-xs text-[#8A8F98] tracking-wider uppercase">
-              Events & Community
-            </span>
-            <h2 className="font-['Space_Grotesk'] text-xl md:text-2xl font-bold tracking-tight text-white mt-1">
-              ARM on the ground.
-            </h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          {events.map((ev) => (
-            <article
-              key={ev.id}
-              className="group flex flex-col bg-[#141416] border border-[#2B2B30] rounded-lg overflow-hidden transition-colors hover:border-[#3A3A42]"
-            >
-              {/* Slot foto event 4:3 */}
-              <div className="relative aspect-[4/3] bg-[#1E1E21] overflow-hidden flex items-center justify-center">
-                <Image
-                  src={ev.imageUrl}
-                  alt={ev.title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 33vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-4 flex flex-col flex-1 justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-[#8A8F98]">{ev.eventDate}</span>
-                    <span className="font-mono text-[10px] text-zinc-300 border border-[#3A3A42] bg-[#1E1E21] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                      {ev.tag}
-                    </span>
-                  </div>
-                  <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-white leading-snug mt-2">
-                    {ev.href ? (
-                      <Link
-                        href={ev.href}
-                        className="hover:text-zinc-300 transition-colors inline-flex items-center gap-1"
-                      >
-                        <span>{ev.title}</span>
-                        <span aria-hidden="true" className="text-zinc-500">↗</span>
-                      </Link>
-                    ) : (
-                      ev.title
-                    )}
-                  </h3>
-                  {ev.description && (
-                    <p className="text-xs text-[#8A8F98] leading-relaxed mt-2 line-clamp-2">
-                      {ev.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      {/* Section 4: Events & Community — agenda editorial */}
+      <EventsAgenda tag="Events & Community" title="ARM on the ground." events={events} />
     </main>
   );
 }
